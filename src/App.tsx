@@ -15,7 +15,7 @@ function App() {
     
     try {
       // Simple test: get Supabase instance info
-      const { data, error } = await supabase.auth.getSession()
+      const { error } = await supabase.auth.getSession()
       
       if (error) {
         setConnectionStatus(`❌ Error: ${error.message}`)
