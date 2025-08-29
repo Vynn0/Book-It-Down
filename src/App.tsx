@@ -39,7 +39,7 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
+      <h1>BOOK IT DOWN</h1>
       
       {/* Supabase Connection Test */}
       <div className="card">
