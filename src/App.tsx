@@ -13,7 +13,6 @@ import {
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
-// Custom theme with your color palette
 const theme = createTheme({
   palette: {
     primary: {
