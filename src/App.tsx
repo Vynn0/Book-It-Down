@@ -1,81 +1,133 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import { supabase } from './utils/supabase'
+import {
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Typography,
+  Container,
+  CssBaseline,
+  InputAdornment
+} from '@mui/material'
+import { Email, Lock } from '@mui/icons-material'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+
+// Custom theme with your color palette
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#FF9B0F', // Orange
+    },
+    secondary: {
+      main: '#3C355F', // Purple
+    },
+  },
+})
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [connectionStatus, setConnectionStatus] = useState<string>('Not tested')
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const testSupabaseConnection = async () => {
-    setIsLoading(true)
-    setConnectionStatus('Testing...')
-    
-    try {
-      // Simple test: get Supabase instance info
-      const { error } = await supabase.auth.getSession()
-      
-      if (error) {
-        setConnectionStatus(`❌ Error: ${error.message}`)
-      } else {
-        setConnectionStatus('✅ Supabase connected successfully!')
-      }
-    } catch (err) {
-      setConnectionStatus(`❌ Connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
-    } finally {
-      setIsLoading(false)
-    }
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log('Login attempt:', { email, password })
+    // Login logic will go here later
   }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>BOOK IT DOWN</h1>
-      
-      {/* Supabase Connection Test */}
-      <div className="card">
-        <h2>Supabase Connection Test</h2>
-        <button 
-          onClick={testSupabaseConnection} 
-          disabled={isLoading}
-          style={{ 
-            backgroundColor: connectionStatus.includes('✅') ? '#4CAF50' : 
-                            connectionStatus.includes('❌') ? '#f44336' : '#008CBA',
-            margin: '10px 0'
-          }}
-        >
-          {isLoading ? 'Testing...' : 'Test Supabase Connection'}
-        </button>
-        <p style={{ 
-          color: connectionStatus.includes('✅') ? '#4CAF50' : 
-                 connectionStatus.includes('❌') ? '#f44336' : '#666',
-          fontWeight: 'bold'
-        }}>
-          Status: {connectionStatus}
-        </p>
-      </div>
-
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #3C355F 0%, #FF9B0F 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 2,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Card
+            sx={{
+              maxWidth: 400,
+              mx: 'auto',
+              borderRadius: 3,
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Typography
+                variant="h4"
+                component="h1"
+                align="center"
+                color="secondary"
+                fontWeight="600"
+                mb={4}
+              >
+                Book It Down
+              </Typography>
+              
+              <Box component="form" onSubmit={handleLogin}>
+                <TextField
+                  fullWidth
+                  type="email"
+                  label="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
+                />
+                
+                <TextField
+                  fullWidth
+                  type="password"
+                  label="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 3 }}
+                />
+                
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontSize: '1.1rem',
+                    color: 'white',
+                    fontWeight: 600,
+                  }}
+                >
+                  Login
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Container>
+      </Box>
+    </ThemeProvider>
   )
 }
 
