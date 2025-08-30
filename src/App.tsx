@@ -12,10 +12,10 @@ import {
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import SearchPage from './Employee/SearchPage'
+import SearchPage from './pages/Employee/SearchPage'
 
 // Impor logo
-import viorenLogo from '../assets/vioren-logo.png'
+import viorenLogo from './assets/vioren-logo.png'
 
 // Custom theme with your color palette
 const theme = createTheme({
