@@ -13,6 +13,9 @@ import {
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
+// Impor logo
+import viorenLogo from './assets/vioren-logo.png'
+
 // Custom theme with your color palette
 const theme = createTheme({
   palette: {
@@ -58,6 +61,13 @@ function App() {
             }}
           >
             <CardContent sx={{ p: 4 }}>
+               <Box sx={{ textAlign: 'center', mb: 2 }}>
+                <img
+                  src={viorenLogo}
+                  alt="Vioren Logo"
+                  style={{ maxWidth: '100px', height: 'auto' }}
+                />
+              </Box>
               <Typography
                 variant="h4"
                 component="h1"
