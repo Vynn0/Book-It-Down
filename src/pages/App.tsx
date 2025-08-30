@@ -13,8 +13,8 @@ import {
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
-// Impor logo
-import viorenLogo from './assets/vioren-logo.png'
+// Import logo
+import viorenLogo from '../assets/vioren-logo.png'
 
 // Custom theme with your color palette
 const theme = createTheme({
