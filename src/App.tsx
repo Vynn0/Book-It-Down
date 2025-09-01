@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import SearchPage from './pages/Employee/SearchPage'
+import SearchPage from './pages/SearchPage'
 
 // Impor logo
 import viorenLogo from './assets/vioren-logo.png'
