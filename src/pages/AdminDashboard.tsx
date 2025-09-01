@@ -1,24 +1,17 @@
-import { useState } from 'react'
 import {
   Box,
   Container,
   Typography,
   Card,
   CardContent,
-  TextField,
-  Button,
-  Alert,
-  Snackbar,
   CssBaseline,
-  CircularProgress,
   Divider
 } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { PersonAdd, Visibility, VisibilityOff } from '@mui/icons-material'
-import { InputAdornment, IconButton } from '@mui/material'
-import { Navbar } from '../components/ui'
-import { supabase } from '../utils/supabase'
-import bcrypt from 'bcryptjs'
+import { PersonAdd } from '@mui/icons-material'
+import { Navbar, NotificationComponent } from '../components/ui'
+import { UserFormComponent } from '../components/auth'
+import { useUserManagement, useNotification } from '../hooks'
 
 // Same theme as other pages
 const theme = createTheme({
@@ -36,110 +29,39 @@ interface AdminDashboardProps {
   onBack: () => void
 }
 
-interface UserForm {
-  name: string
-  email: string
-  password: string
-}
-
 function AdminDashboard({ onBack }: AdminDashboardProps) {
-  const [userForm, setUserForm] = useState<UserForm>({
-    name: '',
-    email: '',
-    password: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success' as 'success' | 'error'
-  })
+  const {
+    userForm,
+    isLoading,
+    updateUserForm,
+    resetForm,
+    addUser,
+    validateForm
+  } = useUserManagement()
 
-  const handleInputChange = (field: keyof UserForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserForm(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }))
-  }
-
-  const handleTogglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
-
-  const validateForm = (): string | null => {
-    if (!userForm.name.trim()) return 'Name is required'
-    if (!userForm.email.trim()) return 'Email is required'
-    if (!userForm.password.trim()) return 'Password is required'
-    if (userForm.password.length < 6) return 'Password must be at least 6 characters'
-    
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(userForm.email)) return 'Please enter a valid email address'
-    
-    return null
-  }
+  const {
+    notification,
+    showNotification,
+    hideNotification
+  } = useNotification()
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const validationError = validateForm()
+    const validationError = validateForm(userForm)
     if (validationError) {
-      setSnackbar({
-        open: true,
-        message: validationError,
-        severity: 'error'
-      })
+      showNotification(validationError, 'error')
       return
     }
 
-    setIsLoading(true)
-
-    try {
-      // Hash the password using bcrypt
-      const saltRounds = 12
-      const hashedPassword = await bcrypt.hash(userForm.password, saltRounds)
-
-      // Insert user into Supabase
-      const { error } = await supabase
-        .from('user')
-        .insert([
-          {
-            name: userForm.name.trim(),
-            email: userForm.email.trim().toLowerCase(),
-            password: hashedPassword,
-            created_at: new Date().toISOString()
-          }
-        ])
-        .select()
-
-      if (error) {
-        throw error
-      }
-
-      setSnackbar({
-        open: true,
-        message: `User "${userForm.name}" added successfully!`,
-        severity: 'success'
-      })
-
-      // Reset form
-      setUserForm({ name: '', email: '', password: '' })
-
-    } catch (error: any) {
-      console.error('Error adding user:', error)
-      setSnackbar({
-        open: true,
-        message: error.message || 'Failed to add user. Please try again.',
-        severity: 'error'
-      })
-    } finally {
-      setIsLoading(false)
+    const result = await addUser(userForm)
+    
+    if (result.success) {
+      showNotification(result.message, 'success')
+      resetForm()
+    } else {
+      showNotification(result.message, 'error')
     }
-  }
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
   }
 
   return (
@@ -168,72 +90,13 @@ function AdminDashboard({ onBack }: AdminDashboardProps) {
 
               <Divider sx={{ mb: 3 }} />
 
-              <Box component="form" onSubmit={handleAddUser}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  value={userForm.name}
-                  onChange={handleInputChange('name')}
-                  required
-                  margin="normal"
-                  placeholder="Enter user's full name"
-                  sx={{ mb: 2 }}
-                />
-
-                <TextField
-                  fullWidth
-                  type="email"
-                  label="Email Address"
-                  value={userForm.email}
-                  onChange={handleInputChange('email')}
-                  required
-                  margin="normal"
-                  placeholder="Enter user's email"
-                  sx={{ mb: 2 }}
-                />
-
-                <TextField
-                  fullWidth
-                  type={showPassword ? 'text' : 'password'}
-                  label="Password"
-                  value={userForm.password}
-                  onChange={handleInputChange('password')}
-                  required
-                  margin="normal"
-                  placeholder="Enter secure password (min 6 characters)"
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={handleTogglePasswordVisibility}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ mb: 3 }}
-                />
-
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  disabled={isLoading}
-                  startIcon={isLoading ? <CircularProgress size={20} /> : <PersonAdd />}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  {isLoading ? 'Adding User...' : 'Add User'}
-                </Button>
-              </Box>
+              <UserFormComponent
+                userForm={userForm}
+                isLoading={isLoading}
+                onInputChange={updateUserForm}
+                onSubmit={handleAddUser}
+                submitButtonText="Add User"
+              />
 
               <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                 <Typography variant="caption" color="text.secondary">
@@ -245,20 +108,10 @@ function AdminDashboard({ onBack }: AdminDashboardProps) {
           </Card>
         </Container>
 
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        <NotificationComponent
+          notification={notification}
+          onClose={hideNotification}
+        />
       </Box>
     </ThemeProvider>
   )
