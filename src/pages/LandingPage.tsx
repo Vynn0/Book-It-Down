@@ -37,7 +37,7 @@ function App() {
   const [password, setPassword] = useState('')
   const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin'>('login')
   
-  const { login, isLoading, isAuthenticated, user } = useAuth()
+  const { login, isLoading, isAuthenticated } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
 
   const handleLogin = async (e: React.FormEvent) => {
