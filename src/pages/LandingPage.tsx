@@ -13,6 +13,7 @@ import {
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import SearchPage from './SearchPage'
+import AdminDashboard from './AdminDashboard'
 import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
@@ -31,13 +32,18 @@ const theme = createTheme({
 function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [currentPage, setCurrentPage] = useState<'login' | 'search'>('login')
+  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin'>('login')
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Login attempt:', { email, password })
     // For demo purposes, just navigate to search page
     setCurrentPage('search')
+  }
+
+  const handleAdminAccess = () => {
+    // Direct access to admin dashboard for developers
+    setCurrentPage('admin')
   }
 
   const handleBackToLogin = () => {
@@ -49,6 +55,11 @@ function App() {
   // Show SearchPage if logged in
   if (currentPage === 'search') {
     return <SearchPage onBack={handleBackToLogin} />
+  }
+
+  // Show AdminDashboard
+  if (currentPage === 'admin') {
+    return <AdminDashboard onBack={handleBackToLogin} />
   }
 
   return (
@@ -158,9 +169,33 @@ function App() {
                     fontSize: '1.1rem',
                     color: 'white',
                     fontWeight: 600,
+                    mb: 2
                   }}
                 >
                   Login
+                </Button>
+                
+                {/* Developer Access Button */}
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="large"
+                  onClick={handleAdminAccess}
+                  sx={{
+                    py: 1.5,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    borderColor: 'secondary.main',
+                    color: 'secondary.main',
+                    '&:hover': {
+                      backgroundColor: 'secondary.main',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  🔧 Developer: Admin Dashboard
                 </Button>
               </Box>
             </CardContent>
