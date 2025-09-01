@@ -4,9 +4,11 @@ import {
   Typography,
   IconButton,
   Box,
-  Chip
+  Chip,
+  Button
 } from '@mui/material'
-import { ArrowBack, Person } from '@mui/icons-material'
+import { ArrowBack, Person, Logout } from '@mui/icons-material'
+import { useAuth } from '../../hooks/useAuth'
 
 interface NavbarProps {
   title: string
@@ -15,6 +17,12 @@ interface NavbarProps {
 }
 
 function Navbar({ title, onBack, userRole = 'employee' }: NavbarProps) {
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    onBack() // This will redirect to login
+  }
   return (
     <AppBar position="static" color="secondary">
       <Toolbar>
@@ -44,6 +52,24 @@ function Navbar({ title, onBack, userRole = 'employee' }: NavbarProps) {
               '& .MuiChip-icon': { color: 'white' }
             }}
           />
+          {user && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Logout />}
+              onClick={handleLogout}
+              sx={{
+                color: 'white',
+                borderColor: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderColor: 'white'
+                }
+              }}
+            >
+              Logout
+            </Button>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

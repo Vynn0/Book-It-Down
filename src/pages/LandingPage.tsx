@@ -8,12 +8,15 @@ import {
   Typography,
   Container,
   CssBaseline,
-  InputAdornment
+  InputAdornment,
+  CircularProgress
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import SearchPage from './SearchPage'
 import AdminDashboard from './AdminDashboard'
+import { NotificationComponent } from '../components/ui'
+import { useAuth, useNotification } from '../hooks'
 import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
@@ -33,12 +36,26 @@ function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin'>('login')
+  
+  const { login, isLoading, isAuthenticated, user } = useAuth()
+  const { notification, showNotification, hideNotification } = useNotification()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login attempt:', { email, password })
-    // For demo purposes, just navigate to search page
-    setCurrentPage('search')
+    
+    if (!email.trim() || !password.trim()) {
+      showNotification('Please enter both email and password', 'error')
+      return
+    }
+
+    const result = await login(email, password)
+    
+    if (result.success) {
+      showNotification(result.message, 'success')
+      setCurrentPage('search')
+    } else {
+      showNotification(result.message, 'error')
+    }
   }
 
   const handleAdminAccess = () => {
@@ -52,9 +69,9 @@ function App() {
     setPassword('')
   }
 
-  // Show SearchPage if logged in
-  if (currentPage === 'search') {
-    return <SearchPage onBack={handleBackToLogin} />
+  // If authenticated and trying to access protected pages
+  if (isAuthenticated && currentPage === 'search') {
+    return <SearchPage onBack={handleBackToLogin} userRole="employee" />
   }
 
   // Show AdminDashboard
@@ -162,6 +179,8 @@ function App() {
                   fullWidth
                   variant="contained"
                   size="large"
+                  disabled={isLoading}
+                  startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
                   sx={{
                     py: 1.5,
                     borderRadius: 2,
@@ -172,7 +191,7 @@ function App() {
                     mb: 2
                   }}
                 >
-                  Login
+                  {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
                 
                 {/* Developer Access Button */}
@@ -201,6 +220,11 @@ function App() {
             </CardContent>
           </Card>
         </Container>
+
+        <NotificationComponent
+          notification={notification}
+          onClose={hideNotification}
+        />
       </Box>
     </ThemeProvider>
   )
