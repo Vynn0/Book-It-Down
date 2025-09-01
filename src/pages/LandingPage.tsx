@@ -12,10 +12,9 @@ import {
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import SearchPage from './Employee/SearchPage'
-
-// Impor logo
+import SearchPage from './SearchPage'
 import viorenLogo from '../assets/vioren-logo.png'
+import backgroundImage from '../assets/landing-page.jpg'
 
 // Custom theme with your color palette
 const theme = createTheme({
@@ -57,32 +56,30 @@ function App() {
       <CssBaseline />
       <Box
         sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #3C355F 0%, #FF9B0F 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           padding: 2,
+          backgroundImage: backgroundImage, // Path ke gambar Anda
+          backgroundSize: 'cover', // Pastikan gambar menutupi seluruh area
+          backgroundPosition: 'center', // Pusatkan gambar
+          backgroundRepeat: 'no-repeat', // Jangan ulangi gambar
+          minHeight: '100vh', // Pastikan background terlihat penuh di viewport
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: 'white', // Pastikan teks tetap terlihat di atas background gelap
+          textShadow: '2px 2px 4px rgba(0,0,0,0.7)', // Tambahkan shadow agar teks lebih jelas
+      
         }}
       >
         <Container maxWidth="sm">
-          <Card
-            sx={{
-              maxWidth: 400,
-              mx: 'auto',
-              borderRadius: 3,
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-               <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <img
-                  src={viorenLogo}
-                  alt="Vioren Logo"
-                  style={{ maxWidth: '100px', height: 'auto' }}
-                />
-              </Box>
-              <Typography
+              <Box sx={{ textAlign: 'center', mb: 2 }}>
+               <img
+                 src={viorenLogo}
+                 alt="Vioren Logo"
+                 style={{ maxWidth: '100px', height: 'auto' }}
+               />
+             </Box>
+             <Typography
                 variant="h4"
                 component="h1"
                 align="center"
@@ -91,6 +88,25 @@ function App() {
                 mb={4}
               >
                 Book It Down
+              </Typography>
+          <Card
+            sx={{
+              maxWidth: 700,
+              mx: 'auto',
+              borderRadius: 3,
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Typography
+                variant="h4"
+                component="h1"
+                align="center"
+                color="secondary"
+                fontWeight="300"
+                mb={4}
+              >
+                Login
               </Typography>
               
               <Box component="form" onSubmit={handleLogin}>
