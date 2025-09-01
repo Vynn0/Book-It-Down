@@ -62,7 +62,7 @@ function App() {
 
   // If authenticated and trying to access protected pages
   if (isAuthenticated && currentPage === 'search') {
-    return <SearchPage onBack={handleBackToLogin} userRole="employee" />
+    return <SearchPage onBack={handleBackToLogin} />
   }
 
   // Show AdminDashboard

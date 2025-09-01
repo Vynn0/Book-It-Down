@@ -7,6 +7,12 @@ export interface User {
   name: string
   email: string
   created_at: string
+  roles: UserRole[]
+}
+
+export interface UserRole {
+  role_id: number
+  role_name: string
 }
 
 export interface AuthState {
@@ -18,6 +24,8 @@ export interface AuthState {
 export interface UseAuthReturn extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; message: string }>
   logout: () => void
+  hasRole: (roleId: number) => boolean
+  getUserRoles: () => UserRole[]
 }
 
 // Create Auth Context
@@ -106,12 +114,37 @@ export const useAuthLogic = () => {
         }
       }
 
+      // Fetch user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_role')
+        .select(`
+          role_id,
+          roles(role_id, role_name)
+        `)
+        .eq('user_id', user.user_id || user.user_id)
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError)
+        setAuthState(prev => ({ ...prev, isLoading: false }))
+        return {
+          success: false,
+          message: 'Error fetching user permissions'
+        }
+      }
+
+      // Map roles to simpler format
+      const roles: UserRole[] = userRoles?.map(ur => ({
+        role_id: ur.role_id,
+        role_name: (ur.roles as any)?.role_name || 'Unknown'
+      })) || []
+
       // Create user object without password
       const authenticatedUser: User = {
-        userID: user.userid || user.userID,
+        userID: user.user_id || user.userID,
         name: user.name,
         email: user.email,
-        created_at: user.created_at
+        created_at: user.created_at,
+        roles: roles
       }
 
       // Store user in localStorage
@@ -148,10 +181,20 @@ export const useAuthLogic = () => {
     })
   }
 
+  const hasRole = (roleId: number): boolean => {
+    return authState.user?.roles?.some(role => role.role_id === roleId) || false
+  }
+
+  const getUserRoles = (): UserRole[] => {
+    return authState.user?.roles || []
+  }
+
   return {
     ...authState,
     login,
-    logout
+    logout,
+    hasRole,
+    getUserRoles
   }
 }
 

@@ -10,11 +10,14 @@ import {
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services'
 import { Navbar, SearchBar } from '../components/ui';
+import { AdminSearchView } from '../components/ui/AdminSearchView';
+import { RoomManagerSearchView } from '../components/ui/RoomManagerSearchView';
+import { EmployeeSearchView } from '../components/ui/EmployeeSearchView';
 import { CardRoom } from '../components/ui/cardRoom';
+import { useRoleBasedRouting } from '../hooks';
 
 interface SearchPageProps {
   onBack: () => void;
-  userRole?: 'employee' | 'administrator';
 }
 
 // Mock room data
@@ -53,9 +56,10 @@ const mockRooms = [
   },
 ];
 
-function SearchPage({ onBack, userRole = 'employee' }: SearchPageProps) {
+function SearchPage({ onBack }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<typeof mockRooms>([]);
+  const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
 
   const handleSearch = (query: {
     tanggal: Date | null;
@@ -69,18 +73,50 @@ function SearchPage({ onBack, userRole = 'employee' }: SearchPageProps) {
     setResults(mockRooms);
   };
 
+  const renderRoleBasedView = () => {
+    const roleView = getRoleBasedView();
+    
+    switch (roleView) {
+      case 'admin':
+        return <AdminSearchView onBack={onBack} />;
+      case 'room-manager':
+        return <RoomManagerSearchView onBack={onBack} />;
+      case 'employee':
+        return <EmployeeSearchView onBack={onBack} />;
+      default:
+        return (
+          <Card>
+            <CardContent>
+              <Typography variant="body1" color="error" align="center">
+                Access denied: No valid role found
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
+  // Get user role for navbar display
+  const getUserRoleForNavbar = (): 'employee' | 'administrator' => {
+    if (isAdmin()) return 'administrator';
+    return 'employee';
+  };
+
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ flexGrow: 1 }}>
         <Navbar
-          title="Book It Down - Search"
+          title={`Book It Down - Search (${user?.name || 'User'})`}
           onBack={onBack}
-          userRole={userRole}
+          userRole={getUserRoleForNavbar()}
         />
 
         <Container maxWidth="lg" sx={{ mt: 4 }}>
-          <Card sx={{ mb: 4 }}>
+          {/* Role-based view */}
+          {renderRoleBasedView()}
+          
+          <Card sx={{ mb: 4, mt: 4 }}>
             <CardContent>
               <Typography variant="h4" component="h1" color="secondary" mb={3}>
                 Search Rooms
