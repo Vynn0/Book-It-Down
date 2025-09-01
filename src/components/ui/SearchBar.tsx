@@ -6,13 +6,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  TextField,
-  InputAdornment,
 } from '@mui/material';
-import { Search, CalendarToday, AccessTime } from '@mui/icons-material';
+import { Search} from '@mui/icons-material';
 import { DatePicker, TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { setMinutes, setHours, isAfter, isBefore, format } from 'date-fns';
+import { setMinutes, setHours, isAfter} from 'date-fns';
 
 interface SearchBarProps {
   onSearch: (query: {
@@ -71,7 +69,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
           label="Tanggal"
           value={selectedTanggal}
           onChange={(newValue) => setSelectedTanggal(newValue)}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          slotProps={{ textField: { fullWidth: true } }}
         />
         <FormControl fullWidth>
           <InputLabel id="kapasitas-label">Kapasitas Minimal</InputLabel>
@@ -93,7 +91,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
           value={selectedJamMulai}
           onChange={(newValue) => setSelectedJamMulai(newValue)}
           minutesStep={5}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          slotProps={{ textField: { fullWidth: true } }}
         />
         <TimePicker
           label="Jam Selesai"
@@ -101,9 +99,9 @@ function SearchBar({ onSearch }: SearchBarProps) {
           value={selectedJamSelesai}
           onChange={(newValue) => setSelectedJamSelesai(newValue)}
           minutesStep={5}
-          minTime={minJamSelesai}
+          minTime={minJamSelesai || undefined}
           disabled={!selectedJamMulai}
-          renderInput={(params) => <TextField {...params} fullWidth />}
+          slotProps={{ textField: { fullWidth: true } }}
         />
         <Button
           type="submit"

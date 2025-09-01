@@ -6,11 +6,10 @@ import {
   Card,
   CardContent,
   CssBaseline,
-  Grid,
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Navbar, SearchBar } from '../components/ui';
-import { CardRoom } from '../components/ui/CardRoom';
+import { CardRoom } from '../components/ui/cardRoom';
 
 // Same theme as App.tsx
 const theme = createTheme({
@@ -69,17 +68,16 @@ function SearchPage({ onBack, userRole = 'employee' }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<typeof mockRooms>([]);
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (query) {
-      const filteredRooms = mockRooms.filter(room => 
-        room.name.toLowerCase().includes(query.toLowerCase()) || 
-        room.description.toLowerCase().includes(query.toLowerCase())
-      );
-      setResults(filteredRooms);
-    } else {
-      setResults([]);
-    }
+  const handleSearch = (query: {
+    tanggal: Date | null;
+    kapasitas: number;
+    jamMulai: Date | null;
+    jamSelesai: Date | null;
+  }) => {
+    // For now, just show all rooms when search is performed
+    // You can implement actual filtering logic here based on the query
+    setSearchQuery(`Search with capacity: ${query.kapasitas}`);
+    setResults(mockRooms);
   };
 
   return (
@@ -100,7 +98,6 @@ function SearchPage({ onBack, userRole = 'employee' }: SearchPageProps) {
               </Typography>
               <SearchBar
                 onSearch={handleSearch}
-                placeholder="Enter room name, location, or capacity"
               />
             </CardContent>
           </Card>
@@ -112,13 +109,13 @@ function SearchPage({ onBack, userRole = 'employee' }: SearchPageProps) {
                 <Typography variant="h5" component="h2" color="secondary" mb={2}>
                   Search Results
                 </Typography>
-                <Grid container spacing={3}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
                   {results.map((room, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={index}>
+                    <Box key={index}>
                       <CardRoom {...room} />
-                    </Grid>
+                    </Box>
                   ))}
-                </Grid>
+                </Box>
               </Box>
             ) : (
               <Card>
@@ -134,13 +131,13 @@ function SearchPage({ onBack, userRole = 'employee' }: SearchPageProps) {
               <Typography variant="h5" component="h2" color="secondary" mb={2}>
                 All Rooms
               </Typography>
-              <Grid container spacing={3}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
                 {mockRooms.map((room, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Box key={index}>
                     <CardRoom {...room} />
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             </Box>
           )}
         </Container>
