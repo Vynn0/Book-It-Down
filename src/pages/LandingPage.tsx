@@ -12,30 +12,22 @@ import {
   CircularProgress
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import SearchPage from './SearchPage'
 import AdminDashboard from './AdminDashboard'
 import { NotificationComponent } from '../components/ui'
-import { useAuth, useNotification } from '../hooks'
+import { 
+  useAuth, 
+  useNotification 
+} from '../hooks'
+import { appTheme } from '../services'
 import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
-// Custom theme with your color palette
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#FF9B0F', // Orange
-    },
-    secondary: {
-      main: '#3C355F', // Purple
-    },
-  },
-})
-
 function App() {
+  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin'>('login')
   
   const { login, isLoading, isAuthenticated } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
@@ -59,7 +51,6 @@ function App() {
   }
 
   const handleAdminAccess = () => {
-    // Direct access to admin dashboard for developers
     setCurrentPage('admin')
   }
 
@@ -80,7 +71,7 @@ function App() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box
         sx={{
