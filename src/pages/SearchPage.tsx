@@ -7,21 +7,10 @@ import {
   CardContent,
   CssBaseline,
 } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { appTheme } from '../services'
 import { Navbar, SearchBar } from '../components/ui';
 import { CardRoom } from '../components/ui/cardRoom';
-
-// Same theme as App.tsx
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#FF9B0F', // Orange
-    },
-    secondary: {
-      main: '#3C355F', // Purple
-    },
-  },
-});
 
 interface SearchPageProps {
   onBack: () => void;
@@ -81,7 +70,7 @@ function SearchPage({ onBack, userRole = 'employee' }: SearchPageProps) {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ flexGrow: 1 }}>
         <Navbar

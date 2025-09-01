@@ -7,23 +7,12 @@ import {
   CssBaseline,
   Divider
 } from '@mui/material'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
+import { appTheme } from '../services'
 import { PersonAdd } from '@mui/icons-material'
 import { Navbar, NotificationComponent } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
 import { useUserManagement, useNotification } from '../hooks'
-
-// Same theme as other pages
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#FF9B0F', // Orange
-    },
-    secondary: {
-      main: '#3C355F', // Purple
-    },
-  },
-})
 
 interface AdminDashboardProps {
   onBack: () => void
@@ -65,7 +54,7 @@ function AdminDashboard({ onBack }: AdminDashboardProps) {
   }
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ flexGrow: 1 }}>
         <Navbar 
