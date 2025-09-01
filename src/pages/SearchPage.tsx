@@ -73,12 +73,17 @@ function SearchPage({ onBack }: SearchPageProps) {
     setResults(mockRooms);
   };
 
+  const handleAdminAccess = () => {
+    // Implement your admin dashboard navigation logic here
+    console.log('Navigating to admin dashboard');
+  };
+
   const renderRoleBasedView = () => {
     const roleView = getRoleBasedView();
     
     switch (roleView) {
       case 'admin':
-        return <AdminSearchView onBack={onBack} />;
+        return <AdminSearchView goToAdminDashboard={handleAdminAccess} />;
       case 'room-manager':
         return <RoomManagerSearchView onBack={onBack} />;
       case 'employee':

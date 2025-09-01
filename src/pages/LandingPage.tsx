@@ -75,147 +75,160 @@ function App() {
       <CssBaseline />
       <Box
         sx={{
-          padding: 2,
-          backgroundImage: backgroundImage, // Path ke gambar Anda
-          backgroundSize: 'cover', // Pastikan gambar menutupi seluruh area
-          backgroundPosition: 'center', // Pusatkan gambar
-          backgroundRepeat: 'no-repeat', // Jangan ulangi gambar
-          minHeight: '100vh', // Pastikan background terlihat penuh di viewport
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'white', // Pastikan teks tetap terlihat di atas background gelap
-          textShadow: '2px 2px 4px rgba(0,0,0,0.7)', // Tambahkan shadow agar teks lebih jelas
-      
+          position: 'relative',
+          minHeight: '100vh',
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       >
-        <Container maxWidth="sm">
-              <Box sx={{ textAlign: 'center', mb: 2 }}>
-               <img
-                 src={viorenLogo}
-                 alt="Vioren Logo"
-                 style={{ maxWidth: '100px', height: 'auto' }}
-               />
-             </Box>
-             <Typography
-                variant="h4"
-                component="h1"
-                align="center"
-                color="secondary"
-                fontWeight="600"
-                mb={4}
-              >
-                Book It Down
-              </Typography>
-          <Card
-            sx={{
-              maxWidth: 700,
-              mx: 'auto',
-              borderRadius: 3,
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                variant="h4"
-                component="h1"
-                align="center"
-                color="secondary"
-                fontWeight="300"
-                mb={4}
-              >
-                Login
-              </Typography>
-              
-              <Box component="form" onSubmit={handleLogin}>
-                <TextField
-                  fullWidth
-                  type="email"
-                  label="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  margin="normal"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ mb: 2 }}
-                />
-                
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  margin="normal"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ mb: 3 }}
-                />
-                
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  disabled={isLoading}
-                  startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontSize: '1.1rem',
-                    color: 'white',
-                    fontWeight: 600,
-                    mb: 2
-                  }}
-                >
-                  {isLoading ? 'Logging in...' : 'Login'}
-                </Button>
-                
-                {/* Developer Access Button */}
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  size="large"
-                  onClick={handleAdminAccess}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    borderColor: 'secondary.main',
-                    color: 'secondary.main',
-                    '&:hover': {
-                      backgroundColor: 'secondary.main',
-                      color: 'white'
-                    }
-                  }}
-                >
-                  🔧 Developer: Admin Dashboard
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-        </Container>
-
-        <NotificationComponent
-          notification={notification}
-          onClose={hideNotification}
+        {/* Overlay transparan */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            bgcolor: 'rgba(0,0,0,0.7)', // Ubah alpha untuk transparansi
+            zIndex: 1,
+          }}
         />
+        {/* Konten utama */}
+        <Box sx={{ position: 'relative', zIndex: 2 }}>
+          <Container maxWidth="sm">
+                <Box sx={{ textAlign: 'center', mb: 2 }}>
+                 <img
+                   src={viorenLogo}
+                   alt="Vioren Logo"
+                   style={{ maxWidth: '100px', height: 'auto' }}
+                 />
+               </Box>
+               <Typography
+                  variant="h4"
+                  component="h1"
+                  align="center"
+                  color="white"
+                  fontWeight="600"
+                  mb={4}
+                >
+                  Book It Down
+                </Typography>
+            <Card
+              sx={{
+                maxWidth: 700,
+                mx: 'auto',
+                borderRadius: 3,
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <Typography
+                  variant="h4"
+                  component="h1"
+                  align="center"
+                  color="secondary"
+                  fontWeight="300"
+                  mb={2}
+                >
+                  Login
+                </Typography>
+                
+                <Box component="form" onSubmit={handleLogin}>
+                  <TextField
+                    fullWidth
+                    type="email"
+                    label="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    margin="normal"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 2 }}
+                  />
+                  
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    margin="normal"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Lock color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 3 }}
+                  />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={isLoading}
+                    startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+                    sx={{
+                      py: 1.5,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      width: '50%',
+                      fontSize: '1.1rem',
+                      color: 'white',
+                      fontWeight: 600,
+                      mb: 2
+                    }}
+                  >
+                    {isLoading ? 'Logging in...' : 'Login'}
+                  </Button>
+                </Box>
+                  
+                  {/* Developer Access Button */}
+                  <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+                    <Button
+                      variant="outlined"
+                      size="large"
+                      onClick={handleAdminAccess}
+                      sx={{
+                        py: 1.5,
+                        borderRadius: 2,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        textTransform: 'none',
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        borderColor: 'secondary.main',
+                        color: 'secondary.main',
+                        '&:hover': {
+                          backgroundColor: 'secondary.main',
+                          color: 'white'
+                        }
+                      }}
+                    >
+                      🔧 Developer: Admin Dashboard
+                    </Button>
+                    </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Container>
+
+          <NotificationComponent
+            notification={notification}
+            onClose={hideNotification}
+          />
+        </Box>
       </Box>
     </ThemeProvider>
   )

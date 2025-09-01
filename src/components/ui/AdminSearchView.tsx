@@ -1,10 +1,10 @@
-import { Box, Typography, Card, CardContent } from '@mui/material';
+import { Box, Typography, Card, CardContent, Button } from '@mui/material';
 
 interface AdminSearchViewProps {
-  onBack: () => void;
+  goToAdminDashboard: () => void; // gunakan nama prop yang jelas
 }
 
-export function AdminSearchView({}: AdminSearchViewProps) {
+export function AdminSearchView({ goToAdminDashboard }: AdminSearchViewProps) {
   return (
     <Box sx={{ p: 3 }}>
       <Card sx={{ mb: 3, bgcolor: '#fff3e0' }}>
@@ -16,6 +16,32 @@ export function AdminSearchView({}: AdminSearchViewProps) {
             You have full admin access to all rooms and features.
           </Typography>
         </CardContent>
+
+        {/* Tombol developer admin */}
+        <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={goToAdminDashboard} // gunakan handler yang sama seperti di LandingPage
+            sx={{
+              py: 1.5,
+              borderRadius: 2,
+              display: 'flex',
+              justifyContent: 'center',
+              textTransform: 'none',
+              fontSize: '1rem',
+              fontWeight: 600,
+              borderColor: 'secondary.main',
+              color: 'secondary.main',
+              '&:hover': {
+                backgroundColor: 'secondary.main',
+                color: 'white'
+              }
+            }}
+          >
+            🔧 Developer: Admin Dashboard
+          </Button>
+        </Box>
       </Card>
       
       <Typography variant="h6" gutterBottom>
