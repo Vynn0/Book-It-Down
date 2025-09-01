@@ -1,96 +1,127 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   Box,
-  TextField,
   Button,
-  InputAdornment
-} from '@mui/material'
-import { Search, Clear } from '@mui/icons-material'
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  InputAdornment,
+} from '@mui/material';
+import { Search, CalendarToday, AccessTime } from '@mui/icons-material';
+import { DatePicker, TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { setMinutes, setHours, isAfter, isBefore, format } from 'date-fns';
 
 interface SearchBarProps {
-  onSearch: (query: string) => void
-  placeholder?: string
-  initialValue?: string
+  onSearch: (query: {
+    tanggal: Date | null;
+    kapasitas: number;
+    jamMulai: Date | null;
+    jamSelesai: Date | null;
+  }) => void;
 }
 
-function SearchBar({ 
-  onSearch, 
-  placeholder = "Search...",
-  initialValue = ""
-}: SearchBarProps) {
-  const [searchQuery, setSearchQuery] = useState(initialValue)
+function SearchBar({ onSearch }: SearchBarProps) {
+  const [selectedTanggal, setSelectedTanggal] = useState<Date | null>(null);
+  const [selectedKapasitas, setSelectedKapasitas] = useState('');
+  const [selectedJamMulai, setSelectedJamMulai] = useState<Date | null>(null);
+  const [selectedJamSelesai, setSelectedJamSelesai] = useState<Date | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSearch(searchQuery.trim())
-  }
+    e.preventDefault();
+    onSearch({
+      tanggal: selectedTanggal,
+      kapasitas: parseInt(selectedKapasitas),
+      jamMulai: selectedJamMulai,
+      jamSelesai: selectedJamSelesai,
+    });
+  };
 
-  const handleClear = () => {
-    setSearchQuery('')
-    onSearch('')
-  }
+  const isFormValid =
+    selectedTanggal &&
+    selectedKapasitas &&
+    selectedJamMulai &&
+    selectedJamSelesai &&
+    isAfter(selectedJamSelesai, selectedJamMulai);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
-  }
+  // Menentukan waktu minimum untuk jam selesai (30 menit setelah jam mulai)
+  const minJamSelesai = selectedJamMulai
+    ? setMinutes(setHours(selectedJamMulai, selectedJamMulai.getHours()), selectedJamMulai.getMinutes() + 5)
+    : null;
 
   return (
-    <Box 
-      component="form" 
-      onSubmit={handleSubmit} 
-      sx={{ 
-        display: 'flex', 
-        gap: 2, 
-        flexDirection: { xs: 'column', sm: 'row' },
-        alignItems: 'center'
-      }}
-    >
-      <TextField
-        fullWidth
-        label="Search"
-        value={searchQuery}
-        onChange={handleInputChange}
-        placeholder={placeholder}
-        sx={{ flex: 1 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search color="action" />
-            </InputAdornment>
-          ),
-          endAdornment: searchQuery && (
-            <InputAdornment position="end">
-              <Button
-                onClick={handleClear}
-                size="small"
-                sx={{ minWidth: 'auto', p: 0.5 }}
-              >
-                <Clear fontSize="small" />
-              </Button>
-            </InputAdornment>
-          ),
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr auto' },
+          gap: 2,
+          alignItems: 'center',
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 3,
+          bgcolor: 'background.paper',
         }}
-      />
-      
-      <Box sx={{ display: 'flex', gap: 1, minWidth: { sm: 'auto', xs: '100%' } }}>
+      >
+        <DatePicker
+          label="Tanggal"
+          value={selectedTanggal}
+          onChange={(newValue) => setSelectedTanggal(newValue)}
+          renderInput={(params) => <TextField {...params} fullWidth />}
+        />
+        <FormControl fullWidth>
+          <InputLabel id="kapasitas-label">Kapasitas Minimal</InputLabel>
+          <Select
+            labelId="kapasitas-label"
+            value={selectedKapasitas}
+            label="Kapasitas Minimal"
+            onChange={(e) => setSelectedKapasitas(e.target.value)}
+          >
+            <MenuItem value="">Pilih Kapasitas</MenuItem>
+            <MenuItem value={4}>4</MenuItem>
+            <MenuItem value={16}>16</MenuItem>
+            <MenuItem value={32}>32</MenuItem>
+          </Select>
+        </FormControl>
+        <TimePicker
+          label="Jam Mulai"
+          ampm={false}
+          value={selectedJamMulai}
+          onChange={(newValue) => setSelectedJamMulai(newValue)}
+          minutesStep={5}
+          renderInput={(params) => <TextField {...params} fullWidth />}
+        />
+        <TimePicker
+          label="Jam Selesai"
+          ampm={false}
+          value={selectedJamSelesai}
+          onChange={(newValue) => setSelectedJamSelesai(newValue)}
+          minutesStep={5}
+          minTime={minJamSelesai}
+          disabled={!selectedJamMulai}
+          renderInput={(params) => <TextField {...params} fullWidth />}
+        />
         <Button
           type="submit"
           variant="contained"
           size="large"
           startIcon={<Search />}
-          sx={{ 
-            px: 4, 
-            py: 2, 
-            minWidth: 120,
-            flex: { xs: 1, sm: 'none' }
+          sx={{
+            px: 4,
+            py: 2,
+            minWidth: { sm: 120, xs: '100%' },
           }}
-          disabled={!searchQuery.trim()}
+          disabled={!isFormValid}
         >
-          Search
+          Cari
         </Button>
       </Box>
-    </Box>
-  )
+    </LocalizationProvider>
+  );
 }
 
-export default SearchBar
+export default SearchBar;
