@@ -15,6 +15,7 @@ import { RoomManagerSearchView } from '../components/ui/RoomManagerSearchView';
 import { EmployeeSearchView } from '../components/ui/EmployeeSearchView';
 import { CardRoom } from '../components/ui/cardRoom';
 import { useRoleBasedRouting } from '../hooks';
+import AdminDashboard from './AdminDashboard';
 
 interface SearchPageProps {
   onBack: () => void;
@@ -59,6 +60,7 @@ const mockRooms = [
 function SearchPage({ onBack }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<typeof mockRooms>([]);
+  const [currentView, setCurrentView] = useState<'search' | 'admin'>('search');
   const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
 
   const handleSearch = (query: {
@@ -74,9 +76,19 @@ function SearchPage({ onBack }: SearchPageProps) {
   };
 
   const handleAdminAccess = () => {
-    // Implement your admin dashboard navigation logic here
-    console.log('Navigating to admin dashboard');
+    // Navigate to admin dashboard (replaces entire SearchPage)
+    setCurrentView('admin');
   };
+
+  const handleBackFromAdmin = () => {
+    // Go back to search view
+    setCurrentView('search');
+  };
+
+  // If user is viewing admin dashboard, show AdminDashboard component
+  if (currentView === 'admin' && isAdmin()) {
+    return <AdminDashboard onBack={handleBackFromAdmin} />;
+  }
 
   const renderRoleBasedView = () => {
     const roleView = getRoleBasedView();

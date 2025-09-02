@@ -1,7 +1,7 @@
 import { Box, Typography, Card, CardContent, Button } from '@mui/material';
 
 interface AdminSearchViewProps {
-  goToAdminDashboard: () => void; // gunakan nama prop yang jelas
+  goToAdminDashboard: () => void;
 }
 
 export function AdminSearchView({ goToAdminDashboard }: AdminSearchViewProps) {
@@ -17,12 +17,12 @@ export function AdminSearchView({ goToAdminDashboard }: AdminSearchViewProps) {
           </Typography>
         </CardContent>
 
-        {/* Tombol developer admin */}
+        {/* Admin Dashboard Button */}
         <Box sx={{ display: 'flex', justifyContent: 'center'}}>
           <Button
             variant="outlined"
             size="large"
-            onClick={goToAdminDashboard} // gunakan handler yang sama seperti di LandingPage
+            onClick={goToAdminDashboard}
             sx={{
               py: 1.5,
               borderRadius: 2,

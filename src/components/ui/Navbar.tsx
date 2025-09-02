@@ -2,12 +2,11 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  IconButton,
   Box,
   Chip,
   Button
 } from '@mui/material'
-import { ArrowBack, Person, Logout } from '@mui/icons-material'
+import { Person, Logout } from '@mui/icons-material'
 import { useAuth } from '../../hooks/useAuth'
 
 interface NavbarProps {
@@ -26,7 +25,7 @@ function Navbar({ title, onBack, userRole = 'employee' }: NavbarProps) {
   return (
     <AppBar position="static" color="secondary">
       <Toolbar>
-        <IconButton
+        {/* <IconButton
           edge="start"
           color="inherit"
           onClick={onBack}
@@ -34,7 +33,7 @@ function Navbar({ title, onBack, userRole = 'employee' }: NavbarProps) {
           aria-label="go back"
         >
           <ArrowBack />
-        </IconButton>
+        </IconButton> */}
         
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           {title}
