@@ -50,9 +50,9 @@ function App() {
     }
   }
 
-  const handleAdminAccess = () => {
-    setCurrentPage('admin')
-  }
+  // const handleAdminAccess = () => {
+  //   setCurrentPage('admin')
+  // }
 
   const handleBackToLogin = () => {
     setCurrentPage('login')
