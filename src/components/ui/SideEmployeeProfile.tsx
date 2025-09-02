@@ -1,35 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-
-// Dummy data
-const userData = {
-  name: 'Nama User',
-  role: 'Role',
-  email: 'user@example.com',
-};
+import { Box, Typography, Button, Card, CardContent, Avatar } from '@mui/material';
+import { useAuth } from '../../hooks/useAuth';
+import { useRoleBasedRouting } from '../../hooks/useRoleBasedRouting';
 
 const SideEmployeeProfile = () => {
+  const { logout, user } = useAuth();
+  const { getRoleBasedView } = useRoleBasedRouting();
+
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Apakah Anda yakin ingin keluar?",
-      [
-        {
-          text: "Batal",
-          onPress: () => console.log("Logout Canceled"),
-          style: "cancel"
-        },
-        { 
-          text: "Ya", 
-          onPress: () => {
-            console.log("User logged out");
-            // Add your actual logout logic here, e.g., navigate to login screen
-            // or clear user tokens from storage.
-          }
-        }
-      ],
-      { cancelable: false }
-    );
+    const confirmed = window.confirm("Apakah Anda yakin ingin keluar?");
+    if (confirmed) {
+      console.log("User logged out");
+      logout();
+    }
   };
 
   const getInitials = (name: string) => {
@@ -40,73 +22,85 @@ const SideEmployeeProfile = () => {
     return parts[0][0];
   };
 
+  const getRoleDisplayName = () => {
+    const roleView = getRoleBasedView();
+    switch (roleView) {
+      case 'admin':
+        return 'Administrator';
+      case 'room-manager':
+        return 'Room Manager';
+      case 'employee':
+        return 'Employee';
+      default:
+        return 'Unknown Role';
+    }
+  };
+
+  if (!user) {
+    return (
+      <Card sx={{ maxWidth: 400, mx: 'auto', mt: 4 }}>
+        <CardContent>
+          <Typography variant="body1" color="error" align="center">
+            User not logged in
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <View style={styles.profileContainer}>
-      <View style={styles.avatarContainer}>
-        <Text style={styles.avatarText}>{getInitials(userData.name)}</Text>
-      </View>
-      <Text style={styles.nameText}>{userData.name}</Text>
-      <Text style={styles.roleText}>{userData.role}</Text>
-      <Text style={styles.emailText}>{userData.email}</Text>
-      <TouchableOpacity 
-        style={styles.logoutButton} 
-        onPress={handleLogout}
-      >
-        <Text style={styles.logoutButtonText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+    <Card sx={{ maxWidth: 400, mx: 'auto', mt: 4 }}>
+      <CardContent>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            p: 3,
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 100,
+              height: 100,
+              bgcolor: 'grey.600',
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              mb: 2,
+            }}
+          >
+            {getInitials(user.name)}
+          </Avatar>
+          
+          <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+            {user.name}
+          </Typography>
+          
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            {getRoleDisplayName()}
+          </Typography>
+          
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            {user.email}
+          </Typography>
+          
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleLogout}
+            sx={{
+              width: '80%',
+              py: 1.5,
+              fontSize: '1.1rem',
+              fontWeight: 'bold',
+            }}
+          >
+            Logout
+          </Button>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
-
-const styles = StyleSheet.create({
-  profileContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#D3D3D3', // Light gray background
-    padding: 20,
-  },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#808080', // Darker gray for the avatar circle
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  avatarText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  nameText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  roleText: {
-    fontSize: 18,
-    color: '#555',
-    marginBottom: 5,
-  },
-  emailText: {
-    fontSize: 16,
-    color: '#777',
-    marginBottom: 40, // Space before the button
-  },
-  logoutButton: {
-    width: '80%',
-    padding: 15,
-    borderRadius: 10,
-    backgroundColor: '#FF0000', // Red color for logout button
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default SideEmployeeProfile;

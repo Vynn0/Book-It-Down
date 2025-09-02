@@ -1,20 +1,18 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import SideEmployeeProfile from './SideEmployeeProfile'; // Make sure this path is correct
+import { Box } from '@mui/material';
+import SideEmployeeProfile from '../components/ui/SideEmployeeProfile';
 
 const ProfileEmp = () => {
   return (
-    <View style={styles.container}>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      bgcolor: 'background.default',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
       <SideEmployeeProfile />
-    </View>
+    </Box>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});
 
 export default ProfileEmp;
