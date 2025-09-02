@@ -1,5 +1,6 @@
 import {
   Box,
+  IconButton,
   Container,
   Typography,
   Card,
@@ -9,7 +10,7 @@ import {
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
-import { PersonAdd } from '@mui/icons-material'
+import { PersonAdd, ArrowBack } from '@mui/icons-material'
 import { Navbar, NotificationComponent } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
 import { useUserManagement, useNotification } from '../hooks'
@@ -66,6 +67,15 @@ function AdminDashboard({ onBack }: AdminDashboardProps) {
         <Container maxWidth="md" sx={{ mt: 4 }}>
           <Card sx={{ mb: 4 }}>
             <CardContent sx={{ p: 4 }}>
+          <IconButton
+          edge="start"
+          color="inherit"
+          onClick={onBack}
+          sx={{ mr: 2 }}
+          aria-label="go back"
+          >
+          <ArrowBack/>
+        </IconButton>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <PersonAdd sx={{ mr: 2, color: 'secondary.main' }} />
                 <Typography variant="h4" component="h1" color="secondary">
