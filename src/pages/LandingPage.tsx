@@ -194,7 +194,7 @@ function App() {
                   </Button>
                 </Box>
                   
-                  {/* Developer Access Button */}
+                  {/* Developer Access Button
                   <Box sx={{ display: 'flex', justifyContent: 'center'}}>
                     <Button
                       variant="outlined"
@@ -218,7 +218,7 @@ function App() {
                     >
                       🔧 Developer: Admin Dashboard
                     </Button>
-                    </Box>
+                    </Box> */}
                 </Box>
               </CardContent>
             </Card>
