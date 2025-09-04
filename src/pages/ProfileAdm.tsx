@@ -1,5 +1,5 @@
 import React from 'react';
-import SideAdminProfile from '../components/ui/SideAdminProfile';
+import SideAdminProfile from '../components/ui/Admin/SideAdminProfile';
 import { useAdminProfile } from '../hooks/useAdminProfile'; // Import hook dari file yang benar
 
 const ProfileAdm: React.FC = () => {

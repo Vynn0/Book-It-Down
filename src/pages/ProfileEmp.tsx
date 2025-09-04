@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import SideEmployeeProfile from '../components/ui/SideEmployeeProfile';
+import SideEmployeeProfile from '../components/ui/Employee/SideEmployeeProfile';
 
 const ProfileEmp = () => {
   return (

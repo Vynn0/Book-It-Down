@@ -10,9 +10,9 @@ import {
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services'
 import { Navbar, SearchBar } from '../components/ui';
-import { AdminSearchView } from '../components/ui/AdminSearchView';
-import { RoomManagerSearchView } from '../components/ui/RoomManagerSearchView';
-import { EmployeeSearchView } from '../components/ui/EmployeeSearchView';
+import { AdminSearchView } from '../components/ui/Admin/AdminSearchView';
+import { RoomManagerSearchView } from '../components/ui/Room Manager/RoomManagerSearchView';
+import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { CardRoom } from '../components/ui/cardRoom';
 import { useRoleBasedRouting } from '../hooks';
 import AdminDashboard from './AdminDashboard';
