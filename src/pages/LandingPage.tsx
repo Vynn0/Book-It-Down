@@ -15,13 +15,11 @@ import { Email, Lock } from '@mui/icons-material'
 import { ThemeProvider } from '@mui/material/styles'
 import SearchPage from './SearchPage'
 import AdminDashboard from './AdminDashboard'
-import ProfileAdm from './ProfileAdm'
-import ProfileEmp from './ProfileEmp'
+import Profile from './Profile'
 import { NotificationComponent } from '../components/ui'
 import { 
   useAuth, 
-  useNotification,
-  useRoleBasedRouting 
+  useNotification
 } from '../hooks'
 import { appTheme } from '../services'
 import viorenLogo from '../assets/vioren-logo.png'
@@ -34,7 +32,6 @@ function App() {
   
   const { login, isLoading, isAuthenticated } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
-  const { isAdmin } = useRoleBasedRouting()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,11 +76,7 @@ function App() {
 
   // Show Profile page based on user role
   if (isAuthenticated && currentPage === 'profile') {
-    if (isAdmin()) {
-      return <ProfileAdm onBack={handleBackToSearch} />
-    } else {
-      return <ProfileEmp onBack={handleBackToSearch} />
-    }
+    return <Profile onBack={handleBackToSearch} />
   }
 
   // Show AdminDashboard
