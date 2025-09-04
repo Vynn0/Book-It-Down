@@ -1,8 +1,13 @@
+import React from 'react';
 import { Box, Typography, Button, Card, CardContent, Avatar } from '@mui/material';
 import { useAuth } from '../../../hooks/useAuth';
 import { useRoleBasedRouting } from '../../../hooks/useRoleBasedRouting';
 
-const SideEmployeeProfile = () => {
+interface SideEmployeeProfileProps {
+  onBack?: () => void;
+}
+
+const SideEmployeeProfile: React.FC<SideEmployeeProfileProps> = ({ onBack }) => {
   const { logout, user } = useAuth();
   const { getRoleBasedView } = useRoleBasedRouting();
 
@@ -83,6 +88,22 @@ const SideEmployeeProfile = () => {
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
             {user.email}
           </Typography>
+          
+          {onBack && (
+            <Button
+              variant="outlined"
+              onClick={onBack}
+              sx={{
+                width: '80%',
+                py: 1.5,
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                mb: 2,
+              }}
+            >
+              Back to Search
+            </Button>
+          )}
           
           <Button
             variant="contained"

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from './useAuth';
 
 // Tipe data untuk profile pengguna
 interface UserProfile {
@@ -18,29 +19,50 @@ interface UseAdminProfileResult {
   handleLogoutClick: () => void;
 }
 
-const DUMMY_USER_DATA: UserProfile = {
-  initials: 'MK',
-  namaUser: 'Nama Admin Lengkap',
-  role: 'Administrator',
-  nik: '1234567890123456',
-};
-
 export const useAdminProfile = (): UseAdminProfileResult => {
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { user, logout } = useAuth();
+
+  const getInitials = (name: string): string => {
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  };
+
+  const getRoleDisplayName = (): string => {
+    if (!user?.roles) return 'Unknown Role';
+    
+    // Check if user has admin role (role_id: 1)
+    const hasAdminRole = user.roles.some(role => role.role_id === 1);
+    if (hasAdminRole) return 'Administrator';
+    
+    // Check if user has room manager role (role_id: 2)
+    const hasRoomManagerRole = user.roles.some(role => role.role_id === 2);
+    if (hasRoomManagerRole) return 'Room Manager';
+    
+    // Default to Employee
+    return 'Employee';
+  };
 
   useEffect(() => {
-    const fetchUserData = setTimeout(() => {
-      // Tidak perlu try...catch karena tidak ada operasi yang bisa melempar error di sini
-      // Kita langsung set data dan loading.
-      setUserData(DUMMY_USER_DATA);
+    if (user) {
+      setUserData({
+        initials: getInitials(user.name),
+        namaUser: user.name,
+        role: getRoleDisplayName(),
+        nik: user.userID, // Using userID as NIK for now
+      });
       setLoading(false);
-      setError(null); // Atur error menjadi null setelah berhasil
-    }, 1000);
-
-    return () => clearTimeout(fetchUserData);
-  }, []);
+      setError(null);
+    } else {
+      setError('User not found');
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleProfileClick = () => {
     alert('Anda sudah di halaman Profile!');
@@ -51,7 +73,10 @@ export const useAdminProfile = (): UseAdminProfileResult => {
   };
 
   const handleLogoutClick = () => {
-    alert('Melakukan Logout...');
+    const confirmed = window.confirm('Apakah Anda yakin ingin keluar?');
+    if (confirmed) {
+      logout();
+    }
   };
 
   return {

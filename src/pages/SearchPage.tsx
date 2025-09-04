@@ -19,6 +19,7 @@ import AdminDashboard from './AdminDashboard';
 
 interface SearchPageProps {
   onBack: () => void;
+  onProfileClick: () => void;
 }
 
 // Mock room data
@@ -57,7 +58,7 @@ const mockRooms = [
   },
 ];
 
-function SearchPage({ onBack }: SearchPageProps) {
+function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<typeof mockRooms>([]);
   const [currentView, setCurrentView] = useState<'search' | 'admin'>('search');
@@ -87,7 +88,7 @@ function SearchPage({ onBack }: SearchPageProps) {
 
   // If user is viewing admin dashboard, show AdminDashboard component
   if (currentView === 'admin' && isAdmin()) {
-    return <AdminDashboard onBack={handleBackFromAdmin} />;
+    return <AdminDashboard onBack={handleBackFromAdmin} onProfileClick={onProfileClick} />;
   }
 
   const renderRoleBasedView = () => {
@@ -127,6 +128,7 @@ function SearchPage({ onBack }: SearchPageProps) {
           title={`Book It Down - Search (${user?.name || 'User'})`}
           onBack={onBack}
           userRole={getUserRoleForNavbar()}
+          onProfileClick={onProfileClick}
         />
 
         <Container maxWidth="lg" sx={{ mt: 4 }}>

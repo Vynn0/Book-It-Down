@@ -17,9 +17,10 @@ import { useUserManagement, useNotification } from '../hooks'
 
 interface AdminDashboardProps {
   onBack: () => void
+  onProfileClick?: () => void
 }
 
-function AdminDashboard({ onBack }: AdminDashboardProps) {
+function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
   const {
     userForm,
     isLoading,
@@ -62,6 +63,7 @@ function AdminDashboard({ onBack }: AdminDashboardProps) {
           title="Admin Dashboard - User Management" 
           onBack={onBack}
           userRole="administrator"
+          onProfileClick={onProfileClick}
         />
 
         <Container maxWidth="md" sx={{ mt: 4 }}>

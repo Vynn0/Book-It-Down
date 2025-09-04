@@ -15,22 +15,26 @@ import { Email, Lock } from '@mui/icons-material'
 import { ThemeProvider } from '@mui/material/styles'
 import SearchPage from './SearchPage'
 import AdminDashboard from './AdminDashboard'
+import ProfileAdm from './ProfileAdm'
+import ProfileEmp from './ProfileEmp'
 import { NotificationComponent } from '../components/ui'
 import { 
   useAuth, 
-  useNotification 
+  useNotification,
+  useRoleBasedRouting 
 } from '../hooks'
 import { appTheme } from '../services'
 import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin'>('login')
+  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin' | 'profile'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   
   const { login, isLoading, isAuthenticated } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
+  const { isAdmin } = useRoleBasedRouting()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,14 +64,31 @@ function App() {
     setPassword('')
   }
 
+  const handleProfileNavigation = () => {
+    setCurrentPage('profile')
+  }
+
+  const handleBackToSearch = () => {
+    setCurrentPage('search')
+  }
+
   // If authenticated and trying to access protected pages
   if (isAuthenticated && currentPage === 'search') {
-    return <SearchPage onBack={handleBackToLogin} />
+    return <SearchPage onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} />
+  }
+
+  // Show Profile page based on user role
+  if (isAuthenticated && currentPage === 'profile') {
+    if (isAdmin()) {
+      return <ProfileAdm onBack={handleBackToSearch} />
+    } else {
+      return <ProfileEmp onBack={handleBackToSearch} />
+    }
   }
 
   // Show AdminDashboard
   if (currentPage === 'admin') {
-    return <AdminDashboard onBack={handleBackToLogin} />
+    return <AdminDashboard onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} />
   }
 
   return (

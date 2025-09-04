@@ -2,7 +2,11 @@ import React from 'react';
 import SideAdminProfile from '../components/ui/Admin/SideAdminProfile';
 import { useAdminProfile } from '../hooks/useAdminProfile'; // Import hook dari file yang benar
 
-const ProfileAdm: React.FC = () => {
+interface ProfileAdmProps {
+  onBack?: () => void;
+}
+
+const ProfileAdm: React.FC<ProfileAdmProps> = ({ onBack }) => {
   const { 
     userData, 
     loading, 
@@ -46,7 +50,7 @@ const ProfileAdm: React.FC = () => {
           zIndex: 1000,
         }}
       >
-        <div style={{ fontSize: '24px', color: 'white', cursor: 'pointer' }}>
+        <div style={{ fontSize: '24px', color: 'white', cursor: 'pointer' }} onClick={onBack}>
           &#x25C0;
         </div>
       </div>

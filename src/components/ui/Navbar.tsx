@@ -13,9 +13,10 @@ interface NavbarProps {
   title: string
   onBack: () => void
   userRole?: 'employee' | 'administrator'
+  onProfileClick?: () => void
 }
 
-function Navbar({ title, onBack, userRole = 'employee' }: NavbarProps) {
+function Navbar({ title, onBack, userRole = 'employee', onProfileClick }: NavbarProps) {
   const { user, logout } = useAuth()
 
   const handleLogout = () => {
@@ -51,6 +52,24 @@ function Navbar({ title, onBack, userRole = 'employee' }: NavbarProps) {
               '& .MuiChip-icon': { color: 'white' }
             }}
           />
+          {onProfileClick && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Person />}
+              onClick={onProfileClick}
+              sx={{
+                color: 'white',
+                borderColor: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderColor: 'white'
+                }
+              }}
+            >
+              Profile
+            </Button>
+          )}
           {user && (
             <Button
               variant="outlined"

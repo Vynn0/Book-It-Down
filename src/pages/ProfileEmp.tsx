@@ -1,7 +1,12 @@
+import React from 'react';
 import { Box } from '@mui/material';
 import SideEmployeeProfile from '../components/ui/Employee/SideEmployeeProfile';
 
-const ProfileEmp = () => {
+interface ProfileEmpProps {
+  onBack?: () => void;
+}
+
+const ProfileEmp: React.FC<ProfileEmpProps> = ({ onBack }) => {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
@@ -10,7 +15,7 @@ const ProfileEmp = () => {
       alignItems: 'center',
       justifyContent: 'center'
     }}>
-      <SideEmployeeProfile />
+      <SideEmployeeProfile onBack={onBack} />
     </Box>
   );
 };
