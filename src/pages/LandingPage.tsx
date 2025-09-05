@@ -51,10 +51,6 @@ function App() {
     }
   }
 
-  // const handleAdminAccess = () => {
-  //   setCurrentPage('admin')
-  // }
-
   const handleBackToLogin = () => {
     setCurrentPage('login')
     setEmail('')
@@ -207,32 +203,6 @@ function App() {
                     {isLoading ? 'Logging in...' : 'Login'}
                   </Button>
                 </Box>
-                  
-                  {/* Developer Access Button
-                  <Box sx={{ display: 'flex', justifyContent: 'center'}}>
-                    <Button
-                      variant="outlined"
-                      size="large"
-                      onClick={handleAdminAccess}
-                      sx={{
-                        py: 1.5,
-                        borderRadius: 2,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        textTransform: 'none',
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        borderColor: 'secondary.main',
-                        color: 'secondary.main',
-                        '&:hover': {
-                          backgroundColor: 'secondary.main',
-                          color: 'white'
-                        }
-                      }}
-                    >
-                      🔧 Developer: Admin Dashboard
-                    </Button>
-                    </Box> */}
                 </Box>
               </CardContent>
             </Card>

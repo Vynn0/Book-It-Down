@@ -12,7 +12,16 @@ import {
   DialogActions,
   Fab,
   Paper,
-  IconButton
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  CircularProgress,
+  Alert
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
@@ -20,15 +29,30 @@ import { PersonAdd, Add, ArrowBack } from '@mui/icons-material'
 import { Navbar, NotificationComponent } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
 import { useUserManagement, useNotification } from '../hooks'
-import { useState } from 'react'
+import { supabase } from '../utils/supabase'
+import { useState, useEffect } from 'react'
 
 interface AdminDashboardProps {
   onBack: () => void
   onProfileClick?: () => void
 }
 
+interface DatabaseUser {
+  user_id: string
+  name: string
+  email: string
+  created_at: string
+  roles?: Array<{
+    role_id: number
+    role_name: string
+  }>
+}
+
 function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [users, setUsers] = useState<DatabaseUser[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
+  const [usersError, setUsersError] = useState<string | null>(null)
   
   const {
     userForm,
@@ -44,6 +68,71 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     showNotification,
     hideNotification
   } = useNotification()
+
+  // Fetch users from database
+  const fetchUsers = async () => {
+    try {
+      setIsLoadingUsers(true)
+      setUsersError(null)
+
+      // Fetch users with their roles
+      const { data: usersData, error: usersError } = await supabase
+        .from('user')
+        .select(`
+          user_id,
+          name,
+          email,
+          created_at
+        `)
+        .order('created_at', { ascending: false })
+
+      if (usersError) {
+        throw new Error(usersError.message)
+      }
+
+      // Fetch user roles separately
+      const { data: userRolesData, error: rolesError } = await supabase
+        .from('user_role')
+        .select(`
+          user_id,
+          role_id,
+          roles(role_id, role_name)
+        `)
+
+      if (rolesError) {
+        console.warn('Error fetching user roles:', rolesError)
+      }
+
+      // Combine users with their roles
+      const usersWithRoles = usersData?.map(user => {
+        const userRoles = userRolesData?.filter(ur => ur.user_id === user.user_id) || []
+        const roles = userRoles.map(ur => ({
+          role_id: ur.role_id,
+          role_name: (ur.roles as any)?.role_name || 'Unknown'
+        }))
+
+        // Ensure user_id is always a string
+        return {
+          ...user,
+          user_id: String(user.user_id || ''),
+          roles
+        }
+      }) || []
+
+      console.log('Fetched users:', usersWithRoles) // Debug log
+      setUsers(usersWithRoles)
+    } catch (error: any) {
+      console.error('Error fetching users:', error)
+      setUsersError(error.message || 'Failed to fetch users')
+    } finally {
+      setIsLoadingUsers(false)
+    }
+  }
+
+  // Fetch users on component mount
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   const handleOpenModal = () => {
     resetForm() // Reset form when opening modal
@@ -69,6 +158,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     if (result.success) {
       showNotification(result.message, 'success')
       handleCloseModal() // Close modal on success
+      fetchUsers() // Refresh users list
     } else {
       showNotification(result.message, 'error')
     }
@@ -132,6 +222,110 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
             </Box>
           </Paper>
 
+          {/* Users Table */}
+          <Paper sx={{ mt: 4, mb: 4 }}>
+            <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
+              <Typography variant="h5" component="h2" color="secondary">
+                Users Management
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Manage all users in the system
+              </Typography>
+            </Box>
+
+            {isLoadingUsers ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : usersError ? (
+              <Box sx={{ p: 3 }}>
+                <Alert severity="error">
+                  {usersError}
+                </Alert>
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong>Name</strong></TableCell>
+                      <TableCell><strong>Email</strong></TableCell>
+                      <TableCell><strong>Roles</strong></TableCell>
+                      <TableCell><strong>Created At</strong></TableCell>
+                      <TableCell><strong>User ID</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {users.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            No users found
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      users.map((user) => (
+                        <TableRow key={user.user_id} hover>
+                          <TableCell>
+                            <Typography variant="body1" fontWeight="medium">
+                              {user.name}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" color="text.secondary">
+                              {user.email}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              {user.roles && user.roles.length > 0 ? (
+                                user.roles.map((role) => (
+                                  <Chip
+                                    key={role.role_id}
+                                    label={role.role_name}
+                                    size="small"
+                                    color={
+                                      role.role_name === 'Administrator' ? 'error' :
+                                      role.role_name === 'Room Manager' ? 'warning' : 'primary'
+                                    }
+                                    variant="outlined"
+                                  />
+                                ))
+                              ) : (
+                                <Chip
+                                  label="No Role"
+                                  size="small"
+                                  variant="outlined"
+                                  color="default"
+                                />
+                              )}
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" color="text.secondary">
+                              {new Date(user.created_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                              {user.user_id ? String(user.user_id).substring(0, 8) + '...' : 'N/A'}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Paper>
           {/* Dashboard Stats Cards */}
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
             <Card>
@@ -140,7 +334,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
                   Total Users
                 </Typography>
                 <Typography variant="h3" component="div">
-                  25
+                  {isLoadingUsers ? '-' : users.length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Registered in the system
