@@ -1,19 +1,26 @@
 import {
   Box,
-  IconButton,
   Container,
   Typography,
   Card,
   CardContent,
   CssBaseline,
-  Divider
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Fab,
+  Paper,
+  IconButton
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
-import { PersonAdd, ArrowBack } from '@mui/icons-material'
+import { PersonAdd, Add, ArrowBack } from '@mui/icons-material'
 import { Navbar, NotificationComponent } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
 import { useUserManagement, useNotification } from '../hooks'
+import { useState } from 'react'
 
 interface AdminDashboardProps {
   onBack: () => void
@@ -21,6 +28,8 @@ interface AdminDashboardProps {
 }
 
 function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  
   const {
     userForm,
     isLoading,
@@ -36,6 +45,16 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     hideNotification
   } = useNotification()
 
+  const handleOpenModal = () => {
+    resetForm() // Reset form when opening modal
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    resetForm() // Reset form when closing modal
+  }
+
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -49,7 +68,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     
     if (result.success) {
       showNotification(result.message, 'success')
-      resetForm()
+      handleCloseModal() // Close modal on success
     } else {
       showNotification(result.message, 'error')
     }
@@ -66,48 +85,164 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
           onProfileClick={onProfileClick}
         />
 
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-          <Card sx={{ mb: 4 }}>
-            <CardContent sx={{ p: 4 }}>
-          <IconButton
-          edge="start"
-          color="inherit"
-          onClick={onBack}
-          sx={{ mr: 2 }}
-          aria-label="go back"
-          >
-          <ArrowBack/>
-        </IconButton>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <PersonAdd sx={{ mr: 2, color: 'secondary.main' }} />
-                <Typography variant="h4" component="h1" color="secondary">
+        <Container maxWidth="lg" sx={{ mt: 4 }}>
+          {/* Dashboard Overview */}
+          <Paper sx={{ p: 3, mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton
+                  edge="start"
+                  color="inherit"
+                  onClick={onBack}
+                  aria-label="go back"
+                  sx={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.08)'
+                    }
+                  }}
+                >
+                  <ArrowBack />
+                </IconButton>
+                <Box>
+                  <Typography variant="h4" component="h1" color="secondary" gutterBottom>
+                    User Management Dashboard
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    Manage users, roles, and permissions from this central dashboard.
+                  </Typography>
+                </Box>
+              </Box>
+              <Box>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<PersonAdd />}
+                  onClick={handleOpenModal}
+                  sx={{
+                    py: 1.5,
+                    px: 3,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold'
+                  }}
+                >
                   Add New User
-                </Typography>
+                </Button>
               </Box>
+            </Box>
+          </Paper>
 
-              <Typography variant="body1" color="text.secondary" mb={3}>
-                Create a new user account with encrypted password. This is a developer tool for quick user addition.
-              </Typography>
-
-              <Divider sx={{ mb: 3 }} />
-
-              <UserFormComponent
-                userForm={userForm}
-                isLoading={isLoading}
-                onInputChange={updateUserForm}
-                onSubmit={handleAddUser}
-                submitButtonText="Add User"
-              />
-
-              <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  <strong>Security Note:</strong> Passwords are automatically hashed using bcrypt with 12 salt rounds before storage.
-                  The created_at timestamp is automatically set to the current time.
+          {/* Dashboard Stats Cards */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" color="secondary" gutterBottom>
+                  Total Users
                 </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+                <Typography variant="h3" component="div">
+                  25
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Registered in the system
+                </Typography>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent>
+                <Typography variant="h6" color="secondary" gutterBottom>
+                  Active Sessions
+                </Typography>
+                <Typography variant="h3" component="div">
+                  12
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Currently logged in
+                </Typography>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent>
+                <Typography variant="h6" color="secondary" gutterBottom>
+                  Room Bookings
+                </Typography>
+                <Typography variant="h3" component="div">
+                  8
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Active bookings today
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
         </Container>
+
+        {/* Add User Modal */}
+        <Dialog 
+          open={isModalOpen} 
+          onClose={handleCloseModal}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: { borderRadius: 2 }
+          }}
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <PersonAdd sx={{ mr: 2, color: 'secondary.main' }} />
+              <Typography variant="h5" component="div">
+                Add New User
+              </Typography>
+            </Box>
+          </DialogTitle>
+          
+          <DialogContent dividers>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Create a new user account with encrypted password. This is a developer tool for quick user addition.
+            </Typography>
+
+            <UserFormComponent
+              userForm={userForm}
+              isLoading={isLoading}
+              onInputChange={updateUserForm}
+              onSubmit={handleAddUser}
+              submitButtonText="Add User"
+            />
+
+            <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                <strong>Security Note:</strong> Passwords are automatically hashed using bcrypt with 12 salt rounds before storage.
+                The created_at timestamp is automatically set to the current time.
+              </Typography>
+            </Box>
+          </DialogContent>
+          
+          <DialogActions sx={{ p: 2 }}>
+            <Button 
+              onClick={handleCloseModal} 
+              variant="outlined"
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Floating Action Button for Mobile */}
+        <Fab
+          color="secondary"
+          aria-label="add user"
+          onClick={handleOpenModal}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            display: { xs: 'block', sm: 'none' } // Only show on mobile
+          }}
+        >
+          <Add />
+        </Fab>
 
         <NotificationComponent
           notification={notification}
