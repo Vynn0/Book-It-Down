@@ -2,46 +2,44 @@ import { useState } from 'react';
 import {
   Box,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  TextField,
 } from '@mui/material';
 import { Search} from '@mui/icons-material';
 import { DatePicker, TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { setMinutes, setHours, isAfter} from 'date-fns';
 
+// Backendnya...
 interface SearchBarProps {
   onSearch: (query: {
     tanggal: Date | null;
-    kapasitas: number;
     jamMulai: Date | null;
     jamSelesai: Date | null;
+    kapasitas: number;
   }) => void;
 }
 
 function SearchBar({ onSearch }: SearchBarProps) {
   const [selectedTanggal, setSelectedTanggal] = useState<Date | null>(null);
-  const [selectedKapasitas, setSelectedKapasitas] = useState('');
   const [selectedJamMulai, setSelectedJamMulai] = useState<Date | null>(null);
   const [selectedJamSelesai, setSelectedJamSelesai] = useState<Date | null>(null);
+  const [selectedKapasitas, setSelectedKapasitas] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch({
       tanggal: selectedTanggal,
-      kapasitas: parseInt(selectedKapasitas),
       jamMulai: selectedJamMulai,
       jamSelesai: selectedJamSelesai,
+      kapasitas: parseInt(selectedKapasitas),
     });
   };
 
   const isFormValid =
     selectedTanggal &&
-    selectedKapasitas &&
     selectedJamMulai &&
     selectedJamSelesai &&
+    selectedKapasitas &&
     isAfter(selectedJamSelesai, selectedJamMulai);
 
   // Menentukan waktu minimum untuk jam selesai (30 menit setelah jam mulai)
@@ -49,6 +47,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
     ? setMinutes(setHours(selectedJamMulai, selectedJamMulai.getHours()), selectedJamMulai.getMinutes() + 5)
     : null;
 
+    // Di bawah in Front Endnya...
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box
@@ -71,20 +70,6 @@ function SearchBar({ onSearch }: SearchBarProps) {
           onChange={(newValue) => setSelectedTanggal(newValue)}
           slotProps={{ textField: { fullWidth: true } }}
         />
-        <FormControl fullWidth>
-          <InputLabel id="kapasitas-label">Kapasitas Minimal</InputLabel>
-          <Select
-            labelId="kapasitas-label"
-            value={selectedKapasitas}
-            label="Kapasitas Minimal"
-            onChange={(e) => setSelectedKapasitas(e.target.value)}
-          >
-            <MenuItem value="">Pilih Kapasitas</MenuItem>
-            <MenuItem value={4}>4</MenuItem>
-            <MenuItem value={16}>16</MenuItem>
-            <MenuItem value={32}>32</MenuItem>
-          </Select>
-        </FormControl>
         <TimePicker
           label="Jam Mulai"
           ampm={false}
@@ -102,6 +87,17 @@ function SearchBar({ onSearch }: SearchBarProps) {
           minTime={minJamSelesai || undefined}
           disabled={!selectedJamMulai}
           slotProps={{ textField: { fullWidth: true } }}
+        />
+          <TextField
+          label="Kapasitas"
+          type="number"
+          value={selectedKapasitas}
+          onChange={(e) => setSelectedKapasitas(e.target.value)}
+          disabled={!selectedJamSelesai}
+          fullWidth
+          InputProps={{
+            inputProps: { min: 1 } 
+          }}
         />
         <Button
           type="submit"
