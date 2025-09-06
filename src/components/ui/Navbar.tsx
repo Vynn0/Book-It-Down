@@ -3,11 +3,9 @@ import {
   Toolbar,
   Typography,
   Box,
-  Chip,
   Button
 } from '@mui/material'
-import { Person, Logout } from '@mui/icons-material'
-import { useAuth } from '../../hooks/useAuth'
+import { Person } from '@mui/icons-material'
 
 interface NavbarProps {
   title: string
@@ -16,13 +14,7 @@ interface NavbarProps {
   onProfileClick?: () => void
 }
 
-function Navbar({ title, onBack, userRole = 'employee', onProfileClick }: NavbarProps) {
-  const { user, logout } = useAuth()
-
-  const handleLogout = () => {
-    logout()
-    onBack() // This will redirect to login
-  }
+function Navbar({ title, onProfileClick }: NavbarProps) {
   return (
     <AppBar position="static" color="secondary">
       <Toolbar>
