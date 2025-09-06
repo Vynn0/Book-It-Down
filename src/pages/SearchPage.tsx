@@ -131,7 +131,7 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
           onProfileClick={onProfileClick}
         />
 
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Container maxWidth="lg" sx={{ mt: 4, pb: 4 }}>
           {/* Role-based view */}
           {renderRoleBasedView()}
           
