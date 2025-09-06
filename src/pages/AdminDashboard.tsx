@@ -169,60 +169,34 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         <Container maxWidth="lg" sx={{ mt: 4 }}>
           {/* Dashboard Overview */}
           <Paper sx={{ p: 3, mb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <IconButton
-                  edge="start"
-                  color="inherit"
-                  onClick={onBack}
-                  aria-label="go back"
-                  sx={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.08)'
-                    }
-                  }}
-                >
-                  <ArrowBack />
-                </IconButton>
-                <Box>
-                  <Typography variant="h4" component="h1" color="secondary" gutterBottom>
-                    User Management Dashboard
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    Manage users, roles, and permissions from this central dashboard.
-                  </Typography>
-                </Box>
-              </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={onBack}
+                aria-label="go back"
+                sx={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.08)'
+                  }
+                }}
+              >
+                <ArrowBack />
+              </IconButton>
               <Box>
-                <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<PersonAdd />}
-                  onClick={handleOpenModal}
-                  sx={{
-                    py: 1.5,
-                    px: 3,
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  Add New User
-                </Button>
+                <Typography variant="h4" component="h1" color="secondary" gutterBottom>
+                  User Management Dashboard
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Manage users, roles, and permissions from this central dashboard.
+                </Typography>
               </Box>
             </Box>
           </Paper>
 
-          {/* Users Table */}
-          <Paper sx={{ mt: 4, mb: 4 }}>
-            <UserTable 
-              users={users}
-              isLoading={isLoadingUsers}
-              error={usersError}
-            />
-          </Paper>
           {/* Dashboard Stats Cards */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" color="secondary" gutterBottom>
@@ -265,6 +239,14 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
               </CardContent>
             </Card>
           </Box>
+
+          {/* Users Table */}
+          <UserTable 
+            users={users}
+            isLoading={isLoadingUsers}
+            error={usersError}
+            onAddUser={handleOpenModal}
+          />
         </Container>
 
         {/* Add User Modal */}

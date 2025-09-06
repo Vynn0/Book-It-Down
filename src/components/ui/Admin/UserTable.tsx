@@ -11,8 +11,10 @@ import {
   TableRow,
   Chip,
   CircularProgress,
-  Alert
+  Alert,
+  Button
 } from '@mui/material';
+import { PersonAdd } from '@mui/icons-material';
 
 interface UserRole {
   role_id: number;
@@ -31,9 +33,10 @@ interface UserTableProps {
   users: DatabaseUser[];
   isLoading: boolean;
   error: string | null;
+  onAddUser?: () => void;
 }
 
-const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error }) => {
+const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUser }) => {
   const getRoleColor = (roleName: string): 'error' | 'warning' | 'primary' | 'default' => {
     switch (roleName) {
       case 'Administrator':
@@ -47,29 +50,39 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error }) => {
     }
   };
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatUserId = (userId: string): string => {
-    return userId ? String(userId).substring(0, 8) + '...' : 'N/A';
-  };
-
   return (
     <Paper sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
-        <Typography variant="h5" component="h2" color="secondary">
-          Users Management
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Manage all users in the system
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+          <Box>
+            <Typography variant="h5" component="h2" color="secondary">
+              Users Management
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Manage all users in the system
+            </Typography>
+          </Box>
+          {onAddUser && (
+            <Button
+              variant="contained"
+              size="medium"
+              startIcon={<PersonAdd />}
+              onClick={onAddUser}
+              sx={{
+                backgroundColor: '#FF9B0F', // Orange from theme
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#e6890e', // Darker orange on hover
+                },
+                fontWeight: 'bold',
+                px: 2.5,
+                py: 1
+              }}
+            >
+              Add New User
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {isLoading ? (
@@ -90,14 +103,13 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error }) => {
                 <TableCell><strong>Name</strong></TableCell>
                 <TableCell><strong>Email</strong></TableCell>
                 <TableCell><strong>Roles</strong></TableCell>
-                <TableCell><strong>Created At</strong></TableCell>
-                <TableCell><strong>User ID</strong></TableCell>
+                <TableCell><strong>Actions</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary">
                       No users found
                     </Typography>
@@ -139,14 +151,28 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error }) => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDate(user.created_at)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-                        {formatUserId(user.user_id)}
-                      </Typography>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => {
+                          // TODO: Implement edit functionality
+                          console.log('Edit user:', user.user_id);
+                        }}
+                        sx={{
+                          backgroundColor: '#FF9B0F', // Orange from theme
+                          color: 'white',
+                          '&:hover': {
+                            backgroundColor: '#e6890e', // Darker orange on hover
+                          },
+                          fontSize: '0.75rem',
+                          fontWeight: 'bold',
+                          px: 2,
+                          py: 0.5
+                        }}
+                        aria-label={`Edit ${user.name}`}
+                      >
+                        Edit
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
