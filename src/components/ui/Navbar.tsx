@@ -26,32 +26,11 @@ function Navbar({ title, onBack, userRole = 'employee', onProfileClick }: Navbar
   return (
     <AppBar position="static" color="secondary">
       <Toolbar>
-        {/* <IconButton
-          edge="start"
-          color="inherit"
-          onClick={onBack}
-          sx={{ mr: 2 }}
-          aria-label="go back"
-        >
-          <ArrowBack />
-        </IconButton> */}
-        
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           {title}
         </Typography>
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Chip
-            icon={<Person />}
-            label={userRole === 'administrator' ? 'Admin' : 'Employee'}
-            color={userRole === 'administrator' ? 'warning' : 'primary'}
-            variant="outlined"
-            sx={{ 
-              color: 'white',
-              borderColor: 'white',
-              '& .MuiChip-icon': { color: 'white' }
-            }}
-          />
           {onProfileClick && (
             <Button
               variant="outlined"
@@ -68,24 +47,6 @@ function Navbar({ title, onBack, userRole = 'employee', onProfileClick }: Navbar
               }}
             >
               Profile
-            </Button>
-          )}
-          {user && (
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Logout />}
-              onClick={handleLogout}
-              sx={{
-                color: 'white',
-                borderColor: 'white',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderColor: 'white'
-                }
-              }}
-            >
-              Logout
             </Button>
           )}
         </Box>
