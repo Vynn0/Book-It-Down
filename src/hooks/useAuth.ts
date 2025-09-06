@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '../utils/supabase'
+import { SessionManager } from '../security/sessionManager'
 import bcrypt from 'bcryptjs'
 
 export interface User {
@@ -46,18 +47,34 @@ export const useAuthLogic = () => {
     isAuthenticated: false
   })
 
-  // Check if user is already logged in (from localStorage)
+  // Check if user is already logged in (from localStorage) and validate session
   useEffect(() => {
     const checkAuthStatus = () => {
       try {
         const storedUser = localStorage.getItem('authenticated_user')
         if (storedUser) {
           const user = JSON.parse(storedUser)
-          setAuthState({
-            user,
-            isLoading: false,
-            isAuthenticated: true
-          })
+          
+          // Also check if there's a valid session
+          const existingSession = SessionManager.getSession()
+          if (existingSession && SessionManager.isSessionValid()) {
+            console.log('Restored user session on page refresh')
+            setAuthState({
+              user,
+              isLoading: false,
+              isAuthenticated: true
+            })
+          } else {
+            // Session expired or invalid, clear user data
+            console.log('Session expired, clearing stored user data')
+            localStorage.removeItem('authenticated_user')
+            SessionManager.clearSession()
+            setAuthState({
+              user: null,
+              isLoading: false,
+              isAuthenticated: false
+            })
+          }
         } else {
           setAuthState({
             user: null,
@@ -67,6 +84,9 @@ export const useAuthLogic = () => {
         }
       } catch (error) {
         console.error('Error checking auth status:', error)
+        // Clear potentially corrupted data
+        localStorage.removeItem('authenticated_user')
+        SessionManager.clearSession()
         setAuthState({
           user: null,
           isLoading: false,
@@ -173,7 +193,9 @@ export const useAuthLogic = () => {
   }
 
   const logout = () => {
+    // Clear both authentication and session data
     localStorage.removeItem('authenticated_user')
+    SessionManager.clearSession()
     setAuthState({
       user: null,
       isLoading: false,

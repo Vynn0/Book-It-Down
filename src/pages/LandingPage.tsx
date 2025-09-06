@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Card,
@@ -21,17 +21,43 @@ import {
   useAuth, 
   useNotification
 } from '../hooks'
+import { SessionManager } from '../security/sessionManager'
 import { appTheme } from '../services'
 import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin' | 'profile'>('login')
+  // Initialize currentPage based on existing session AND auth state
+  const getInitialPage = (): 'login' | 'search' | 'admin' | 'profile' => {
+    // Check session first
+    const session = SessionManager.getSession();
+    const storedUser = localStorage.getItem('authenticated_user');
+    
+    if (session && SessionManager.isSessionValid() && storedUser) {
+      console.log(`Restoring page from session: ${session.currentPage}`);
+      return (session.currentPage as 'login' | 'search' | 'admin' | 'profile') || 'search';
+    }
+    return 'login';
+  };
+
+  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin' | 'profile'>(getInitialPage)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   
   const { login, isLoading, isAuthenticated } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
+
+  // Sync currentPage with session on auth state changes
+  useEffect(() => {
+    const session = SessionManager.getSession();
+    if (isAuthenticated && session && SessionManager.isSessionValid()) {
+      const sessionPage = session.currentPage || 'search';
+      if (sessionPage !== currentPage) {
+        console.log(`Syncing page state: ${currentPage} → ${sessionPage}`);
+        setCurrentPage(sessionPage as 'login' | 'search' | 'admin' | 'profile');
+      }
+    }
+  }, [isAuthenticated, currentPage]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +72,7 @@ function App() {
     if (result.success) {
       showNotification(result.message, 'success')
       setCurrentPage('search')
+      SessionManager.updateCurrentPage('search')
     } else {
       showNotification(result.message, 'error')
     }
@@ -53,16 +80,19 @@ function App() {
 
   const handleBackToLogin = () => {
     setCurrentPage('login')
+    SessionManager.updateCurrentPage('login')
     setEmail('')
     setPassword('')
   }
 
   const handleProfileNavigation = () => {
     setCurrentPage('profile')
+    SessionManager.updateCurrentPage('profile')
   }
 
   const handleBackToSearch = () => {
     setCurrentPage('search')
+    SessionManager.updateCurrentPage('search')
   }
 
   // If authenticated and trying to access protected pages

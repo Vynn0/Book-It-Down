@@ -15,6 +15,7 @@ import { RoomManagerSearchView } from '../components/ui/Room Manager/RoomManager
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { CardRoom } from '../components/ui/cardRoom';
 import { useRoleBasedRouting } from '../hooks';
+import { SessionManager } from '../security/sessionManager';
 import AdminDashboard from './AdminDashboard';
 
 interface SearchPageProps {
@@ -61,7 +62,14 @@ const mockRooms = [
 function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<typeof mockRooms>([]);
-  const [currentView, setCurrentView] = useState<'search' | 'admin'>('search');
+  
+  // Initialize currentView from session
+  const getInitialView = (): 'search' | 'admin' => {
+    const session = SessionManager.getSession();
+    return (session?.subView === 'admin') ? 'admin' : 'search';
+  };
+  
+  const [currentView, setCurrentView] = useState<'search' | 'admin'>(getInitialView);
   const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
 
   const handleSearch = (query: {
@@ -79,11 +87,13 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   const handleAdminAccess = () => {
     // Navigate to admin dashboard (replaces entire SearchPage)
     setCurrentView('admin');
+    SessionManager.updateCurrentPage('search', 'admin');
   };
 
   const handleBackFromAdmin = () => {
     // Go back to search view
     setCurrentView('search');
+    SessionManager.updateCurrentPage('search', 'search');
   };
 
   // If user is viewing admin dashboard, show AdminDashboard component

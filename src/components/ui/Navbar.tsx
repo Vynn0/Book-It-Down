@@ -6,6 +6,7 @@ import {
   Button
 } from '@mui/material'
 import { Person } from '@mui/icons-material'
+import { SessionIndicator } from '../../security'
 
 interface NavbarProps {
   title: string
@@ -23,6 +24,7 @@ function Navbar({ title, onProfileClick }: NavbarProps) {
         </Typography>
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <SessionIndicator compact={true} />
           {onProfileClick && (
             <Button
               variant="outlined"
