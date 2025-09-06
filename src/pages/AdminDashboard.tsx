@@ -12,21 +12,12 @@ import {
   DialogActions,
   Fab,
   Paper,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  CircularProgress,
-  Alert
+  IconButton
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
 import { PersonAdd, Add, ArrowBack } from '@mui/icons-material'
-import { Navbar, NotificationComponent } from '../components/ui'
+import { Navbar, NotificationComponent, UserTable } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
 import { useUserManagement, useNotification } from '../hooks'
 import { supabase } from '../utils/supabase'
@@ -224,107 +215,11 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
 
           {/* Users Table */}
           <Paper sx={{ mt: 4, mb: 4 }}>
-            <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
-              <Typography variant="h5" component="h2" color="secondary">
-                Users Management
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Manage all users in the system
-              </Typography>
-            </Box>
-
-            {isLoadingUsers ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : usersError ? (
-              <Box sx={{ p: 3 }}>
-                <Alert severity="error">
-                  {usersError}
-                </Alert>
-              </Box>
-            ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell><strong>Name</strong></TableCell>
-                      <TableCell><strong>Email</strong></TableCell>
-                      <TableCell><strong>Roles</strong></TableCell>
-                      <TableCell><strong>Created At</strong></TableCell>
-                      <TableCell><strong>User ID</strong></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {users.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            No users found
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      users.map((user) => (
-                        <TableRow key={user.user_id} hover>
-                          <TableCell>
-                            <Typography variant="body1" fontWeight="medium">
-                              {user.name}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" color="text.secondary">
-                              {user.email}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                              {user.roles && user.roles.length > 0 ? (
-                                user.roles.map((role) => (
-                                  <Chip
-                                    key={role.role_id}
-                                    label={role.role_name}
-                                    size="small"
-                                    color={
-                                      role.role_name === 'Administrator' ? 'error' :
-                                      role.role_name === 'Room Manager' ? 'warning' : 'primary'
-                                    }
-                                    variant="outlined"
-                                  />
-                                ))
-                              ) : (
-                                <Chip
-                                  label="No Role"
-                                  size="small"
-                                  variant="outlined"
-                                  color="default"
-                                />
-                              )}
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" color="text.secondary">
-                              {new Date(user.created_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-                              {user.user_id ? String(user.user_id).substring(0, 8) + '...' : 'N/A'}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+            <UserTable 
+              users={users}
+              isLoading={isLoadingUsers}
+              error={usersError}
+            />
           </Paper>
           {/* Dashboard Stats Cards */}
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
