@@ -12,7 +12,9 @@ import {
   DialogActions,
   Fab,
   Paper,
-  IconButton
+  IconButton,
+  Chip,
+  Divider
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
@@ -41,6 +43,8 @@ interface DatabaseUser {
 
 function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<DatabaseUser | null>(null)
   const [users, setUsers] = useState<DatabaseUser[]>([])
   const [isLoadingUsers, setIsLoadingUsers] = useState(true)
   const [usersError, setUsersError] = useState<string | null>(null)
@@ -133,6 +137,16 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     resetForm() // Reset form when closing modal
+  }
+
+  const handleOpenEditModal = (user: DatabaseUser) => {
+    setSelectedUser(user)
+    setIsEditModalOpen(true)
+  }
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false)
+    setSelectedUser(null)
   }
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -246,6 +260,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
             isLoading={isLoadingUsers}
             error={usersError}
             onAddUser={handleOpenModal}
+            onEditUser={handleOpenEditModal}
           />
         </Container>
 
@@ -296,6 +311,114 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
               disabled={isLoading}
             >
               Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Edit User Modal */}
+        <Dialog 
+          open={isEditModalOpen} 
+          onClose={handleCloseEditModal}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            <Typography variant="h6" sx={{ color: '#3C355F', fontWeight: 'bold' }}>
+              Edit User Details
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            {selectedUser && (
+              <Box sx={{ pt: 2 }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
+                  User Information
+                </Typography>
+                
+                <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f8f9fa' }}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Full Name
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                      {selectedUser.name}
+                    </Typography>
+                  </Box>
+                  
+                  <Divider sx={{ my: 1 }} />
+                  
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Email
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                      {selectedUser.email}
+                    </Typography>
+                  </Box>
+                  
+                  <Divider sx={{ my: 1 }} />
+                  
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Role(s)
+                    </Typography>
+                    <Box sx={{ mt: 0.5 }}>
+                      {selectedUser.roles && selectedUser.roles.length > 0 ? (
+                        selectedUser.roles.map((role, index) => (
+                          <Chip 
+                            key={index}
+                            label={role.role_name}
+                            color={role.role_name === 'admin' ? 'error' : 
+                                   role.role_name === 'room_manager' ? 'warning' : 'default'}
+                            size="small"
+                            sx={{ mr: 1, mb: 1, fontWeight: 'bold' }}
+                          />
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No roles assigned
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                  
+                  <Divider sx={{ my: 1 }} />
+                  
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Created At
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                      {new Date(selectedUser.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={handleCloseEditModal}
+              sx={{ 
+                color: '#3C355F',
+                '&:hover': { backgroundColor: '#f5f5f5' }
+              }}
+            >
+              Close
+            </Button>
+            <Button 
+              variant="contained"
+              sx={{ 
+                backgroundColor: '#FF9B0F',
+                '&:hover': { backgroundColor: '#e88a00' }
+              }}
+            >
+              Edit User
             </Button>
           </DialogActions>
         </Dialog>

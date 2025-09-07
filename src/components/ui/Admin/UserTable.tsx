@@ -34,9 +34,10 @@ interface UserTableProps {
   isLoading: boolean;
   error: string | null;
   onAddUser?: () => void;
+  onEditUser?: (user: DatabaseUser) => void;
 }
 
-const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUser }) => {
+const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUser, onEditUser }) => {
   const getRoleColor = (roleName: string): 'error' | 'warning' | 'primary' | 'default' => {
     switch (roleName) {
       case 'Administrator':
@@ -155,8 +156,9 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUse
                         variant="contained"
                         size="small"
                         onClick={() => {
-                          // TODO: Implement edit functionality
-                          console.log('Edit user:', user.user_id);
+                          if (onEditUser) {
+                            onEditUser(user);
+                          }
                         }}
                         sx={{
                           backgroundColor: '#FF9B0F', // Orange from theme

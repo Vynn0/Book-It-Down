@@ -13,7 +13,7 @@ import {
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
 import { ThemeProvider } from '@mui/material/styles'
-import SearchPage from './HomePage'
+import SearchPage from './SearchPage'
 import AdminDashboard from './AdminDashboard'
 import Profile from './Profile'
 import { NotificationComponent } from '../components/ui'
