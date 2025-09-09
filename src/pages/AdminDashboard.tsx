@@ -157,6 +157,27 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     }
   }
 
+  const handleConfirmEdit = async (userId: string, newName: string) => {
+    try {
+      // Update user name in database
+      const { error } = await supabase
+        .from('user')
+        .update({ name: newName })
+        .eq('user_id', userId)
+
+      if (error) {
+        throw error
+      }
+
+      showNotification('User name updated successfully!', 'success')
+      fetchUsers() // Refresh users list
+      handleCloseEditModal() // Close modal
+    } catch (error: any) {
+      console.error('Error updating user:', error)
+      showNotification(error.message || 'Failed to update user', 'error')
+    }
+  }
+
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
@@ -309,10 +330,9 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
           user={selectedUser}
           onClose={handleCloseEditModal}
           onEditUser={(user) => {
-            // TODO: Implement actual edit functionality
-            console.log('Edit user:', user)
-            showNotification(`Edit functionality for ${user.name} coming soon!`, 'info')
+            console.log('Edit mode activated for user:', user)
           }}
+          onConfirmEdit={handleConfirmEdit}
         />
 
         {/* Floating Action Button for Mobile */}
