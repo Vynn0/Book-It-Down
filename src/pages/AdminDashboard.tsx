@@ -157,19 +157,45 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     }
   }
 
-  const handleConfirmEdit = async (userId: string, newName: string) => {
+  const handleConfirmEdit = async (userId: string, newName: string, newRoleIds: number[]) => {
     try {
       // Update user name in database
-      const { error } = await supabase
+      const { error: userError } = await supabase
         .from('user')
         .update({ name: newName })
         .eq('user_id', userId)
 
-      if (error) {
-        throw error
+      if (userError) {
+        throw userError
       }
 
-      showNotification('User name updated successfully!', 'success')
+      // Update user roles - first delete existing roles, then insert new ones
+      const { error: deleteError } = await supabase
+        .from('user_role')
+        .delete()
+        .eq('user_id', userId)
+
+      if (deleteError) {
+        throw deleteError
+      }
+
+      // Insert new roles if any selected
+      if (newRoleIds.length > 0) {
+        const roleInserts = newRoleIds.map(roleId => ({
+          user_id: userId,
+          role_id: roleId
+        }))
+
+        const { error: insertError } = await supabase
+          .from('user_role')
+          .insert(roleInserts)
+
+        if (insertError) {
+          throw insertError
+        }
+      }
+
+      showNotification('User updated successfully!', 'success')
       fetchUsers() // Refresh users list
       handleCloseEditModal() // Close modal
     } catch (error: any) {

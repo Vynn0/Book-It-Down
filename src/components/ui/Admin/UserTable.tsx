@@ -15,6 +15,7 @@ import {
   Button
 } from '@mui/material';
 import { PersonAdd } from '@mui/icons-material';
+import { getRoleColor } from '../../../utils/roleUtils';
 
 interface UserRole {
   role_id: number;
@@ -38,18 +39,6 @@ interface UserTableProps {
 }
 
 const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUser, onEditUser }) => {
-  const getRoleColor = (roleName: string): 'error' | 'warning' | 'primary' | 'default' => {
-    switch (roleName) {
-      case 'Administrator':
-        return 'error';
-      case 'Room Manager':
-        return 'warning';
-      case 'Employee':
-        return 'primary';
-      default:
-        return 'default';
-    }
-  };
 
   return (
     <Paper sx={{ mt: 4, mb: 4 }}>
