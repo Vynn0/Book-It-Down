@@ -1,5 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../utils/supabase'
+
+export interface Room {
+    room_id: number
+    room_name: string
+    location: string
+    capacity: number
+    description: string
+    created_at: string
+    features?: string[] // Optional features array for future use
+}
 
 export interface RoomForm {
     room_name: string
@@ -9,15 +19,20 @@ export interface RoomForm {
 }
 
 export interface UseRoomManagementReturn {
+    rooms: Room[]
     roomForm: RoomForm
     isLoading: boolean
+    isLoadingRooms: boolean
     updateRoomForm: (field: keyof RoomForm, value: string | number) => void
     resetForm: () => void
     addRoom: (roomData: RoomForm) => Promise<{ success: boolean; message: string }>
     validateForm: (roomData: RoomForm) => string | null
+    fetchRooms: () => Promise<void>
+    refreshRooms: () => Promise<void>
 }
 
 export const useRoomManagement = (): UseRoomManagementReturn => {
+    const [rooms, setRooms] = useState<Room[]>([])
     const [roomForm, setRoomForm] = useState<RoomForm>({
         room_name: '',
         location: '',
@@ -25,6 +40,39 @@ export const useRoomManagement = (): UseRoomManagementReturn => {
         description: ''
     })
     const [isLoading, setIsLoading] = useState(false)
+    const [isLoadingRooms, setIsLoadingRooms] = useState(true)
+
+    // Fetch rooms from database
+    const fetchRooms = async (): Promise<void> => {
+        setIsLoadingRooms(true)
+        try {
+            const { data, error } = await supabase
+                .from('room')
+                .select('*')
+                .order('created_at', { ascending: false })
+
+            if (error) {
+                throw error
+            }
+
+            setRooms(data || [])
+        } catch (error) {
+            console.error('Error fetching rooms:', error)
+            setRooms([])
+        } finally {
+            setIsLoadingRooms(false)
+        }
+    }
+
+    // Refresh rooms data
+    const refreshRooms = async (): Promise<void> => {
+        await fetchRooms()
+    }
+
+    // Load rooms on component mount
+    useEffect(() => {
+        fetchRooms()
+    }, [])
 
     const updateRoomForm = (field: keyof RoomForm, value: string | number) => {
         setRoomForm(prev => ({
@@ -73,6 +121,9 @@ export const useRoomManagement = (): UseRoomManagementReturn => {
                 throw error
             }
 
+            // Refresh rooms list after successful addition
+            await fetchRooms()
+
             return {
                 success: true,
                 message: `Room "${roomData.room_name}" added successfully!`
@@ -90,11 +141,15 @@ export const useRoomManagement = (): UseRoomManagementReturn => {
     }
 
     return {
+        rooms,
         roomForm,
         isLoading,
+        isLoadingRooms,
         updateRoomForm,
         resetForm,
         addRoom,
-        validateForm
+        validateForm,
+        fetchRooms,
+        refreshRooms
     }
 }

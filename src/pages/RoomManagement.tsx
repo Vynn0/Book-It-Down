@@ -12,12 +12,13 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Fab
+    Fab,
+    CircularProgress
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
-import { ArrowBack, Add } from '@mui/icons-material'
-import { Navbar, NotificationComponent, RoomFormComponent } from '../components/ui'
+import { ArrowBack, Add, Refresh } from '@mui/icons-material'
+import { Navbar, NotificationComponent, RoomFormComponent, RoomCard } from '../components/ui'
 import { useRoomManagement, useNotification } from '../hooks'
 import { useState } from 'react'
 
@@ -29,12 +30,15 @@ function RoomManagement({ onBack }: RoomManagementProps) {
     const [isModalOpen, setIsModalOpen] = useState(false)
 
     const {
+        rooms,
         roomForm,
         isLoading,
+        isLoadingRooms,
         updateRoomForm,
         resetForm,
         addRoom,
-        validateForm
+        validateForm,
+        refreshRooms
     } = useRoomManagement()
 
     const {
@@ -89,20 +93,33 @@ function RoomManagement({ onBack }: RoomManagementProps) {
                     </Button>
 
                     <Paper sx={{ p: 3, mb: 4 }}>
-                        <Typography variant="h4" gutterBottom>
-                            Room Management Dashboard
-                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Typography variant="h4" gutterBottom>
+                                Room Management Dashboard
+                            </Typography>
+                            <Button
+                                startIcon={<Refresh />}
+                                onClick={refreshRooms}
+                                variant="outlined"
+                                disabled={isLoadingRooms}
+                            >
+                                Refresh
+                            </Button>
+                        </Box>
                         <Divider sx={{ mb: 3 }} />
 
-                        <Typography variant="body1" paragraph>
-                            This is a simple Room Management dashboard where room managers can:
-                        </Typography>
-
-                        <Box component="ul" sx={{ pl: 4, mb: 3 }}>
-                            <Typography component="li" variant="body1">View all available rooms</Typography>
-                            <Typography component="li" variant="body1">Manage room bookings</Typography>
-                            <Typography component="li" variant="body1">Update room availability</Typography>
-                            <Typography component="li" variant="body1">Generate reports</Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Typography variant="body1">
+                                Manage and view all available rooms in the system
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<Add />}
+                                onClick={handleOpenModal}
+                            >
+                                Add New Room
+                            </Button>
                         </Box>
 
                         <Card sx={{ bgcolor: '#f5f5f5', mb: 3 }}>
@@ -111,25 +128,47 @@ function RoomManagement({ onBack }: RoomManagementProps) {
                                     Quick Stats
                                 </Typography>
                                 <Typography variant="body2">
-                                    Total Rooms: 42
+                                    Total Rooms: {rooms.length}
                                 </Typography>
                                 <Typography variant="body2">
-                                    Available Rooms: 28
-                                </Typography>
-                                <Typography variant="body2">
-                                    Booked Rooms: 14
+                                    Available Rooms: {rooms.length} {/* You can implement availability logic later */}
                                 </Typography>
                             </CardContent>
                         </Card>
+                    </Paper>
 
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleOpenModal}
-                            sx={{ mt: 2 }}
-                        >
-                            Add New Room
-                        </Button>
+                    {/* Rooms Grid */}
+                    <Paper sx={{ p: 3 }}>
+                        <Typography variant="h5" gutterBottom>
+                            All Rooms
+                        </Typography>
+                        <Divider sx={{ mb: 3 }} />
+                        
+                        {isLoadingRooms ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                <CircularProgress />
+                            </Box>
+                        ) : rooms.length === 0 ? (
+                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                                <Typography variant="body1" color="text.secondary">
+                                    No rooms found. Add a new room to get started.
+                                </Typography>
+                            </Box>
+                        ) : (
+                            <Box sx={{ 
+                                display: 'grid',
+                                gridTemplateColumns: {
+                                    xs: '1fr',
+                                    sm: 'repeat(2, 1fr)',
+                                    md: 'repeat(3, 1fr)'
+                                },
+                                gap: 3
+                            }}>
+                                {rooms.map((room) => (
+                                    <RoomCard key={room.room_id} room={room} />
+                                ))}
+                            </Box>
+                        )}
                     </Paper>
                 </Container>
 
