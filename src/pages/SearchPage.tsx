@@ -63,13 +63,13 @@ const mockRooms = [
 function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<typeof mockRooms>([]);
-  
+
   // Initialize currentView from session
-  const getInitialView = (): 'search' | 'admin' => {
+  const getInitialView = (): 'search' | 'admin' | 'manager' => {
     const session = SessionManager.getSession();
     return (session?.subView === 'admin') ? 'admin' : 'search';
   };
-  
+
   const [currentView, setCurrentView] = useState<'search' | 'admin'>(getInitialView);
   const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
 
@@ -91,6 +91,12 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
     SessionManager.updateCurrentPage('search', 'admin');
   };
 
+  const handleRoomManagerAccess = () => {
+    // Navigate to room management page
+    onProfileClick();
+    SessionManager.updateCurrentPage('roomManagement');
+  };
+
   const handleBackFromAdmin = () => {
     // Go back to search view
     setCurrentView('search');
@@ -104,12 +110,12 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
 
   const renderRoleBasedView = () => {
     const roleView = getRoleBasedView();
-    
+
     switch (roleView) {
       case 'admin':
         return <AdminSearchView goToAdminDashboard={handleAdminAccess} />;
       case 'room-manager':
-        return <RoomManagerSearchView onBack={onBack} />;
+        return <RoomManagerSearchView goToRoomManagement={handleRoomManagerAccess} />;
       case 'employee':
         return <EmployeeSearchView onBack={onBack} />;
       default:
@@ -145,7 +151,7 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
         <Container maxWidth="lg" sx={{ mt: 4, pb: 4 }}>
           {/* Role-based view */}
           {renderRoleBasedView()}
-          
+
           <Card sx={{ mb: 4, mt: 4 }}>
             <CardContent>
               <Typography variant="h4" component="h1" color="secondary" mb={3}>
