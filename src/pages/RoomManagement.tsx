@@ -13,7 +13,6 @@ import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
 import { ArrowBack } from '@mui/icons-material'
 import { Navbar } from '../components/ui'
-import { useState } from 'react'
 
 interface RoomManagementProps {
     onBack: () => void
@@ -24,7 +23,7 @@ function RoomManagement({ onBack }: RoomManagementProps) {
         <ThemeProvider theme={appTheme}>
             <CssBaseline />
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <Navbar title="Room Management" />
+                <Navbar title="Room Management" onBack={onBack} />
 
                 <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
                     <Button

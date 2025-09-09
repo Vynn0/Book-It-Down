@@ -65,7 +65,7 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   const [results, setResults] = useState<typeof mockRooms>([]);
 
   // Initialize currentView from session
-  const getInitialView = (): 'search' | 'admin' | 'manager' => {
+  const getInitialView = (): 'search' | 'admin' => {
     const session = SessionManager.getSession();
     return (session?.subView === 'admin') ? 'admin' : 'search';
   };
