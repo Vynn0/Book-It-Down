@@ -12,33 +12,21 @@ import {
   DialogActions,
   Fab,
   Paper,
-  IconButton,
-  Chip,
-  Divider
+  IconButton
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
 import { PersonAdd, Add, ArrowBack } from '@mui/icons-material'
-import { Navbar, NotificationComponent, UserTable } from '../components/ui'
+import { Navbar, NotificationComponent, UserTable, EditUserModal } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
 import { useUserManagement, useNotification } from '../hooks'
 import { supabase } from '../utils/supabase'
+import type { DatabaseUser } from '../types/user'
 import { useState, useEffect } from 'react'
 
 interface AdminDashboardProps {
   onBack: () => void
   onProfileClick?: () => void
-}
-
-interface DatabaseUser {
-  user_id: string
-  name: string
-  email: string
-  created_at: string
-  roles?: Array<{
-    role_id: number
-    role_name: string
-  }>
 }
 
 function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
@@ -48,7 +36,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
   const [users, setUsers] = useState<DatabaseUser[]>([])
   const [isLoadingUsers, setIsLoadingUsers] = useState(true)
   const [usersError, setUsersError] = useState<string | null>(null)
-  
+
   const {
     userForm,
     isLoading,
@@ -151,7 +139,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const validationError = validateForm(userForm)
     if (validationError) {
       showNotification(validationError, 'error')
@@ -159,7 +147,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     }
 
     const result = await addUser(userForm)
-    
+
     if (result.success) {
       showNotification(result.message, 'success')
       handleCloseModal() // Close modal on success
@@ -173,8 +161,8 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ flexGrow: 1 }}>
-        <Navbar 
-          title="Admin Dashboard - User Management" 
+        <Navbar
+          title="Admin Dashboard - User Management"
           onBack={onBack}
           userRole="administrator"
           onProfileClick={onProfileClick}
@@ -189,7 +177,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
                 color="inherit"
                 onClick={onBack}
                 aria-label="go back"
-                sx={{ 
+                sx={{
                   backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   '&:hover': {
                     backgroundColor: 'rgba(0, 0, 0, 0.08)'
@@ -224,7 +212,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
                 </Typography>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent>
                 <Typography variant="h6" color="secondary" gutterBottom>
@@ -238,7 +226,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
                 </Typography>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent>
                 <Typography variant="h6" color="secondary" gutterBottom>
@@ -255,7 +243,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
           </Box>
 
           {/* Users Table */}
-          <UserTable 
+          <UserTable
             users={users}
             isLoading={isLoadingUsers}
             error={usersError}
@@ -265,8 +253,8 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         </Container>
 
         {/* Add User Modal */}
-        <Dialog 
-          open={isModalOpen} 
+        <Dialog
+          open={isModalOpen}
           onClose={handleCloseModal}
           maxWidth="sm"
           fullWidth
@@ -282,7 +270,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
               </Typography>
             </Box>
           </DialogTitle>
-          
+
           <DialogContent dividers>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Create a new user account with encrypted password. This is a developer tool for quick user addition.
@@ -303,10 +291,10 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
               </Typography>
             </Box>
           </DialogContent>
-          
+
           <DialogActions sx={{ p: 2 }}>
-            <Button 
-              onClick={handleCloseModal} 
+            <Button
+              onClick={handleCloseModal}
               variant="outlined"
               disabled={isLoading}
             >
@@ -316,112 +304,16 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         </Dialog>
 
         {/* Edit User Modal */}
-        <Dialog 
-          open={isEditModalOpen} 
+        <EditUserModal
+          open={isEditModalOpen}
+          user={selectedUser}
           onClose={handleCloseEditModal}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>
-            <Typography variant="h6" sx={{ color: '#3C355F', fontWeight: 'bold' }}>
-              Edit User Details
-            </Typography>
-          </DialogTitle>
-          <DialogContent>
-            {selectedUser && (
-              <Box sx={{ pt: 2 }}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
-                  User Information
-                </Typography>
-                
-                <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f8f9fa' }}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Full Name
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {selectedUser.name}
-                    </Typography>
-                  </Box>
-                  
-                  <Divider sx={{ my: 1 }} />
-                  
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Email
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {selectedUser.email}
-                    </Typography>
-                  </Box>
-                  
-                  <Divider sx={{ my: 1 }} />
-                  
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Role(s)
-                    </Typography>
-                    <Box sx={{ mt: 0.5 }}>
-                      {selectedUser.roles && selectedUser.roles.length > 0 ? (
-                        selectedUser.roles.map((role, index) => (
-                          <Chip 
-                            key={index}
-                            label={role.role_name}
-                            color={role.role_name === 'admin' ? 'error' : 
-                                   role.role_name === 'room_manager' ? 'warning' : 'default'}
-                            size="small"
-                            sx={{ mr: 1, mb: 1, fontWeight: 'bold' }}
-                          />
-                        ))
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No roles assigned
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                  
-                  <Divider sx={{ my: 1 }} />
-                  
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Created At
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {new Date(selectedUser.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button 
-              onClick={handleCloseEditModal}
-              sx={{ 
-                color: '#3C355F',
-                '&:hover': { backgroundColor: '#f5f5f5' }
-              }}
-            >
-              Close
-            </Button>
-            <Button 
-              variant="contained"
-              sx={{ 
-                backgroundColor: '#FF9B0F',
-                '&:hover': { backgroundColor: '#e88a00' }
-              }}
-            >
-              Edit User
-            </Button>
-          </DialogActions>
-        </Dialog>
+          onEditUser={(user) => {
+            // TODO: Implement actual edit functionality
+            console.log('Edit user:', user)
+            showNotification(`Edit functionality for ${user.name} coming soon!`, 'info')
+          }}
+        />
 
         {/* Floating Action Button for Mobile */}
         <Fab
