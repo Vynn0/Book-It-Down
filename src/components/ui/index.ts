@@ -2,6 +2,7 @@
 export { default as Navbar } from './Navbar'
 export { default as SearchBar } from './SearchBar'
 export { default as NotificationComponent } from './NotificationComponent'
+export { default as RoomFormComponent } from './RoomFormComponent'
 export { AdminSearchView } from './Admin/AdminSearchView'
 export { default as UserTable } from './Admin/UserTable'
 export { RoomManagerSearchView } from './Room Manager/RoomManagerSearchView'

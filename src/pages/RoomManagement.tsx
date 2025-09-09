@@ -7,18 +7,71 @@ import {
     CssBaseline,
     Button,
     Paper,
-    Divider
+    Divider,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Fab
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
-import { ArrowBack } from '@mui/icons-material'
-import { Navbar } from '../components/ui'
+import { ArrowBack, Add } from '@mui/icons-material'
+import { Navbar, NotificationComponent, RoomFormComponent } from '../components/ui'
+import { useRoomManagement, useNotification } from '../hooks'
+import { useState } from 'react'
 
 interface RoomManagementProps {
     onBack: () => void
 }
 
 function RoomManagement({ onBack }: RoomManagementProps) {
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const {
+        roomForm,
+        isLoading,
+        updateRoomForm,
+        resetForm,
+        addRoom,
+        validateForm
+    } = useRoomManagement()
+
+    const {
+        notification,
+        showNotification,
+        hideNotification
+    } = useNotification()
+
+    const handleAddRoom = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        const validationError = validateForm(roomForm)
+        if (validationError) {
+            showNotification(validationError, 'error')
+            return
+        }
+
+        const result = await addRoom(roomForm)
+
+        if (result.success) {
+            showNotification(result.message, 'success')
+            resetForm()
+            setIsModalOpen(false)
+        } else {
+            showNotification(result.message, 'error')
+        }
+    }
+
+    const handleOpenModal = () => {
+        resetForm()
+        setIsModalOpen(true)
+    }
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false)
+        resetForm()
+    }
     return (
         <ThemeProvider theme={appTheme}>
             <CssBaseline />
@@ -72,12 +125,51 @@ function RoomManagement({ onBack }: RoomManagementProps) {
                         <Button
                             variant="contained"
                             color="primary"
+                            onClick={handleOpenModal}
                             sx={{ mt: 2 }}
                         >
-                            Manage Rooms
+                            Add New Room
                         </Button>
                     </Paper>
                 </Container>
+
+                {/* Add Room Modal */}
+                <Dialog open={isModalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+                    <DialogTitle>Add New Room</DialogTitle>
+                    <DialogContent>
+                        <RoomFormComponent
+                            roomForm={roomForm}
+                            isLoading={isLoading}
+                            onInputChange={updateRoomForm}
+                            onSubmit={handleAddRoom}
+                            submitButtonText="Add Room"
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseModal} disabled={isLoading}>
+                            Cancel
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Floating Action Button for Quick Add */}
+                <Fab
+                    color="primary"
+                    aria-label="add room"
+                    sx={{
+                        position: 'fixed',
+                        bottom: 16,
+                        right: 16,
+                    }}
+                    onClick={handleOpenModal}
+                >
+                    <Add />
+                </Fab>
+
+                <NotificationComponent
+                    notification={notification}
+                    onClose={hideNotification}
+                />
             </Box>
         </ThemeProvider>
     )
