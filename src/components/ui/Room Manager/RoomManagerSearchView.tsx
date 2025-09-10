@@ -29,14 +29,14 @@ export function RoomManagerSearchView({ goToRoomManagement }: RoomManagerSearchV
         </CardContent>
       </Card>
 
-      <Typography variant="h6" gutterBottom>
+      {/* <Typography variant="h6" gutterBottom>
         Room Manager Features:
-      </Typography>
+      </Typography> */}
       <Box component="ul" sx={{ pl: 2 }}>
-        <Typography component="li">View and book all available rooms</Typography>
+        {/* <Typography component="li">View and book all available rooms</Typography>
         <Typography component="li">Manage existing bookings</Typography>
         <Typography component="li">Room availability reports</Typography>
-        <Typography component="li">Basic room maintenance requests</Typography>
+        <Typography component="li">Basic room maintenance requests</Typography> */}
       </Box>
     </Box>
   );

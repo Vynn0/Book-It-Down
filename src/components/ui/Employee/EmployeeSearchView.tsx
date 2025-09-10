@@ -18,14 +18,14 @@ export function EmployeeSearchView({}: EmployeeSearchViewProps) {
         </CardContent>
       </Card>
       
-      <Typography variant="h6" gutterBottom>
+      {/* <Typography variant="h6" gutterBottom>
         Employee Features:
-      </Typography>
+      </Typography> */}
       <Box component="ul" sx={{ pl: 2 }}>
-        <Typography component="li">Search available rooms</Typography>
+        {/* <Typography component="li">Search available rooms</Typography>
         <Typography component="li">Book rooms for meetings</Typography>
         <Typography component="li">View your bookings</Typography>
-        <Typography component="li">Cancel your own bookings</Typography>
+        <Typography component="li">Cancel your own bookings</Typography> */}
       </Box>
     </Box>
   );

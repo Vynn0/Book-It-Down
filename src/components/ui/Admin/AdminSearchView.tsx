@@ -44,14 +44,14 @@ export function AdminSearchView({ goToAdminDashboard }: AdminSearchViewProps) {
         </Box>
       </Card>
       
-      <Typography variant="h6" gutterBottom>
+      {/* <Typography variant="h6" gutterBottom>
         Admin Features:
-      </Typography>
+      </Typography> */}
       <Box component="ul" sx={{ pl: 2 }}>
-        <Typography component="li">View all rooms (including restricted ones)</Typography>
+        {/* <Typography component="li">View all rooms (including restricted ones)</Typography>
         <Typography component="li">Manage room bookings</Typography>
         <Typography component="li">Access to user management</Typography>
-        <Typography component="li">System configuration</Typography>
+        <Typography component="li">System configuration</Typography> */}
       </Box>
     </Box>
   );
