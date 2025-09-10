@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Box,
@@ -10,8 +9,8 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
-import { appTheme } from '../services'
-import { Navbar, SearchBar, RoomCard } from '../components/ui';
+import { appTheme } from '../services';
+import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { AdminSearchView } from '../components/ui/Admin/AdminSearchView';
 import { RoomManagerSearchView } from '../components/ui/Room Manager/RoomManagerSearchView';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
@@ -27,11 +26,10 @@ interface SearchPageProps {
 function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [activeView, setActiveView] = useState('search');
   
-  // Get rooms data from useRoomManagement hook
   const { rooms, isLoadingRooms } = useRoomManagement();
 
-  // Initialize currentView from session
   const getInitialView = (): 'search' | 'admin' => {
     const session = SessionManager.getSession();
     return (session?.subView === 'admin') ? 'admin' : 'search';
@@ -46,31 +44,26 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
     jamMulai: Date | null;
     jamSelesai: Date | null;
   }) => {
-    // Filter rooms based on capacity
     const filtered = rooms.filter(room => room.capacity >= query.kapasitas);
     setFilteredRooms(filtered);
     setHasSearched(true);
   };
 
   const handleAdminAccess = () => {
-    // Navigate to admin dashboard (replaces entire SearchPage)
     setCurrentView('admin');
     SessionManager.updateCurrentPage('search', 'admin');
   };
 
   const handleRoomManagerAccess = () => {
-    // Navigate to room management page
     onProfileClick();
     SessionManager.updateCurrentPage('roomManagement');
   };
 
   const handleBackFromAdmin = () => {
-    // Go back to search view
     setCurrentView('search');
     SessionManager.updateCurrentPage('search', 'search');
   };
 
-  // If user is viewing admin dashboard, show AdminDashboard component
   if (currentView === 'admin' && isAdmin()) {
     return <AdminDashboard onBack={handleBackFromAdmin} onProfileClick={onProfileClick} />;
   }
@@ -98,7 +91,6 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
     }
   };
 
-  // Get user role for navbar display
   const getUserRoleForNavbar = (): 'employee' | 'administrator' => {
     if (isAdmin()) return 'administrator';
     return 'employee';
@@ -107,100 +99,100 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ display: 'flex' }}>
+        <Sidebar activeView={activeView} onMenuClick={setActiveView} />
+        <Box
+          component="main"
+          sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+        >
         <Navbar
           title={`Book It Down - Search (${user?.name || 'User'})`}
           onBack={onBack}
           userRole={getUserRoleForNavbar()}
           onProfileClick={onProfileClick}
         />
+          <Container maxWidth="lg" sx={{ mt: 4, pb: 4 }}>
+            {renderRoleBasedView()}
+            <Card sx={{ mb: 4, mt: 4 }}>
+              <CardContent>
+                <Typography variant="h4" component="h1" color="secondary" mb={3}>
+                  Search Rooms
+                </Typography>
+                <SearchBar onSearch={handleSearch} />
+              </CardContent>
+            </Card>
 
-        <Container maxWidth="lg" sx={{ mt: 4, pb: 4 }}>
-          {/* Role-based view */}
-          {renderRoleBasedView()}
-
-          <Card sx={{ mb: 4, mt: 4 }}>
-            <CardContent>
-              <Typography variant="h4" component="h1" color="secondary" mb={3}>
-                Search Rooms
-              </Typography>
-              <SearchBar
-                onSearch={handleSearch}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Search Results */}
-          {hasSearched ? (
-            filteredRooms.length > 0 ? (
+            {hasSearched ? (
+              filteredRooms.length > 0 ? (
+                <Box>
+                  <Typography variant="h5" component="h2" color="secondary" mb={2}>
+                    Search Results ({filteredRooms.length} rooms found)
+                  </Typography>
+                  {isLoadingRooms ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    <Box sx={{
+                      display: 'grid',
+                      gridTemplateColumns: {
+                        xs: '1fr',
+                        sm: '1fr 1fr',
+                        md: '1fr 1fr 1fr'
+                      },
+                      gap: 3
+                    }}>
+                      {filteredRooms.map((room) => (
+                        <RoomCard key={room.room_id} room={room} />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              ) : (
+                <Card>
+                  <CardContent>
+                    <Typography variant="body1" color="text.secondary" align="center">
+                      No rooms found matching your criteria
+                    </Typography>
+                  </CardContent>
+                </Card>
+              )
+            ) : (
               <Box>
                 <Typography variant="h5" component="h2" color="secondary" mb={2}>
-                  Search Results ({filteredRooms.length} rooms found)
+                  All Rooms ({rooms.length} total)
                 </Typography>
                 {isLoadingRooms ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                     <CircularProgress />
                   </Box>
+                ) : rooms.length === 0 ? (
+                  <Card>
+                    <CardContent>
+                      <Typography variant="body1" color="text.secondary" align="center">
+                        No rooms available
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 ) : (
-                  <Box sx={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: { 
-                      xs: '1fr', 
-                      sm: '1fr 1fr', 
-                      md: '1fr 1fr 1fr' 
-                    }, 
-                    gap: 3 
+                  <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: '1fr 1fr',
+                      md: '1fr 1fr 1fr'
+                    },
+                    gap: 3
                   }}>
-                    {filteredRooms.map((room) => (
+                    {rooms.map((room) => (
                       <RoomCard key={room.room_id} room={room} />
                     ))}
                   </Box>
                 )}
               </Box>
-            ) : (
-              <Card>
-                <CardContent>
-                  <Typography variant="body1" color="text.secondary" align="center">
-                    No rooms found matching your criteria
-                  </Typography>
-                </CardContent>
-              </Card>
-            )
-          ) : (
-            <Box>
-              <Typography variant="h5" component="h2" color="secondary" mb={2}>
-                All Rooms ({rooms.length} total)
-              </Typography>
-              {isLoadingRooms ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <CircularProgress />
-                </Box>
-              ) : rooms.length === 0 ? (
-                <Card>
-                  <CardContent>
-                    <Typography variant="body1" color="text.secondary" align="center">
-                      No rooms available
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Box sx={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: { 
-                    xs: '1fr', 
-                    sm: '1fr 1fr', 
-                    md: '1fr 1fr 1fr' 
-                  }, 
-                  gap: 3 
-                }}>
-                  {rooms.map((room) => (
-                    <RoomCard key={room.room_id} room={room} />
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-        </Container>
+            )}
+          </Container>
+        </Box>
       </Box>
     </ThemeProvider>
   );
