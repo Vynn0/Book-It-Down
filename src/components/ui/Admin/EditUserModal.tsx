@@ -14,13 +14,15 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    OutlinedInput
+    OutlinedInput,
+    Alert
 } from '@mui/material'
 import type { SelectChangeEvent } from '@mui/material'
 import { useState, useEffect } from 'react'
 import type { DatabaseUser, Role } from '../../../types/user'
 import { supabase } from '../../../utils/supabase'
 import { getRoleColor } from '../../../utils/roleUtils'
+import { useAuth } from '../../../hooks/useAuth'
 
 interface EditUserModalProps {
     open: boolean
@@ -36,6 +38,16 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
     const [editedRoleIds, setEditedRoleIds] = useState<number[]>([])
     const [availableRoles, setAvailableRoles] = useState<Role[]>([])
     const [isLoadingRoles, setIsLoadingRoles] = useState(false)
+    
+    // Get current logged-in user
+    const { user: currentUser } = useAuth()
+    
+    // Check if the user being viewed is the same as the logged-in user
+    // Convert both IDs to strings to ensure consistent comparison
+    const isViewingOwnProfile = currentUser && user && (
+        String(currentUser.userID) === String(user.user_id) || 
+        currentUser.email?.toLowerCase() === user.email?.toLowerCase()
+    )
 
     // Fetch available roles from database
     const fetchRoles = async () => {
@@ -73,6 +85,11 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
     }, [user, open])
 
     const handleEditClick = () => {
+        // Prevent editing own profile
+        if (isViewingOwnProfile) {
+            return
+        }
+        
         setIsEditMode(true)
         if (user && onEditUser) {
             onEditUser(user)
@@ -116,13 +133,22 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
             fullWidth
         >
             <DialogTitle>
-                <Typography variant="h6" sx={{ color: '#3C355F', fontWeight: 'bold' }}>
+                <Box sx={{ color: '#3C355F', fontWeight: 'bold', fontSize: '1.25rem' }}>
                     {isEditMode ? 'Edit User Details' : 'View User Details'}
-                </Typography>
+                </Box>
             </DialogTitle>
             <DialogContent>
                 {user && (
                     <Box sx={{ pt: 2 }}>
+                        {/* Show alert when viewing own profile */}
+                        {isViewingOwnProfile && (
+                            <Alert severity="info" sx={{ mb: 2 }}>
+                                <Typography variant="body2">
+                                    <strong>Note:</strong> You are viewing your own profile. For security reasons, you cannot edit your own account details.
+                                </Typography>
+                            </Alert>
+                        )}
+                        
                         <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
                             User Information
                         </Typography>
@@ -299,12 +325,19 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
                     <Button
                         variant="contained"
                         onClick={handleEditClick}
+                        disabled={!!isViewingOwnProfile}
                         sx={{
-                            backgroundColor: '#FF9B0F',
-                            '&:hover': { backgroundColor: '#e88a00' }
+                            backgroundColor: isViewingOwnProfile ? '#ccc' : '#FF9B0F',
+                            '&:hover': { 
+                                backgroundColor: isViewingOwnProfile ? '#ccc' : '#e88a00' 
+                            },
+                            '&:disabled': { 
+                                backgroundColor: '#ccc',
+                                color: '#666'
+                            }
                         }}
                     >
-                        Edit User
+                        {isViewingOwnProfile ? 'Cannot Edit Own Profile' : 'Edit User'}
                     </Button>
                 )}
             </DialogActions>
