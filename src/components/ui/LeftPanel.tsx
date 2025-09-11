@@ -1,6 +1,6 @@
 // Tanpa tombol "Book"
 import React from 'react';
-import './LeftPanel.css';
+// import './LeftPanel.css';
 
 const LeftPanel: React.FC = () => {
   return (

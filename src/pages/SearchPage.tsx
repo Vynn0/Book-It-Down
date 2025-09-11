@@ -17,6 +17,7 @@ import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
 import { SessionManager } from '../security/sessionManager';
 import AdminDashboard from './AdminDashboard';
+import BookRoom from './BookRoom';
 
 interface SearchPageProps {
   onBack: () => void;
@@ -27,15 +28,18 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeView, setActiveView] = useState('search');
+  const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
 
-  const getInitialView = (): 'search' | 'admin' => {
+  const getInitialView = (): 'search' | 'admin' | 'booking' => {
     const session = SessionManager.getSession();
-    return (session?.subView === 'admin') ? 'admin' : 'search';
+    if (session?.subView === 'admin') return 'admin';
+    if (session?.subView === 'booking') return 'booking';
+    return 'search';
   };
 
-  const [currentView, setCurrentView] = useState<'search' | 'admin'>(getInitialView);
+  const [currentView, setCurrentView] = useState<'search' | 'admin' | 'booking'>(getInitialView());
   const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
 
   const handleSearch = (query: {
@@ -64,8 +68,24 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
     SessionManager.updateCurrentPage('search', 'search');
   };
 
+  const handleRoomBooking = (room: any) => {
+    setSelectedRoom(room);
+    setCurrentView('booking');
+    SessionManager.updateCurrentPage('search', 'booking');
+  };
+
+  const handleBackFromBooking = () => {
+    setSelectedRoom(null);
+    setCurrentView('search');
+    SessionManager.updateCurrentPage('search', 'search');
+  };
+
   if (currentView === 'admin' && isAdmin()) {
     return <AdminDashboard onBack={handleBackFromAdmin} onProfileClick={onProfileClick} />;
+  }
+
+  if (currentView === 'booking' && selectedRoom) {
+    return <BookRoom room={selectedRoom} onBack={handleBackFromBooking} />;
   }
 
   const renderRoleBasedView = () => {
@@ -143,7 +163,11 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
                       gap: 3
                     }}>
                       {filteredRooms.map((room) => (
-                        <RoomCard key={room.room_id} room={room} />
+                        <RoomCard 
+                          key={room.room_id} 
+                          room={room} 
+                          onBookClick={() => handleRoomBooking(room)}
+                        />
                       ))}
                     </Box>
                   )}
@@ -185,7 +209,11 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
                     gap: 3
                   }}>
                     {rooms.map((room) => (
-                      <RoomCard key={room.room_id} room={room} />
+                      <RoomCard 
+                        key={room.room_id} 
+                        room={room} 
+                        onBookClick={() => handleRoomBooking(room)}
+                      />
                     ))}
                   </Box>
                 )}

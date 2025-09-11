@@ -1,5 +1,5 @@
 import React from 'react';
-import './Calendar.css'; // Anda bisa membuat file CSS terpisah
+// import './Calendar.css'; // Anda bisa membuat file CSS terpisah
 
 const Calendar: React.FC = () => {
   const renderHeader = () => {

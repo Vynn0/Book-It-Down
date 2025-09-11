@@ -16,11 +16,34 @@ interface Room {
 
 interface RoomCardProps {
   room: Room;
+  onBookClick?: () => void;
+  onCardClick?: () => void;
+  imageSrc?: string; // Optional custom image
+  buttonText?: string; // Customizable button text
 }
 
-export function RoomCard({ room }: RoomCardProps) {
-  // Placeholder image for now
-  const placeholderImage = "https://via.placeholder.com/345x180/3C355F/FFFFFF?text=Room+Image";
+export function RoomCard({ 
+  room, 
+  onBookClick, 
+  onCardClick,
+  imageSrc,
+  buttonText = "View Details"
+}: RoomCardProps) {
+  // Use custom image or placeholder
+  const displayImage = imageSrc || "https://via.placeholder.com/345x180/3C355F/FFFFFF?text=Room+Image";
+
+  const handleCardClick = () => {
+    if (onCardClick) {
+      onCardClick();
+    }
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when button is clicked
+    if (onBookClick) {
+      onBookClick();
+    }
+  };
 
   return (
     <Card sx={{ 
@@ -30,8 +53,11 @@ export function RoomCard({ room }: RoomCardProps) {
       backgroundColor: '#fff',
       height: '100%',
       display: 'flex',
-      flexDirection: 'column'
-    }}>
+      flexDirection: 'column',
+      cursor: onCardClick ? 'pointer' : 'default',
+    }}
+    onClick={handleCardClick}
+    >
       <Box sx={{
         height: 180,
         overflow: 'hidden',
@@ -39,12 +65,12 @@ export function RoomCard({ room }: RoomCardProps) {
         borderTopRightRadius: '16px',
       }}>
         <img
-          src={placeholderImage}
+          src={displayImage}
           alt={room.room_name}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </Box>
-      <CardContent sx={{ p: 2 }}>
+      <CardContent sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Typography gutterBottom variant="h5" component="div" color="secondary" sx={{ fontWeight: 'bold' }}>
           {room.room_name}
         </Typography>
@@ -69,9 +95,8 @@ export function RoomCard({ room }: RoomCardProps) {
           </Typography>
         </Box>
         
-        {/* Features/Tags Section - Placeholder for now */}
+        {/* Features/Tags Section */}
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-          {/* Placeholder features - you can add real features later */}
           {room.features?.includes('AC') && (
             <Box sx={{ 
               display: 'flex', 
@@ -100,24 +125,23 @@ export function RoomCard({ room }: RoomCardProps) {
           )}
           {/* Show placeholder tags if no features */}
           {(!room.features || room.features.length === 0) && (
-            <>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                border: '1px solid #e0e0e0', 
-                borderRadius: '20px', 
-                px: 1.5, 
-                py: 0.5 
-              }}>
-                <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>Features TBD</Typography>
-              </Box>
-            </>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              border: '1px solid #e0e0e0', 
+              borderRadius: '20px', 
+              px: 1.5, 
+              py: 0.5 
+            }}>
+              <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>Features TBD</Typography>
+            </Box>
           )}
         </Box>
 
         <Button 
           variant="contained" 
           fullWidth 
+          onClick={handleButtonClick}
           sx={{ 
             backgroundColor: 'primary.main',
             color: '#fff',
@@ -127,9 +151,10 @@ export function RoomCard({ room }: RoomCardProps) {
             borderRadius: '20px',
             textTransform: 'none',
             boxShadow: 'none',
+            mt: 'auto', // Push button to bottom
           }}
         >
-          View Details
+          {buttonText}
         </Button>
       </CardContent>
     </Card>
