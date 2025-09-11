@@ -9,16 +9,15 @@ import {
   Button,
   Paper,
   Divider,
-  IconButton
+  IconButton,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
-import { ArrowBack, CalendarToday, Info } from '@mui/icons-material';
+import { ArrowBack, CalendarToday, Info, CheckCircle } from '@mui/icons-material';
 import { Navbar } from '../components/ui';
-import { useAuth } from '../hooks';
-import LeftPanel from '../components/ui/LeftPanel';
-import Calendar from '../components/ui/Calendar';
-import Modal from '../components/ui/Modal';
+import { useAuth, useBooking } from '../hooks';
 
 interface Room {
   room_id: number;
@@ -36,15 +35,22 @@ interface BookRoomProps {
 }
 
 const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const { hasRole } = useAuth();
+  const { createQuickBooking, isLoading } = useBooking();
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleBookRoom = async () => {
+    setBookingError(null);
+    setBookingSuccess(false);
+    
+    const result = await createQuickBooking(room.room_id);
+    
+    if (result.success) {
+      setBookingSuccess(true);
+    } else {
+      setBookingError(result.error || 'Failed to book room');
+    }
   };
 
   // Get user roles for navbar display
@@ -167,13 +173,30 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
               )}
             </Box>
 
+            {/* Booking Status Messages */}
+            {bookingSuccess && (
+              <Alert severity="success" sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CheckCircle />
+                  Room booked successfully! Your booking is pending approval.
+                </Box>
+              </Alert>
+            )}
+
+            {bookingError && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {bookingError}
+              </Alert>
+            )}
+
             {/* Booking Action */}
             <Box sx={{ textAlign: 'center' }}>
               <Button
                 variant="contained"
                 size="large"
-                startIcon={<CalendarToday />}
-                onClick={handleOpenModal}
+                startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <CalendarToday />}
+                onClick={handleBookRoom}
+                disabled={isLoading || bookingSuccess}
                 sx={{
                   px: 4,
                   py: 1.5,
@@ -181,19 +204,11 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
                   fontWeight: 'bold'
                 }}
               >
-                Book This Room
+                {isLoading ? 'Booking...' : bookingSuccess ? 'Room Booked!' : 'Book This Room'}
               </Button>
             </Box>
           </Paper>
         </Container>
-
-        {/* Booking Modal */}
-        <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-          <div className="modal-content-layout">
-            <LeftPanel />
-            <Calendar />
-          </div>
-        </Modal>
       </Box>
     </ThemeProvider>
   );
