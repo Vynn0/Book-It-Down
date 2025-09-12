@@ -33,13 +33,14 @@ function App() {
     const storedUser = localStorage.getItem('authenticated_user');
 
     if (session && SessionManager.isSessionValid() && storedUser) {
-      console.log(`Restoring page from session: ${session.currentPage}`);
       return (session.currentPage as 'login' | 'search' | 'admin' | 'profile' | 'roomManagement') || 'search';
     }
     return 'login';
   };
 
   const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin' | 'profile' | 'roomManagement'>(getInitialPage)
+  // Perubahan: Tambahkan state untuk activeView
+  const [initialActiveView, setInitialActiveView] = useState<string | undefined>(undefined);
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -51,7 +52,6 @@ function App() {
     if (isAuthenticated && session && SessionManager.isSessionValid()) {
       const sessionPage = session.currentPage || 'search';
       if (sessionPage !== currentPage) {
-        console.log(`Syncing page state: ${currentPage} → ${sessionPage}`);
         setCurrentPage(sessionPage as 'login' | 'search' | 'admin' | 'profile');
       }
     }
@@ -71,10 +71,14 @@ function App() {
       showNotification(result.message, 'success')
       
       const isAdmin = result.user.roles.some(role => role.role_id === 1);
+      const isRoomManager = result.user.roles.some(role => role.role_id === 2);
 
       if (isAdmin) {
         setCurrentPage('admin');
         SessionManager.updateCurrentPage('admin');
+      } else if (isRoomManager) {
+        setCurrentPage('roomManagement');
+        SessionManager.updateCurrentPage('roomManagement');
       } else {
         setCurrentPage('search');
         SessionManager.updateCurrentPage('search');
@@ -92,22 +96,13 @@ function App() {
   }
 
   const handleProfileNavigation = () => {
-    const session = SessionManager.getSession();
-    if (session && session.currentPage === 'roomManagement') {
-      setCurrentPage('roomManagement');
-    } else {
-      setCurrentPage('profile');
-      SessionManager.updateCurrentPage('profile');
-    }
+    setCurrentPage('profile');
+    SessionManager.updateCurrentPage('profile');
   }
 
-  const handleBackToSearch = () => {
-    setCurrentPage('search')
-    SessionManager.updateCurrentPage('search')
-  }
-
-  // Perubahan: Buat fungsi navigasi terpusat
-  const handleNavigateToSearch = () => {
+  // Perubahan: Modifikasi fungsi navigasi
+  const handleNavigateToSearch = (activeView?: string) => {
+    setInitialActiveView(activeView); // Simpan view yang diinginkan
     setCurrentPage('search');
     SessionManager.updateCurrentPage('search');
   }
@@ -117,22 +112,31 @@ function App() {
     SessionManager.updateCurrentPage('admin');
   }
 
-  // Perubahan: Kirim fungsi navigasi ke komponen anak
+  const handleNavigateToRoomManagement = () => {
+    setCurrentPage('roomManagement');
+    SessionManager.updateCurrentPage('roomManagement');
+  }
+
   if (isAuthenticated && currentPage === 'search') {
-    return <SearchPage onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToAdmin={handleNavigateToAdmin} />
+    return <SearchPage onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToAdmin={handleNavigateToAdmin} onNavigateToRoomManagement={handleNavigateToRoomManagement} initialActiveView={initialActiveView} />
   }
 
   if (isAuthenticated && currentPage === 'profile') {
-    return <Profile onBack={handleBackToSearch} />
+    return <Profile onBack={() => setCurrentPage('search')} />
   }
 
   if (isAuthenticated && currentPage === 'admin') {
-    return <AdminDashboard onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToSearch={handleNavigateToSearch} />
+    return <AdminDashboard onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToSearch={() => handleNavigateToSearch('addBooking')} />
   }
 
-  if (currentPage === 'roomManagement') {
-    return <RoomManagement onBack={handleBackToSearch} />
+  if (isAuthenticated && currentPage === 'roomManagement') {
+    return <RoomManagement onBack={() => handleNavigateToSearch()} onProfileClick={handleProfileNavigation} onNavigateToSearch={() => handleNavigateToSearch('addBooking')} />
   }
+
+  if (currentPage === 'roomManagement' && !isAuthenticated) {
+      return null; 
+  }
+
 
   return (
     <ThemeProvider theme={appTheme}>

@@ -6,7 +6,7 @@ interface EmployeeSearchViewProps {
 
 export function EmployeeSearchView({}: EmployeeSearchViewProps) {
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       <Card sx={{ mb: 3, bgcolor: '#e3f2fd' }}>
         <CardContent>
           <Typography variant="h5" color="primary" gutterBottom>

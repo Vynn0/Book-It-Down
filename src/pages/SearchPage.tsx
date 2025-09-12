@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -12,32 +12,44 @@ import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { AdminSearchView } from '../components/ui/Admin/AdminSearchView';
-import { RoomManagerSearchView } from '../components/ui/Room Manager/RoomManagerSearchView';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
-import { SessionManager } from '../security/sessionManager';
 
 interface SearchPageProps {
   onBack: () => void;
   onProfileClick: () => void;
   onNavigateToAdmin: () => void;
+  onNavigateToRoomManagement: () => void;
+  initialActiveView?: string; // Perubahan: Tambahkan prop baru
 }
 
-function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPageProps) {
+function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
-  const { getRoleBasedView, isAdmin, isEmployee, user } = useRoleBasedRouting(); // Perubahan: tambahkan isEmployee
+  const { getRoleBasedView, isRoomManager, isEmployee, isAdmin, user } = useRoleBasedRouting();
 
-  // Perubahan: Atur nilai awal activeView berdasarkan peran pengguna
+  // Perubahan: Gunakan prop initialActiveView
   const [activeView, setActiveView] = useState(() => {
-    return isEmployee() ? 'addBooking' : 'search';
+    if (initialActiveView) return initialActiveView; // Utamakan prop
+    if (isRoomManager()) return 'roomManagement';
+    if (isEmployee()) return 'addBooking';
+    return 'search';
   });
+
+  // Perubahan: Gunakan useEffect untuk sinkronisasi jika prop berubah
+  useEffect(() => {
+    if (initialActiveView) {
+      setActiveView(initialActiveView);
+    }
+  }, [initialActiveView]);
 
   const handleMenuClick = (view: string) => {
     if (view === 'userManagement') {
       onNavigateToAdmin();
+    } else if (view === 'roomManagement') {
+      onNavigateToRoomManagement();
     } else {
       setActiveView(view);
     }
@@ -54,11 +66,6 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPagePro
     setHasSearched(true);
   };
 
-  const handleRoomManagerAccess = () => {
-    onProfileClick();
-    SessionManager.updateCurrentPage('roomManagement');
-  };
-
   const renderRoleBasedView = () => {
     const roleView = getRoleBasedView();
 
@@ -66,7 +73,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPagePro
       case 'admin':
         return <AdminSearchView goToAdminDashboard={onNavigateToAdmin} />;
       case 'room-manager':
-        return <RoomManagerSearchView goToRoomManagement={handleRoomManagerAccess} />;
+        return;
       case 'employee':
         return <EmployeeSearchView onBack={onBack} />;
       default:
@@ -97,7 +104,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPagePro
           sx={{ flexGrow: 1, bgcolor: 'background.default'}}
         >
           <Navbar
-            title={`Book It Down - Search (${user?.name || 'User'})`}
+            title={`Search Menu (${user?.name || 'User'})`}
             onBack={onBack}
             userRole={getUserRoleForNavbar()}
             onProfileClick={onProfileClick}
