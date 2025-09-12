@@ -17,28 +17,29 @@ import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
 import { SessionManager } from '../security/sessionManager';
 
-// Perubahan: Tambahkan prop onNavigateToAdmin
 interface SearchPageProps {
   onBack: () => void;
   onProfileClick: () => void;
   onNavigateToAdmin: () => void;
 }
 
-function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPageProps) { // Perubahan: Terima prop
+function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPageProps) {
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [activeView, setActiveView] = useState('search');
   
   const { rooms, isLoadingRooms } = useRoomManagement();
-  const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
+  const { getRoleBasedView, isAdmin, isEmployee, user } = useRoleBasedRouting(); // Perubahan: tambahkan isEmployee
 
-  // Perubahan: Handler untuk klik menu sidebar
+  // Perubahan: Atur nilai awal activeView berdasarkan peran pengguna
+  const [activeView, setActiveView] = useState(() => {
+    return isEmployee() ? 'addBooking' : 'search';
+  });
+
   const handleMenuClick = (view: string) => {
     if (view === 'userManagement') {
-      onNavigateToAdmin(); // Panggil fungsi navigasi ke admin
+      onNavigateToAdmin();
     } else {
       setActiveView(view);
-      // Tambahkan logika lain jika diperlukan, misal untuk Room Management
     }
   };
 
@@ -62,7 +63,6 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPagePro
     const roleView = getRoleBasedView();
 
     switch (roleView) {
-      // Perubahan: Hapus navigasi internal ke AdminDashboard, karena sudah ditangani di level atas
       case 'admin':
         return <AdminSearchView goToAdminDashboard={onNavigateToAdmin} />;
       case 'room-manager':
@@ -91,7 +91,6 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPagePro
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
-        {/* Perubahan: Gunakan handler baru */}
         <Sidebar activeView={activeView} onMenuClick={handleMenuClick} />
         <Box
           component="main"
