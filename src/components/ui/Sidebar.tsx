@@ -29,8 +29,9 @@ export function Sidebar({ activeView, onMenuClick }: SidebarProps) {
   const getMenuItems = () => {
     const allMenuItems = [
       { text: 'User Management', icon: <Group />, view: 'userManagement', roles: ['admin'] },
-      { text: 'Room Management', icon: <MeetingRoom />, view: 'roomManagement', roles: ['admin', 'room-manager'] },
-      { text: 'Booking History', icon: <History />, view: 'bookingHistory', roles: ['admin', 'room-manager', 'employee'] },
+      { text: 'Room Management', icon: <Group />, view: 'roomManagement', roles: ['admin', 'room-manager'] },
+      { text: 'Add Booking', icon: <MeetingRoom />, view: 'addBooking', roles: ['admin', 'room-manager', 'employee'] },
+      { text: 'Booking History', icon: <History />, view: 'bookingHistory', roles: ['admin', 'room-manager', 'employee'] }
     ];
 
     return allMenuItems.filter(item => {
@@ -63,13 +64,14 @@ export function Sidebar({ activeView, onMenuClick }: SidebarProps) {
         </Typography>
       </Toolbar>
       <Box sx={{ overflow: 'auto' }}>
-        <List>
+        <List sx={{ pt: 0 }}> {/* pt adalah singkatan dari paddingTop */}
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
                 selected={activeView === item.view}
                 onClick={() => onMenuClick(item.view)}
                 sx={{
+                  p: 2,
                   '&.Mui-selected': {
                     backgroundColor: 'primary.main',
                   },

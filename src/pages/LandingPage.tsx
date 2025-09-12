@@ -28,9 +28,7 @@ import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
 function App() {
-  // Initialize currentPage based on existing session AND auth state
   const getInitialPage = (): 'login' | 'search' | 'admin' | 'profile' | 'roomManagement' => {
-    // Check session first
     const session = SessionManager.getSession();
     const storedUser = localStorage.getItem('authenticated_user');
 
@@ -48,7 +46,6 @@ function App() {
   const { login, isLoading, isAuthenticated } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
 
-  // Sync currentPage with session on auth state changes
   useEffect(() => {
     const session = SessionManager.getSession();
     if (isAuthenticated && session && SessionManager.isSessionValid()) {
@@ -70,10 +67,18 @@ function App() {
 
     const result = await login(email, password)
 
-    if (result.success) {
+    if (result.success && result.user) {
       showNotification(result.message, 'success')
-      setCurrentPage('search')
-      SessionManager.updateCurrentPage('search')
+      
+      const isAdmin = result.user.roles.some(role => role.role_id === 1);
+
+      if (isAdmin) {
+        setCurrentPage('admin');
+        SessionManager.updateCurrentPage('admin');
+      } else {
+        setCurrentPage('search');
+        SessionManager.updateCurrentPage('search');
+      }
     } else {
       showNotification(result.message, 'error')
     }
@@ -88,7 +93,6 @@ function App() {
 
   const handleProfileNavigation = () => {
     const session = SessionManager.getSession();
-    // If session has 'roomManagement' as currentPage, navigate there
     if (session && session.currentPage === 'roomManagement') {
       setCurrentPage('roomManagement');
     } else {
@@ -102,22 +106,30 @@ function App() {
     SessionManager.updateCurrentPage('search')
   }
 
-  // If authenticated and trying to access protected pages
-  if (isAuthenticated && currentPage === 'search') {
-    return <SearchPage onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} />
+  // Perubahan: Buat fungsi navigasi terpusat
+  const handleNavigateToSearch = () => {
+    setCurrentPage('search');
+    SessionManager.updateCurrentPage('search');
   }
 
-  // Show Profile page based on user role
+  const handleNavigateToAdmin = () => {
+    setCurrentPage('admin');
+    SessionManager.updateCurrentPage('admin');
+  }
+
+  // Perubahan: Kirim fungsi navigasi ke komponen anak
+  if (isAuthenticated && currentPage === 'search') {
+    return <SearchPage onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToAdmin={handleNavigateToAdmin} />
+  }
+
   if (isAuthenticated && currentPage === 'profile') {
     return <Profile onBack={handleBackToSearch} />
   }
 
-  // Show AdminDashboard
-  if (currentPage === 'admin') {
-    return <AdminDashboard onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} />
+  if (isAuthenticated && currentPage === 'admin') {
+    return <AdminDashboard onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToSearch={handleNavigateToSearch} />
   }
 
-  // Show Room Management
   if (currentPage === 'roomManagement') {
     return <RoomManagement onBack={handleBackToSearch} />
   }
@@ -135,7 +147,6 @@ function App() {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        {/* Overlay transparan */}
         <Box
           sx={{
             position: 'absolute',
@@ -143,11 +154,10 @@ function App() {
             left: 0,
             width: '100%',
             height: '100%',
-            bgcolor: 'rgba(0,0,0,0.7)', // Ubah alpha untuk transparansi
+            bgcolor: 'rgba(0,0,0,0.7)',
             zIndex: 1,
           }}
         />
-        {/* Konten utama */}
         <Box sx={{ position: 'relative', zIndex: 2 }}>
           <Container maxWidth="sm">
             <Box sx={{ textAlign: 'center', mb: 2 }}>
@@ -186,9 +196,7 @@ function App() {
                 >
                   Login
                 </Typography>
-
                 <Box component="form" onSubmit={handleLogin}>
-                  {/* Textfield email */}
                   <TextField
                     fullWidth
                     type="email"
@@ -206,7 +214,6 @@ function App() {
                     }}
                     sx={{ mb: 2 }}
                   />
-
                   <TextField
                     fullWidth
                     type="password"
@@ -224,7 +231,6 @@ function App() {
                     }}
                     sx={{ mb: 3 }}
                   />
-
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <Button
                       type="submit"

@@ -16,8 +16,8 @@ import {
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
-import { PersonAdd, Add, ArrowBack } from '@mui/icons-material'
-import { Navbar, NotificationComponent, UserTable, EditUserModal } from '../components/ui'
+import { PersonAdd, Add } from '@mui/icons-material'
+import { Navbar, NotificationComponent, UserTable, EditUserModal, Sidebar } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
 import { useUserManagement, useNotification } from '../hooks'
 import { supabase } from '../utils/supabase'
@@ -27,9 +27,11 @@ import { useState, useEffect } from 'react'
 interface AdminDashboardProps {
   onBack: () => void
   onProfileClick?: () => void
+  onNavigateToSearch: () => void; // Perubahan: Tambahkan prop baru
 }
 
-function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
+function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch }: AdminDashboardProps) { // Perubahan: Terima prop baru
+  const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<DatabaseUser | null>(null)
@@ -52,13 +54,20 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     hideNotification
   } = useNotification()
 
-  // Fetch users from database
+  // Perubahan: Buat handler untuk klik menu sidebar
+  const handleMenuClick = (view: string) => {
+    if (view === 'addBooking') {
+      onNavigateToSearch(); // Panggil fungsi navigasi
+    } else {
+      setActiveView(view);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       setIsLoadingUsers(true)
       setUsersError(null)
 
-      // Fetch users with their roles
       const { data: usersData, error: usersError } = await supabase
         .from('user')
         .select(`
@@ -73,7 +82,6 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         throw new Error(usersError.message)
       }
 
-      // Fetch user roles separately
       const { data: userRolesData, error: rolesError } = await supabase
         .from('user_role')
         .select(`
@@ -86,7 +94,6 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         console.warn('Error fetching user roles:', rolesError)
       }
 
-      // Combine users with their roles
       const usersWithRoles = usersData?.map(user => {
         const userRoles = userRolesData?.filter(ur => ur.user_id === user.user_id) || []
         const roles = userRoles.map(ur => ({
@@ -94,7 +101,6 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
           role_name: (ur.roles as any)?.role_name || 'Unknown'
         }))
 
-        // Ensure user_id is always a string
         return {
           ...user,
           user_id: String(user.user_id || ''),
@@ -102,7 +108,7 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         }
       }) || []
 
-      console.log('Fetched users:', usersWithRoles) // Debug log
+      console.log('Fetched users:', usersWithRoles)
       setUsers(usersWithRoles)
     } catch (error: any) {
       console.error('Error fetching users:', error)
@@ -112,19 +118,18 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
     }
   }
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers()
   }, [])
 
   const handleOpenModal = () => {
-    resetForm() // Reset form when opening modal
+    resetForm()
     setIsModalOpen(true)
   }
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
-    resetForm() // Reset form when closing modal
+    resetForm()
   }
 
   const handleOpenEditModal = (user: DatabaseUser) => {
@@ -150,8 +155,8 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
 
     if (result.success) {
       showNotification(result.message, 'success')
-      handleCloseModal() // Close modal on success
-      fetchUsers() // Refresh users list
+      handleCloseModal()
+      fetchUsers()
     } else {
       showNotification(result.message, 'error')
     }
@@ -159,7 +164,6 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
 
   const handleConfirmEdit = async (userId: string, newName: string, newRoleIds: number[]) => {
     try {
-      // Update user name in database
       const { error: userError } = await supabase
         .from('user')
         .update({ name: newName })
@@ -169,7 +173,6 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         throw userError
       }
 
-      // Update user roles - first delete existing roles, then insert new ones
       const { error: deleteError } = await supabase
         .from('user_role')
         .delete()
@@ -179,7 +182,6 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
         throw deleteError
       }
 
-      // Insert new roles if any selected
       if (newRoleIds.length > 0) {
         const roleInserts = newRoleIds.map(roleId => ({
           user_id: userId,
@@ -196,8 +198,8 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
       }
 
       showNotification('User updated successfully!', 'success')
-      fetchUsers() // Refresh users list
-      handleCloseEditModal() // Close modal
+      fetchUsers()
+      handleCloseEditModal()
     } catch (error: any) {
       console.error('Error updating user:', error)
       showNotification(error.message || 'Failed to update user', 'error')
@@ -207,179 +209,177 @@ function AdminDashboard({ onBack, onProfileClick }: AdminDashboardProps) {
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <Box sx={{ flexGrow: 1 }}>
-        <Navbar
-          title="Admin Dashboard - User Management"
-          onBack={onBack}
-          userRole="administrator"
-          onProfileClick={onProfileClick}
-        />
+      <Box sx={{ display: 'flex' }}>
+        {/* Perubahan: Gunakan handler baru untuk onMenuClick */}
+        <Sidebar activeView={activeView} onMenuClick={handleMenuClick} />
 
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
-          {/* Dashboard Overview */}
-          <Paper sx={{ p: 3, mb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                onClick={onBack}
-                aria-label="go back"
-                sx={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.08)'
-                  }
-                }}
-              >
-                <ArrowBack />
-              </IconButton>
-              <Box>
-                <Typography variant="h4" component="h1" color="secondary" gutterBottom>
-                  User Management Dashboard
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  Manage users, roles, and permissions from this central dashboard.
+        <Box component="main" sx={{ flexGrow: 1}}>
+          <Navbar
+            title="Admin Dashboard"
+            onBack={onBack}
+            userRole="administrator"
+            onProfileClick={onProfileClick}
+          />
+
+          <Container maxWidth="lg" sx={{ mt: 4 }}>
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton
+                  edge="start"
+                  color="inherit"
+                  onClick={onBack}
+                  aria-label="go back"
+                  sx={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.08)'
+                    }
+                  }}
+                >
+                </IconButton>
+                <Box>
+                  <Typography variant="h4" component="h1" color="secondary" gutterBottom>
+                    User Management Dashboard
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    Manage users, roles, and permissions from this central dashboard.
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" color="secondary" gutterBottom>
+                    Total Users
+                  </Typography>
+                  <Typography variant="h3" component="div">
+                    {isLoadingUsers ? '-' : users.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Registered in the system
+                  </Typography>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" color="secondary" gutterBottom>
+                    Active Sessions
+                  </Typography>
+                  <Typography variant="h3" component="div">
+                    12
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Currently logged in
+                  </Typography>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" color="secondary" gutterBottom>
+                    Room Bookings
+                  </Typography>
+                  <Typography variant="h3" component="div">
+                    8
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Active bookings today
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <UserTable
+              users={users}
+              isLoading={isLoadingUsers}
+              error={usersError}
+              onAddUser={handleOpenModal}
+              onEditUser={handleOpenEditModal}
+            />
+          </Container>
+
+          <Dialog
+            open={isModalOpen}
+            onClose={handleCloseModal}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: 2 }
+            }}
+          >
+            <DialogTitle>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <PersonAdd sx={{ mr: 2, color: 'secondary.main' }} />
+                <Typography variant="h5" component="div">
+                  Add New User
                 </Typography>
               </Box>
-            </Box>
-          </Paper>
+            </DialogTitle>
 
-          {/* Dashboard Stats Cards */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" color="secondary" gutterBottom>
-                  Total Users
-                </Typography>
-                <Typography variant="h3" component="div">
-                  {isLoadingUsers ? '-' : users.length}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Registered in the system
-                </Typography>
-              </CardContent>
-            </Card>
+            <DialogContent dividers>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Create a new user account with encrypted password. This is a developer tool for quick user addition.
+              </Typography>
 
-            <Card>
-              <CardContent>
-                <Typography variant="h6" color="secondary" gutterBottom>
-                  Active Sessions
-                </Typography>
-                <Typography variant="h3" component="div">
-                  12
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Currently logged in
-                </Typography>
-              </CardContent>
-            </Card>
+              <UserFormComponent
+                userForm={userForm}
+                isLoading={isLoading}
+                onInputChange={updateUserForm}
+                onSubmit={handleAddUser}
+                submitButtonText="Add User"
+              />
 
-            <Card>
-              <CardContent>
-                <Typography variant="h6" color="secondary" gutterBottom>
-                  Room Bookings
+              <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  <strong>Security Note:</strong> Passwords are automatically hashed using bcrypt with 12 salt rounds before storage.
+                  The created_at timestamp is automatically set to the current time.
                 </Typography>
-                <Typography variant="h3" component="div">
-                  8
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Active bookings today
-                </Typography>
-              </CardContent>
-            </Card>
-          </Box>
+              </Box>
+            </DialogContent>
 
-          {/* Users Table */}
-          <UserTable
-            users={users}
-            isLoading={isLoadingUsers}
-            error={usersError}
-            onAddUser={handleOpenModal}
-            onEditUser={handleOpenEditModal}
+            <DialogActions sx={{ p: 2 }}>
+              <Button
+                onClick={handleCloseModal}
+                variant="outlined"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <EditUserModal
+            open={isEditModalOpen}
+            user={selectedUser}
+            onClose={handleCloseEditModal}
+            onEditUser={(user) => {
+              console.log('Edit mode activated for user:', user)
+            }}
+            onConfirmEdit={handleConfirmEdit}
           />
-        </Container>
 
-        {/* Add User Modal */}
-        <Dialog
-          open={isModalOpen}
-          onClose={handleCloseModal}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{
-            sx: { borderRadius: 2 }
-          }}
-        >
-          <DialogTitle>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <PersonAdd sx={{ mr: 2, color: 'secondary.main' }} />
-              <Typography variant="h5" component="div">
-                Add New User
-              </Typography>
-            </Box>
-          </DialogTitle>
+          <Fab
+            color="secondary"
+            aria-label="add user"
+            onClick={handleOpenModal}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              display: { xs: 'block', sm: 'none' }
+            }}
+          >
+            <Add />
+          </Fab>
 
-          <DialogContent dividers>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Create a new user account with encrypted password. This is a developer tool for quick user addition.
-            </Typography>
-
-            <UserFormComponent
-              userForm={userForm}
-              isLoading={isLoading}
-              onInputChange={updateUserForm}
-              onSubmit={handleAddUser}
-              submitButtonText="Add User"
-            />
-
-            <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                <strong>Security Note:</strong> Passwords are automatically hashed using bcrypt with 12 salt rounds before storage.
-                The created_at timestamp is automatically set to the current time.
-              </Typography>
-            </Box>
-          </DialogContent>
-
-          <DialogActions sx={{ p: 2 }}>
-            <Button
-              onClick={handleCloseModal}
-              variant="outlined"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Edit User Modal */}
-        <EditUserModal
-          open={isEditModalOpen}
-          user={selectedUser}
-          onClose={handleCloseEditModal}
-          onEditUser={(user) => {
-            console.log('Edit mode activated for user:', user)
-          }}
-          onConfirmEdit={handleConfirmEdit}
-        />
-
-        {/* Floating Action Button for Mobile */}
-        <Fab
-          color="secondary"
-          aria-label="add user"
-          onClick={handleOpenModal}
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-            display: { xs: 'block', sm: 'none' } // Only show on mobile
-          }}
-        >
-          <Add />
-        </Fab>
-
-        <NotificationComponent
-          notification={notification}
-          onClose={hideNotification}
-        />
+          <NotificationComponent
+            notification={notification}
+            onClose={hideNotification}
+          />
+        </Box>
       </Box>
     </ThemeProvider>
   )

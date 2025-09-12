@@ -23,7 +23,7 @@ export interface AuthState {
 }
 
 export interface UseAuthReturn extends AuthState {
-  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>
+  login: (email: string, password: string) => Promise<{ success: boolean; message: string; user: User | null }>
   logout: () => void
   hasRole: (roleId: number) => boolean
   getUserRoles: () => UserRole[]
@@ -98,7 +98,7 @@ export const useAuthLogic = () => {
     checkAuthStatus()
   }, [])
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; message: string; user: User | null }> => {
     setAuthState(prev => ({ ...prev, isLoading: true }))
 
     try {
@@ -117,7 +117,8 @@ export const useAuthLogic = () => {
         setAuthState(prev => ({ ...prev, isLoading: false }))
         return {
           success: false,
-          message: 'Invalid email or password'
+          message: 'Invalid email or password',
+          user: null
         }
       }
 
@@ -130,7 +131,8 @@ export const useAuthLogic = () => {
         setAuthState(prev => ({ ...prev, isLoading: false }))
         return {
           success: false,
-          message: 'Invalid email or password'
+          message: 'Invalid email or password',
+          user: null
         }
       }
 
@@ -148,7 +150,8 @@ export const useAuthLogic = () => {
         setAuthState(prev => ({ ...prev, isLoading: false }))
         return {
           success: false,
-          message: 'Error fetching user permissions'
+          message: 'Error fetching user permissions',
+          user: null
         }
       }
 
@@ -179,7 +182,8 @@ export const useAuthLogic = () => {
 
       return {
         success: true,
-        message: 'Login successful!'
+        message: 'Login successful!',
+        user: authenticatedUser
       }
 
     } catch (error: any) {
@@ -187,7 +191,8 @@ export const useAuthLogic = () => {
       setAuthState(prev => ({ ...prev, isLoading: false }))
       return {
         success: false,
-        message: error.message || 'Login failed. Please try again.'
+        message: error.message || 'Login failed. Please try again.',
+        user: null
       }
     }
   }

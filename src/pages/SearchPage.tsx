@@ -16,31 +16,31 @@ import { RoomManagerSearchView } from '../components/ui/Room Manager/RoomManager
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
 import { SessionManager } from '../security/sessionManager';
-import AdminDashboard from './AdminDashboard';
-import BookRoom from './BookRoom';
 
+// Perubahan: Tambahkan prop onNavigateToAdmin
 interface SearchPageProps {
   onBack: () => void;
   onProfileClick: () => void;
+  onNavigateToAdmin: () => void;
 }
 
-function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
+function SearchPage({ onBack, onProfileClick, onNavigateToAdmin }: SearchPageProps) { // Perubahan: Terima prop
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeView, setActiveView] = useState('search');
-  const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
-
-  const getInitialView = (): 'search' | 'admin' | 'booking' => {
-    const session = SessionManager.getSession();
-    if (session?.subView === 'admin') return 'admin';
-    if (session?.subView === 'booking') return 'booking';
-    return 'search';
-  };
-
-  const [currentView, setCurrentView] = useState<'search' | 'admin' | 'booking'>(getInitialView());
   const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
+
+  // Perubahan: Handler untuk klik menu sidebar
+  const handleMenuClick = (view: string) => {
+    if (view === 'userManagement') {
+      onNavigateToAdmin(); // Panggil fungsi navigasi ke admin
+    } else {
+      setActiveView(view);
+      // Tambahkan logika lain jika diperlukan, misal untuk Room Management
+    }
+  };
 
   const handleSearch = (query: {
     tanggal: Date | null;
@@ -53,47 +53,18 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
     setHasSearched(true);
   };
 
-  const handleAdminAccess = () => {
-    setCurrentView('admin');
-    SessionManager.updateCurrentPage('search', 'admin');
-  };
-
   const handleRoomManagerAccess = () => {
     onProfileClick();
     SessionManager.updateCurrentPage('roomManagement');
   };
 
-  const handleBackFromAdmin = () => {
-    setCurrentView('search');
-    SessionManager.updateCurrentPage('search', 'search');
-  };
-
-  const handleRoomBooking = (room: any) => {
-    setSelectedRoom(room);
-    setCurrentView('booking');
-    SessionManager.updateCurrentPage('search', 'booking');
-  };
-
-  const handleBackFromBooking = () => {
-    setSelectedRoom(null);
-    setCurrentView('search');
-    SessionManager.updateCurrentPage('search', 'search');
-  };
-
-  if (currentView === 'admin' && isAdmin()) {
-    return <AdminDashboard onBack={handleBackFromAdmin} onProfileClick={onProfileClick} />;
-  }
-
-  if (currentView === 'booking' && selectedRoom) {
-    return <BookRoom room={selectedRoom} onBack={handleBackFromBooking} />;
-  }
-
   const renderRoleBasedView = () => {
     const roleView = getRoleBasedView();
 
     switch (roleView) {
+      // Perubahan: Hapus navigasi internal ke AdminDashboard, karena sudah ditangani di level atas
       case 'admin':
-        return <AdminSearchView goToAdminDashboard={handleAdminAccess} />;
+        return <AdminSearchView goToAdminDashboard={onNavigateToAdmin} />;
       case 'room-manager':
         return <RoomManagerSearchView goToRoomManagement={handleRoomManagerAccess} />;
       case 'employee':
@@ -120,17 +91,18 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
-        <Sidebar activeView={activeView} onMenuClick={setActiveView} />
+        {/* Perubahan: Gunakan handler baru */}
+        <Sidebar activeView={activeView} onMenuClick={handleMenuClick} />
         <Box
           component="main"
-          sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+          sx={{ flexGrow: 1, bgcolor: 'background.default'}}
         >
-        <Navbar
-          title={`Book It Down - Search (${user?.name || 'User'})`}
-          onBack={onBack}
-          userRole={getUserRoleForNavbar()}
-          onProfileClick={onProfileClick}
-        />
+          <Navbar
+            title={`Book It Down - Search (${user?.name || 'User'})`}
+            onBack={onBack}
+            userRole={getUserRoleForNavbar()}
+            onProfileClick={onProfileClick}
+          />
           <Container maxWidth="lg" sx={{ mt: 4, pb: 4 }}>
             {renderRoleBasedView()}
             <Card sx={{ mb: 4, mt: 4 }}>
@@ -163,11 +135,7 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
                       gap: 3
                     }}>
                       {filteredRooms.map((room) => (
-                        <RoomCard 
-                          key={room.room_id} 
-                          room={room} 
-                          onBookClick={() => handleRoomBooking(room)}
-                        />
+                        <RoomCard key={room.room_id} room={room} />
                       ))}
                     </Box>
                   )}
@@ -209,11 +177,7 @@ function SearchPage({ onBack, onProfileClick }: SearchPageProps) {
                     gap: 3
                   }}>
                     {rooms.map((room) => (
-                      <RoomCard 
-                        key={room.room_id} 
-                        room={room} 
-                        onBookClick={() => handleRoomBooking(room)}
-                      />
+                      <RoomCard key={room.room_id} room={room} />
                     ))}
                   </Box>
                 )}
