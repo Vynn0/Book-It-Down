@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SideAdminProfile from '../components/ui/Admin/SideAdminProfile';
 import { useAuth } from '../hooks/useAuth';
+import { SessionManager } from '../security/sessionManager';
 
 interface ProfileProps {
   onBack?: () => void;
@@ -23,6 +24,15 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
   const handleLogoutClick = () => {
     console.log('Logout clicked');
     logout();
+    if (onBack) {
+      onBack();
+    }
+  };
+
+  const handleBackClick = () => {
+    console.log('Back button clicked');
+    // Update session to go back to search page
+    SessionManager.updateCurrentPage('search');
     if (onBack) {
       onBack();
     }
@@ -256,7 +266,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
           zIndex: 1000,
         }}
       >
-        <div style={{ fontSize: '24px', color: 'white', cursor: 'pointer' }} onClick={onBack}>
+        <div style={{ fontSize: '24px', color: 'white', cursor: 'pointer' }} onClick={handleBackClick}>
           &#x25C0;
         </div>
       </div>
