@@ -1,13 +1,13 @@
 import React from 'react';
 
 // Props type untuk komponen, mendefinisikan fungsi yang akan dijalankan saat tombol diklik.
-interface SideAdminProfileProps {
+interface SideProfileProps {
   onProfileClick: () => void;
   onRiwayatClick: () => void;
   onLogoutClick: () => void;
 }
 
-const SideAdminProfile: React.FC<SideAdminProfileProps> = ({ 
+const SideProfile: React.FC<SideProfileProps> = ({ 
   onProfileClick, 
   onRiwayatClick, 
   onLogoutClick 
@@ -38,6 +38,7 @@ const SideAdminProfile: React.FC<SideAdminProfileProps> = ({
             backgroundColor: 'white',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             fontSize: '16px',
+            color: 'black',
             cursor: 'pointer',
             fontWeight: 'bold',
           }}
@@ -54,6 +55,7 @@ const SideAdminProfile: React.FC<SideAdminProfileProps> = ({
             backgroundColor: 'white',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             fontSize: '16px',
+            color: 'black',
             cursor: 'pointer',
             fontWeight: 'bold',
           }}
@@ -82,4 +84,4 @@ const SideAdminProfile: React.FC<SideAdminProfileProps> = ({
   );
 };
 
-export default SideAdminProfile;
+export default SideProfile;

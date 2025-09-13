@@ -10,3 +10,4 @@ export { default as EditUserModal } from './Admin/EditUserModal'
 export { RoomManagerSearchView } from './Room Manager/RoomManagerSearchView'
 export { EmployeeSearchView } from './Employee/EmployeeSearchView'
 export { Sidebar } from './Sidebar'
+// export { SideProfile } from './SideProfile';

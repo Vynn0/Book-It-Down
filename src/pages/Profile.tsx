@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import SideAdminProfile from '../components/ui/Admin/SideAdminProfile';
+import SideProfile from '../components/ui/SideProfile';
 import { useAuth } from '../hooks/useAuth';
 import { SessionManager } from '../security/sessionManager';
 
@@ -273,7 +273,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
 
       {/* Main Content with Sidebar */}
       <div style={{ display: 'flex', flexGrow: 1, marginTop: '60px' }}>
-        <SideAdminProfile
+        <SideProfile
           onProfileClick={handleProfileClick}
           onRiwayatClick={handleRiwayatClick}
           onLogoutClick={handleLogoutClick}
