@@ -14,6 +14,7 @@ import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { AdminSearchView } from '../components/ui/Admin/AdminSearchView';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
+import BookRoom from './BookRoom';
 
 interface SearchPageProps {
   onBack: () => void;
@@ -26,6 +27,8 @@ interface SearchPageProps {
 function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
+  const [showBookRoom, setShowBookRoom] = useState(false);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
   const { getRoleBasedView, isRoomManager, isEmployee, isAdmin, user } = useRoleBasedRouting();
@@ -66,6 +69,16 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setHasSearched(true);
   };
 
+  const handleRoomBooking = (room: any) => {
+    setSelectedRoom(room);
+    setShowBookRoom(true);
+  };
+
+  const handleBackFromBooking = () => {
+    setSelectedRoom(null);
+    setShowBookRoom(false);
+  };
+
   const renderRoleBasedView = () => {
     const roleView = getRoleBasedView();
 
@@ -93,6 +106,11 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     if (isAdmin()) return 'administrator';
     return 'employee';
   };
+
+  // Show BookRoom if a room is selected
+  if (showBookRoom && selectedRoom) {
+    return <BookRoom room={selectedRoom} onBack={handleBackFromBooking} />;
+  }
 
   return (
     <ThemeProvider theme={appTheme}>
@@ -141,7 +159,11 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                       gap: 3
                     }}>
                       {filteredRooms.map((room) => (
-                        <RoomCard key={room.room_id} room={room} />
+                        <RoomCard 
+                          key={room.room_id} 
+                          room={room} 
+                          onBookClick={() => handleRoomBooking(room)}
+                        />
                       ))}
                     </Box>
                   )}
@@ -183,7 +205,11 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                     gap: 3
                   }}>
                     {rooms.map((room) => (
-                      <RoomCard key={room.room_id} room={room} />
+                      <RoomCard 
+                        key={room.room_id} 
+                        room={room} 
+                        onBookClick={() => handleRoomBooking(room)}
+                      />
                     ))}
                   </Box>
                 )}
