@@ -10,13 +10,12 @@ import {
   Paper,
   Divider,
   IconButton,
-  Alert,
-  CircularProgress
+  Alert
 } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
-import { ArrowBack, CalendarToday, Info, CheckCircle } from '@mui/icons-material';
-import { Navbar } from '../components/ui';
+import { ArrowBack, Info, CheckCircle } from '@mui/icons-material';
+import { Navbar, BookingCalendar } from '../components/ui';
 import { useAuth, useBooking } from '../hooks';
 
 interface Room {
@@ -38,18 +37,27 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const { hasRole } = useAuth();
-  const { createQuickBooking, isLoading } = useBooking();
+  const { createBooking } = useBooking();
 
-  const handleBookRoom = async () => {
+  const handleBookingConfirm = async (startTime: Date, endTime: Date) => {
     setBookingError(null);
     setBookingSuccess(false);
     
-    const result = await createQuickBooking(room.room_id);
-    
-    if (result.success) {
-      setBookingSuccess(true);
-    } else {
-      setBookingError(result.error || 'Failed to book room');
+    try {
+      const result = await createBooking({
+        room_id: room.room_id,
+        start_datetime: startTime.toISOString(),
+        end_datetime: endTime.toISOString(),
+        status: 'Pending'
+      });
+      
+      if (result.success) {
+        setBookingSuccess(true);
+      } else {
+        setBookingError(result.error || 'Failed to book room');
+      }
+    } catch (error) {
+      setBookingError('An unexpected error occurred while booking the room');
     }
   };
 
@@ -189,23 +197,16 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
               </Alert>
             )}
 
-            {/* Booking Action */}
-            <Box sx={{ textAlign: 'center' }}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <CalendarToday />}
-                onClick={handleBookRoom}
-                disabled={isLoading || bookingSuccess}
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold'
-                }}
-              >
-                {isLoading ? 'Booking...' : bookingSuccess ? 'Room Booked!' : 'Book This Room'}
-              </Button>
+            {/* Booking Calendar */}
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h6" color="primary" gutterBottom>
+                Select Date & Time
+              </Typography>
+              <BookingCalendar
+                roomId={room.room_id}
+                roomName={room.room_name}
+                onBookingConfirm={handleBookingConfirm}
+              />
             </Box>
           </Paper>
         </Container>
