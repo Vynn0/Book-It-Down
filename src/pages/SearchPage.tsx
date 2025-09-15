@@ -11,7 +11,6 @@ import {
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
-import { AdminSearchView } from '../components/ui/Admin/AdminSearchView';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
 import BookRoom from './BookRoom';
@@ -84,7 +83,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
 
     switch (roleView) {
       case 'admin':
-        return <AdminSearchView goToAdminDashboard={onNavigateToAdmin} />;
+        return;
       case 'room-manager':
         return;
       case 'employee':
