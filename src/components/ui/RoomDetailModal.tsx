@@ -1,5 +1,5 @@
-// RoomDetailModal.tsx
 import { Box, Typography, Button, Divider } from "@mui/material";
+import Calendar from "./Calendar";
 
 interface Room {
   room_id: number;
@@ -17,10 +17,32 @@ interface Props {
 }
 
 export default function RoomDetailModal({ room, onClose }: Props) {
+  // contoh data booking
+  const events = [
+    {
+      title: "Dipesan",
+      start: "2025-09-01T08:00:00",
+      end: "2025-09-01T21:00:00",
+      status: "booked",
+    },
+    {
+      title: "Dipesan",
+      start: "2025-09-02T13:00:00",
+      end: "2025-09-02T16:00:00",
+      status: "booked",
+    },
+    {
+      title: "Menunggu",
+      start: "2025-09-28T07:00:00",
+      end: "2025-09-28T21:00:00",
+      status: "pending",
+    },
+  ];
+
   return (
-    <Box sx={{ display: "flex", gap: 3 }}>
+    <Box sx={{ display: "flex", gap: 3, height: "80vh" }}>
       {/* Kiri: Info Ruangan */}
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Button
           variant="contained"
           color="warning"
@@ -56,7 +78,7 @@ export default function RoomDetailModal({ room, onClose }: Props) {
           fullWidth
           variant="contained"
           sx={{
-            mt: 3,
+            mt: "auto",
             backgroundColor: "#FF9B0F",
             borderRadius: "20px",
             textTransform: "none",
@@ -68,22 +90,9 @@ export default function RoomDetailModal({ room, onClose }: Props) {
 
       <Divider orientation="vertical" flexItem />
 
-      {/* Kanan: Kalender */}
+      {/* Kanan: Kalender Booking */}
       <Box sx={{ flex: 2 }}>
-        {/* Kamu bisa pakai library kalender seperti react-big-calendar / fullcalendar */}
-        <Typography align="center" variant="h6">
-          Kalender Booking
-        </Typography>
-        <Box
-          sx={{
-            mt: 2,
-            height: 400,
-            border: "1px solid #ddd",
-            borderRadius: 2,
-          }}
-        >
-          {/* Placeholder Kalender */}
-        </Box>
+        <Calendar events={events} />
       </Box>
     </Box>
   );
