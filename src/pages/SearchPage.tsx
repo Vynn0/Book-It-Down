@@ -68,10 +68,10 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setHasSearched(true);
   };
 
-  const handleRoomBooking = (room: any) => {
-    setSelectedRoom(room);
-    setShowBookRoom(true);
-  };
+  // const handleRoomBooking = (room: any) => {
+  //   setSelectedRoom(room);
+  //   setShowBookRoom(true);
+  // };
 
   const handleBackFromBooking = () => {
     setSelectedRoom(null);
