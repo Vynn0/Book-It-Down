@@ -161,7 +161,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                         <RoomCard 
                           key={room.room_id} 
                           room={room} 
-                          onBookClick={() => handleRoomBooking(room)}
+                          // onBookClick={() => handleRoomBooking(room)}
                         />
                       ))}
                     </Box>
@@ -207,7 +207,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                       <RoomCard 
                         key={room.room_id} 
                         room={room} 
-                        onBookClick={() => handleRoomBooking(room)}
+                        // onBookClick={() => handleRoomBooking(room)}
                       />
                     ))}
                   </Box>
