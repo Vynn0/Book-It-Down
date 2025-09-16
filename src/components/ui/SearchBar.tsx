@@ -67,14 +67,14 @@ function SearchBar({ onSearch }: SearchBarProps) {
         <DatePicker
           label="Tanggal"
           value={selectedTanggal}
-          onChange={(newValue) => setSelectedTanggal(newValue)}
+          onChange={(newValue) => setSelectedTanggal(newValue as Date | null)}
           slotProps={{ textField: { fullWidth: true } }}
         />
         <TimePicker
           label="Jam Mulai"
           ampm={false}
           value={selectedJamMulai}
-          onChange={(newValue) => setSelectedJamMulai(newValue)}
+          onChange={(newValue) => setSelectedJamMulai(newValue as Date | null)}
           minutesStep={5}
           slotProps={{ textField: { fullWidth: true } }}
         />
@@ -82,7 +82,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
           label="Jam Selesai"
           ampm={false}
           value={selectedJamSelesai}
-          onChange={(newValue) => setSelectedJamSelesai(newValue)}
+          onChange={(newValue) => setSelectedJamSelesai(newValue as Date | null)}
           minutesStep={5}
           minTime={minJamSelesai || undefined}
           disabled={!selectedJamMulai}
