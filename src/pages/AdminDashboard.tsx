@@ -25,12 +25,15 @@ import type { DatabaseUser } from '../types/user'
 import { useState, useEffect } from 'react'
 
 interface AdminDashboardProps {
-  onBack: () => void
-  onProfileClick?: () => void
-  onNavigateToSearch: () => void; // Perubahan: Tambahkan prop baru
+  onBack: () => void;
+  onProfileClick?: () => void;
+  onNavigateToSearch: () => void;
+  onNavigateToRoomManagement: () => void; // Prop baru
 }
 
-function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch }: AdminDashboardProps) { // Perubahan: Terima prop baru
+const drawerWidth = 240; // Definisikan lebar drawer
+
+function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) { // Perubahan: Terima prop baru
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -38,6 +41,12 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch }: AdminDas
   const [users, setUsers] = useState<DatabaseUser[]>([])
   const [isLoadingUsers, setIsLoadingUsers] = useState(true)
   const [usersError, setUsersError] = useState<string | null>(null)
+
+  const [isSidebarOpen, setSidebarOpen] = useState(true); // Default: terbuka untuk tampilan desktop
+
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!isSidebarOpen);
+  };
 
   const {
     userForm,
@@ -57,7 +66,9 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch }: AdminDas
   // Perubahan: Buat handler untuk klik menu sidebar
   const handleMenuClick = (view: string) => {
     if (view === 'addBooking') {
-      onNavigateToSearch(); // Panggil fungsi navigasi
+      onNavigateToSearch();
+    } else if (view === 'roomManagement') {
+      onNavigateToRoomManagement(); // Panggil fungsi navigasi baru
     } else {
       setActiveView(view);
     }
@@ -210,15 +221,37 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch }: AdminDas
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
-        {/* Perubahan: Gunakan handler baru untuk onMenuClick */}
-        <Sidebar activeView={activeView} onMenuClick={handleMenuClick} />
-
-        <Box component="main" sx={{ flexGrow: 1}}>
+        <Sidebar 
+            activeView={activeView} 
+            onMenuClick={handleMenuClick} 
+            open={isSidebarOpen} 
+            onClose={() => setSidebarOpen(false)} 
+        />
+        <Box 
+          component="main" 
+          sx={{ 
+            flexGrow: 1, 
+            // Perubahan styling untuk efek push
+            transition: (theme) => theme.transitions.create('margin', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+            marginLeft: `-${drawerWidth}px`,
+            ...(isSidebarOpen && {
+              transition: (theme) => theme.transitions.create('margin', {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+              marginLeft: 0,
+            }),
+          }}
+        >         
           <Navbar
             title="Admin Dashboard"
             onBack={onBack}
             userRole="administrator"
             onProfileClick={onProfileClick}
+            onMenuClick={handleSidebarToggle} // Tetap gunakan handler ini
           />
 
           <Container maxWidth="lg" sx={{ mt: 4 }}>

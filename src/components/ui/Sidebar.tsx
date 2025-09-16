@@ -19,34 +19,47 @@ import { useRoleBasedRouting } from '../../hooks'
 const drawerWidth = 240
 
 interface SidebarProps {
-  activeView: string
-  onMenuClick: (view: string) => void
+  activeView: string;
+  onMenuClick: (view: string) => void;
+  open: boolean; // Prop baru
+  onClose: () => void; // Prop baru
 }
 
-export function Sidebar({ activeView, onMenuClick }: SidebarProps) {
-  const { isAdmin, isRoomManager } = useRoleBasedRouting();
+// ... (import dan kode lainnya)
+
+export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps) {
+  const { isAdmin, isRoomManager, isEmployee } = useRoleBasedRouting(); // isEmployee juga kita ambil untuk kejelasan
 
   const getMenuItems = () => {
     const allMenuItems = [
       { text: 'User Management', icon: <Group />, view: 'userManagement', roles: ['admin'] },
-      { text: 'Room Management', icon: <Group />, view: 'roomManagement', roles: ['admin', 'room-manager'] },
-      { text: 'Add Booking', icon: <MeetingRoom />, view: 'addBooking', roles: ['admin', 'room-manager', 'employee'] },
+      { text: 'Room Management', icon: <MeetingRoom />, view: 'roomManagement', roles: ['admin', 'room-manager'] },
+      { text: 'Add Booking', icon: <History />, view: 'addBooking', roles: ['admin', 'room-manager', 'employee'] },
       { text: 'Booking History', icon: <History />, view: 'bookingHistory', roles: ['admin', 'room-manager', 'employee'] }
     ];
 
+    // Logika filter yang disederhanakan dan diperbaiki
     return allMenuItems.filter(item => {
       if (isAdmin() && item.roles.includes('admin')) return true;
       if (isRoomManager() && item.roles.includes('room-manager')) return true;
-      if (item.roles.includes('employee')) return true;
+      // Pastikan employee hanya melihat peran employee dan bukan yang lain secara tidak sengaja
+      if (isEmployee() && item.roles.includes('employee')) return true;
       return false;
     });
   };
 
   const menuItems = getMenuItems();
 
+  // ... sisa komponen tidak berubah
   return (
     <Drawer
-      variant="permanent"
+      // Perubahan di sini
+      variant="persistent" // Mengubah dari permanent menjadi temporary
+      open={open}
+      onClose={onClose}
+      ModalProps={{
+        keepMounted: true, // Meningkatkan performa di mobile
+      }}
       sx={{
         width: drawerWidth,
         flexShrink: 0,
@@ -88,5 +101,5 @@ export function Sidebar({ activeView, onMenuClick }: SidebarProps) {
         </List>
       </Box>
     </Drawer>
-  )
+  );
 }

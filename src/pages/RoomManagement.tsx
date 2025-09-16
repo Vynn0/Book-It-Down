@@ -24,12 +24,20 @@ import { useState } from 'react'
 
 // Perubahan: Tambahkan prop navigasi
 interface RoomManagementProps {
-    onBack: () => void
-    onProfileClick: () => void
-    onNavigateToSearch: () => void
+  onBack: () => void;
+  onProfileClick: () => void;
+  onNavigateToSearch: () => void;
+  onNavigateToAdmin: () => void; // Prop baru
 }
 
-function RoomManagement({ onBack, onProfileClick, onNavigateToSearch }: RoomManagementProps) {
+const drawerWidth = 240; // Definisikan lebar drawer
+
+function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
+    const [isSidebarOpen, setSidebarOpen] = useState(true); // State untuk sidebar
+    const handleSidebarToggle = () => {
+        setSidebarOpen(!isSidebarOpen);
+    };
+    
     const [isModalOpen, setIsModalOpen] = useState(false)
     // Perubahan: Tambahkan state untuk sidebar dan dapatkan info user
     const [activeView, setActiveView] = useState('roomManagement');
@@ -73,12 +81,14 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch }: RoomMana
 
     // Perubahan: Handler untuk klik menu sidebar
     const handleMenuClick = (view: string) => {
-        if (view === 'addBooking') { // Asumsi Room Manager juga bisa menambah booking
-            onNavigateToSearch();
-        } else {
-            setActiveView(view);
-        }
-    };
+    if (view === 'addBooking') {
+      onNavigateToSearch();
+    } else if (view === 'userManagement') {
+      onNavigateToAdmin(); // Panggil fungsi navigasi kembali ke admin
+    } else {
+      setActiveView(view);
+    }
+  };
 
     const handleOpenModal = () => {
         resetForm()
@@ -94,10 +104,37 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch }: RoomMana
             <CssBaseline />
             {/* Perubahan: Ganti layout menjadi flexbox */}
             <Box sx={{ display: 'flex' }}>
-                <Sidebar activeView={activeView} onMenuClick={handleMenuClick} />
-                <Box component="main" sx={{ flexGrow: 1 }}>
-                    <Navbar title="Room Management" onBack={onBack} onProfileClick={onProfileClick} />
-
+                <Sidebar 
+                    activeView={activeView} 
+                    onMenuClick={handleMenuClick} 
+                    open={isSidebarOpen} 
+                    onClose={() => setSidebarOpen(false)} 
+                />
+                <Box 
+                component="main" 
+                sx={{ 
+                    flexGrow: 1, 
+                    // Perubahan styling untuk efek push (sama seperti di AdminDashboard)
+                    transition: (theme) => theme.transitions.create('margin', {
+                    easing: theme.transitions.easing.sharp,
+                    duration: theme.transitions.duration.leavingScreen,
+                    }),
+                    marginLeft: `-${drawerWidth}px`,
+                    ...(isSidebarOpen && {
+                    transition: (theme) => theme.transitions.create('margin', {
+                        easing: theme.transitions.easing.easeOut,
+                        duration: theme.transitions.duration.enteringScreen,
+                    }),
+                    marginLeft: 0,
+                    }),
+                }}
+                >
+                <Navbar 
+                    title="Room Management" 
+                    onBack={onBack} 
+                    onProfileClick={onProfileClick}
+                    onMenuClick={handleSidebarToggle} 
+                />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
                         <Paper sx={{ p: 3, mb: 4 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

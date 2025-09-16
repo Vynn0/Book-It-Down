@@ -87,7 +87,13 @@ function App() {
       showNotification(result.message, 'error')
     }
   }
-
+  // Fungsi navigasi yang lebih umum
+  const handleNavigate = (page: 'login' | 'search' | 'admin' | 'profile' | 'roomManagement', activeView?: string) => {
+    setInitialActiveView(activeView);
+    setCurrentPage(page);
+    SessionManager.updateCurrentPage(page);
+  };
+  
   const handleBackToLogin = () => {
     setCurrentPage('login')
     SessionManager.updateCurrentPage('login')
@@ -95,46 +101,39 @@ function App() {
     setPassword('')
   }
 
-  const handleProfileNavigation = () => {
-    setCurrentPage('profile');
-    SessionManager.updateCurrentPage('profile');
-  }
-
-  // Perubahan: Modifikasi fungsi navigasi
-  const handleNavigateToSearch = (activeView?: string) => {
-    setInitialActiveView(activeView); // Simpan view yang diinginkan
-    setCurrentPage('search');
-    SessionManager.updateCurrentPage('search');
-  }
-
-  const handleNavigateToAdmin = () => {
-    setCurrentPage('admin');
-    SessionManager.updateCurrentPage('admin');
-  }
-
-  const handleNavigateToRoomManagement = () => {
-    setCurrentPage('roomManagement');
-    SessionManager.updateCurrentPage('roomManagement');
-  }
-
-  if (isAuthenticated && currentPage === 'search') {
-    return <SearchPage onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToAdmin={handleNavigateToAdmin} onNavigateToRoomManagement={handleNavigateToRoomManagement} initialActiveView={initialActiveView} />
-  }
-
-  if (isAuthenticated && currentPage === 'profile') {
-    return <Profile onBack={() => setCurrentPage('search')} />
-  }
-
-  if (isAuthenticated && currentPage === 'admin') {
-    return <AdminDashboard onBack={handleBackToLogin} onProfileClick={handleProfileNavigation} onNavigateToSearch={() => handleNavigateToSearch('addBooking')} />
-  }
-
-  if (isAuthenticated && currentPage === 'roomManagement') {
-    return <RoomManagement onBack={() => handleNavigateToSearch()} onProfileClick={handleProfileNavigation} onNavigateToSearch={() => handleNavigateToSearch('addBooking')} />
-  }
-
-  if (currentPage === 'roomManagement' && !isAuthenticated) {
-      return null; 
+  if (isAuthenticated) {
+    switch (currentPage) {
+      case 'search':
+        return <SearchPage 
+          onBack={handleBackToLogin} 
+          onProfileClick={() => handleNavigate('profile')} 
+          onNavigateToAdmin={() => handleNavigate('admin')} 
+          onNavigateToRoomManagement={() => handleNavigate('roomManagement')} 
+          initialActiveView={initialActiveView} 
+        />;
+      case 'profile':
+        return <Profile onBack={() => handleNavigate('search')} />;
+      case 'admin':
+        return <AdminDashboard 
+          onBack={handleBackToLogin} 
+          onProfileClick={() => handleNavigate('profile')} 
+          onNavigateToSearch={() => handleNavigate('search', 'addBooking')}
+          // Tambahkan navigasi ke Room Management
+          onNavigateToRoomManagement={() => handleNavigate('roomManagement')}
+        />;
+      case 'roomManagement':
+        return <RoomManagement 
+          onBack={() => handleNavigate('search')} 
+          onProfileClick={() => handleNavigate('profile')} 
+          onNavigateToSearch={() => handleNavigate('search', 'addBooking')}
+          // Tambahkan navigasi kembali ke Admin Dashboard
+          onNavigateToAdmin={() => handleNavigate('admin')}
+        />;
+      default:
+        // Jika karena suatu hal halaman tidak valid, kembali ke search
+        handleNavigate('search');
+        return null;
+    }
   }
 
 

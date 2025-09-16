@@ -3,22 +3,36 @@ import {
   Toolbar,
   Typography,
   Box,
-  Button
+  Button,
+  IconButton
 } from '@mui/material'
-import { Person } from '@mui/icons-material'
+import { Person, Menu as MenuIcon } from '@mui/icons-material'
 import { SessionIndicator } from '../../security'
 
 interface NavbarProps {
-  title: string
-  onBack: () => void
-  userRole?: 'employee' | 'administrator'
-  onProfileClick?: () => void
+  title: string;
+  onBack: () => void;
+  userRole?: 'employee' | 'administrator';
+  onProfileClick?: () => void;
+  onMenuClick: () => void; // Prop baru
 }
 
-function Navbar({ title, onProfileClick }: NavbarProps) {
+function Navbar({ title, onProfileClick, onMenuClick }: NavbarProps) {
   return (
     <AppBar position="static" color="secondary">
       <Toolbar>
+        {/* Tombol Hamburger */}
+        <IconButton
+          size="large"
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          sx={{ mr: 2 }}
+          onClick={onMenuClick}
+        >
+          <MenuIcon />
+        </IconButton>
+
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           {title}
         </Typography>
