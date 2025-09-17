@@ -83,6 +83,11 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setShowBookRoom(false);
   };
 
+  const handleRoomSelect = (room: any) => {
+    setSelectedRoom(room);
+    setShowBookRoom(true);
+  };
+
   const renderRoleBasedView = () => {
     const roleView = getRoleBasedView();
 
@@ -188,7 +193,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                         <RoomCard 
                           key={room.room_id} 
                           room={room} 
-                          // onBookClick={() => handleRoomBooking(room)}
+                          onSelect={handleRoomSelect}
                         />
                       ))}
                     </Box>
@@ -234,7 +239,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                       <RoomCard 
                         key={room.room_id} 
                         room={room} 
-                        // onBookClick={() => handleRoomBooking(room)}
+                        onSelect={handleRoomSelect}
                       />
                     ))}
                   </Box>
