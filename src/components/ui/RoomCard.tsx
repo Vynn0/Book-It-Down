@@ -148,6 +148,7 @@ export default function RoomCard({ room, imageSrc, onSelect }: RoomCardProps) {
       sx={{
         maxWidth: 345,
         borderRadius: "16px",
+        border: "2px solid rgba(0,0,0,0.2)",
         boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
         backgroundColor: "#fff",
         display: "flex",

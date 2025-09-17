@@ -135,10 +135,10 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                     onProfileClick={onProfileClick}
                     onMenuClick={handleSidebarToggle} 
                 />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
-                        <Paper sx={{ p: 3, mb: 4 }}>
+                    <Container maxWidth="lg" sx={{ mt: 2, mb: 4}}>
+                        <Box sx={{ p: 3 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                                <Typography variant="h4" gutterBottom>
+                                <Typography variant="h5" color="secondary" gutterBottom>
                                     Room Management Dashboard
                                 </Typography>
                                 <Button
@@ -150,9 +150,9 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                                     Refresh
                                 </Button>
                             </Box>
-                            <Divider sx={{ mb: 3 }} />
+                            <Divider sx={{ mb: 3, borderTop: '1px solid' }} />
 
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                 <Typography variant="body1">
                                     Manage and view all available rooms in the system
                                 </Typography>
@@ -166,7 +166,7 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                                 </Button>
                             </Box>
 
-                            <Card sx={{ bgcolor: '#f5f5f5', mb: 3 }}>
+                            <Card sx={{ border: '2px solid rgba(0,0,0,0.2)'}}>
                                 <CardContent>
                                     <Typography variant="h6" color="primary" gutterBottom>
                                         Quick Stats
@@ -179,13 +179,13 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                                     </Typography>
                                 </CardContent>
                             </Card>
-                        </Paper>
+                        </Box>
 
-                        <Paper sx={{ p: 3 }}>
-                            <Typography variant="h5" gutterBottom>
+                        <Paper sx={{ p: 3}}>
+                            <Typography variant="h5" color="secondary" gutterBottom>
                                 All Rooms
                             </Typography>
-                            <Divider sx={{ mb: 3 }} />
+                            <Divider sx={{ mb: 3, mt: 3, borderTop: '1px solid' }} />
                             
                             {isLoadingRooms ? (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>

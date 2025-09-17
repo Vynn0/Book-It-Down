@@ -41,14 +41,14 @@ interface UserTableProps {
 const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUser, onEditUser }) => {
 
   return (
-    <Paper sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
+    <Paper sx={{ mt: 7, mb: 4 }}>
+      <Box sx={{ borderBottom: '1px solid #e0e0e0' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-          <Box>
+          <Box sx={{ pb: 3 }}>
             <Typography variant="h5" component="h2" color="secondary">
               Users Management
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" pt={1}>
               Manage all users in the system
             </Typography>
           </Box>

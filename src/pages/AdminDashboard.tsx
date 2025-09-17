@@ -11,8 +11,7 @@ import {
   DialogContent,
   DialogActions,
   Fab,
-  Paper,
-  IconButton
+  Divider
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { appTheme } from '../services'
@@ -254,76 +253,61 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
             onMenuClick={handleSidebarToggle} // Tetap gunakan handler ini
           />
 
-          <Container maxWidth="lg" sx={{ mt: 4 }}>
-            <Paper sx={{ p: 3, mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <IconButton
-                  edge="start"
-                  color="inherit"
-                  onClick={onBack}
-                  aria-label="go back"
-                  sx={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.08)'
-                    }
-                  }}
-                >
-                </IconButton>
-                <Box>
-                  <Typography variant="h4" component="h1" color="secondary" gutterBottom>
-                    User Management Dashboard
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    Manage users, roles, and permissions from this central dashboard.
-                  </Typography>
-                </Box>
+          <Container maxWidth="lg" sx={{ mt: 2 }}>
+            <Box sx={{ pt: 3, pl: 3, pr: 3, gap: 2 }}>
+              <Box sx={{ mb: 3}}>
+                <Typography variant="h5" component="h1" color="secondary" gutterBottom>
+                  User Management Dashboard
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Manage users, roles, and permissions from this central dashboard.
+                </Typography>
               </Box>
-            </Paper>
+                <Divider sx={{ mb: 3, borderTop: '1px solid' }} />
 
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="secondary" gutterBottom>
-                    Total Users
-                  </Typography>
-                  <Typography variant="h3" component="div">
-                    {isLoadingUsers ? '-' : users.length}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Registered in the system
-                  </Typography>
-                </CardContent>
-              </Card>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
+                <Card sx={{ border: '1px solid rgba(0,0,0,0.2)', boxShadow: '0 5px 5px 0 rgba(0,0,0,0.2)' }}>
+                  <CardContent>
+                    <Typography variant="h6" color="secondary" gutterBottom>
+                      Total Users
+                    </Typography>
+                    <Typography variant="h3" component="div">
+                      {isLoadingUsers ? '-' : users.length}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Registered in the system
+                    </Typography>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="secondary" gutterBottom>
-                    Active Sessions
-                  </Typography>
-                  <Typography variant="h3" component="div">
-                    12
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Currently logged in
-                  </Typography>
-                </CardContent>
-              </Card>
+                <Card sx={{ border: '1px solid rgba(0,0,0,0.2)', boxShadow: '0 5px 5px 0 rgba(0,0,0,0.2)' }}>
+                  <CardContent>
+                    <Typography variant="h6" color="secondary" gutterBottom>
+                      Active Sessions
+                    </Typography>
+                    <Typography variant="h3" component="div">
+                      12
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Currently logged in
+                    </Typography>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="secondary" gutterBottom>
-                    Room Bookings
-                  </Typography>
-                  <Typography variant="h3" component="div">
-                    8
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Active bookings today
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Box>
+                <Card sx={{ border: '1px solid rgba(0,0,0,0.2)', boxShadow: '0 5px 5px 0 rgba(0,0,0,0.2)' }}>
+                  <CardContent>
+                    <Typography variant="h6" color="secondary" gutterBottom>
+                      Room Bookings
+                    </Typography>
+                    <Typography variant="h3" component="div">
+                      8
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Active bookings today
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
 
             <UserTable
               users={users}
@@ -331,7 +315,8 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
               error={usersError}
               onAddUser={handleOpenModal}
               onEditUser={handleOpenEditModal}
-            />
+              />
+            </Box>
           </Container>
 
           <Dialog

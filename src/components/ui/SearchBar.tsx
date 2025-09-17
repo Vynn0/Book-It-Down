@@ -60,6 +60,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
           alignItems: 'center',
           p: 2,
           borderRadius: 2,
+          border: '1px solid rgba(0, 0, 0, 0.2)',
           boxShadow: 3,
           bgcolor: 'background.paper',
         }}

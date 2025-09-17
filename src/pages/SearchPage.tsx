@@ -158,16 +158,14 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
             onProfileClick={onProfileClick}
             onMenuClick={handleSidebarToggle}
           />
-          <Container maxWidth="lg" sx={{ mt: 4, pb: 4 }}>
+          <Container maxWidth="lg" sx={{ mt: 2, pb: 4 }}>
             {renderRoleBasedView()}
-            <Card sx={{ mb: 4, mt: 4 }}>
-              <CardContent>
-                <Typography variant="h4" component="h1" color="secondary" mb={3}>
+              <CardContent sx={{ p:3 }}>
+                <Typography variant="h5" component="h1" color="secondary" mb={2}>
                   Search Rooms
                 </Typography>
                 <SearchBar onSearch={handleSearch} />
               </CardContent>
-            </Card>
 
             {hasSearched ? (
               filteredRooms.length > 0 ? (
@@ -209,7 +207,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                 </Card>
               )
             ) : (
-              <Box>
+              <Box sx={{ p:3 }}>
                 <Typography variant="h5" component="h2" color="secondary" mb={2}>
                   All Rooms ({rooms.length} total)
                 </Typography>
