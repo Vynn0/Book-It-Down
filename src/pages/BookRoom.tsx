@@ -16,10 +16,10 @@ import {
 } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
-import { ArrowBack, Info, CheckCircle, EventAvailable, Schedule, LocationOn, People } from '@mui/icons-material';
-import { Navbar, BookingCalendar } from '../components/ui';
+import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from '@mui/icons-material';
+import { Navbar, BookingModal } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
-import { useAuth, useBooking, useRoomBookings } from '../hooks';
+import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck } from '../hooks';
 
 interface Room {
   room_id: number;
@@ -39,11 +39,13 @@ interface BookRoomProps {
 const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
-  const [showNewBooking, setShowNewBooking] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const { hasRole } = useAuth();
   const { createBooking, isLoading: bookingLoading } = useBooking();
   const { bookings, isLoading: calendarLoading, error: calendarError, refreshBookings, getBookingColor } = useRoomBookings(room.room_id);
+  const { checkTimeSlotAvailability } = useBookingConflictCheck();
 
   const handleBookingConfirm = async (startTime: Date, endTime: Date) => {
     setBookingError(null);
@@ -59,15 +61,28 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
       
       if (result.success) {
         setBookingSuccess(true);
-        setShowNewBooking(false);
         // Refresh calendar to show new booking
         refreshBookings();
+        return { success: true };
       } else {
         setBookingError(result.error || 'Failed to book room');
+        return { success: false, error: result.error || 'Failed to book room' };
       }
     } catch (error) {
-      setBookingError('An unexpected error occurred while booking the room');
+      const errorMessage = 'An unexpected error occurred while booking the room';
+      setBookingError(errorMessage);
+      return { success: false, error: errorMessage };
     }
+  };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    setShowBookingModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowBookingModal(false);
+    setSelectedDate(null);
   };
 
   // Get user roles for navbar display
@@ -218,101 +233,82 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
                 )}
 
                 {/* Booking Action Button */}
-                {!showNewBooking ? (
-                  <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    startIcon={<EventAvailable />}
-                    onClick={() => setShowNewBooking(true)}
-                    disabled={bookingLoading}
-                    sx={{
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      backgroundColor: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'primary.dark'
-                      }
-                    }}
-                  >
-                    Make New Booking
-                  </Button>
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  startIcon={<EventAvailable />}
+                  disabled={bookingLoading}
+                  sx={{
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    backgroundColor: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark'
+                    }
+                  }}
+                >
+                  Click on Calendar Date to Book
+                </Button>
+              </Paper>
+            </Box>
+
+            {/* Right Panel - Calendar */}
+            <Box sx={{ flex: 1 }}>
+              {/* Calendar View */}
+              <Paper sx={{ p: 3, backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+                  <EventAvailable /> Current Bookings - Click Date to Book
+                </Typography>
+                
+                {/* Calendar Legend */}
+                <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Chip label="Approved" sx={{ backgroundColor: '#28a745', color: 'white' }} size="small" />
+                  <Chip label="Pending" sx={{ backgroundColor: '#ffc107', color: 'black' }} size="small" />
+                  <Chip label="Rejected" sx={{ backgroundColor: '#dc3545', color: 'white' }} size="small" />
+                </Box>
+
+                {calendarLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                    <CircularProgress />
+                    <Typography sx={{ ml: 2 }}>Loading bookings...</Typography>
+                  </Box>
+                ) : calendarError ? (
+                  <Alert severity="error" sx={{ mb: 3 }}>
+                    {calendarError}
+                  </Alert>
                 ) : (
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    fullWidth
-                    onClick={() => setShowNewBooking(false)}
-                    sx={{
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    Cancel Booking
-                  </Button>
+                  <Box sx={{ 
+                    border: '1px solid #e0e0e0', 
+                    borderRadius: 2, 
+                    overflow: 'hidden',
+                    backgroundColor: '#ffffff'
+                  }}>
+                    <Calendar 
+                      events={bookings.map(booking => ({
+                        ...booking,
+                        backgroundColor: getBookingColor(booking.status),
+                        borderColor: getBookingColor(booking.status)
+                      }))} 
+                      onDateClick={handleDateClick}
+                    />
+                  </Box>
                 )}
               </Paper>
             </Box>
 
-            {/* Right Panel - Calendar and Booking */}
-            <Box sx={{ flex: 1 }}>
-              {showNewBooking ? (
-                /* New Booking Interface */
-                <Paper sx={{ p: 3, backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
-                    <Schedule /> Make a New Booking
-                  </Typography>
-                  <BookingCalendar
-                    roomId={room.room_id}
-                    roomName={room.room_name}
-                    onBookingConfirm={handleBookingConfirm}
-                    isBookingInProgress={bookingLoading}
-                  />
-                </Paper>
-              ) : (
-                /* Calendar View */
-                <Paper sx={{ p: 3, backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
-                    <EventAvailable /> Current Bookings
-                  </Typography>
-                  
-                  {/* Calendar Legend */}
-                  <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                    <Chip label="Approved" sx={{ backgroundColor: '#28a745', color: 'white' }} size="small" />
-                    <Chip label="Pending" sx={{ backgroundColor: '#ffc107', color: 'black' }} size="small" />
-                    <Chip label="Rejected" sx={{ backgroundColor: '#dc3545', color: 'white' }} size="small" />
-                  </Box>
-
-                  {calendarLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
-                      <CircularProgress />
-                      <Typography sx={{ ml: 2 }}>Loading bookings...</Typography>
-                    </Box>
-                  ) : calendarError ? (
-                    <Alert severity="error" sx={{ mb: 3 }}>
-                      {calendarError}
-                    </Alert>
-                  ) : (
-                    <Box sx={{ 
-                      border: '1px solid #e0e0e0', 
-                      borderRadius: 2, 
-                      overflow: 'hidden',
-                      backgroundColor: '#ffffff'
-                    }}>
-                      <Calendar 
-                        events={bookings.map(booking => ({
-                          ...booking,
-                          backgroundColor: getBookingColor(booking.status),
-                          borderColor: getBookingColor(booking.status)
-                        }))} 
-                      />
-                    </Box>
-                  )}
-                </Paper>
-              )}
-            </Box>
+            {/* Booking Modal */}
+            <BookingModal
+              open={showBookingModal}
+              onClose={handleModalClose}
+              selectedDate={selectedDate}
+              roomId={room.room_id}
+              roomName={room.room_name}
+              onBookingConfirm={handleBookingConfirm}
+              onCheckAvailability={checkTimeSlotAvailability}
+              isBookingInProgress={bookingLoading}
+            />
           </Box>
         </Container>
       </Box>
