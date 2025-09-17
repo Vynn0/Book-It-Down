@@ -18,9 +18,10 @@ interface CalendarEvent {
 
 interface CalendarProps {
   events: CalendarEvent[];
+  onDateClick?: (date: Date) => void;
 }
 
-const Calendar: React.FC<CalendarProps> = ({ events }) => {
+const Calendar: React.FC<CalendarProps> = ({ events, onDateClick }) => {
   const getEventColor = (status?: string): { backgroundColor: string; borderColor: string } => {
     switch (status) {
       case 'Approved':
@@ -56,6 +57,11 @@ const Calendar: React.FC<CalendarProps> = ({ events }) => {
         )
       }))}
       height="500px"
+      dateClick={(dateInfo) => {
+        if (onDateClick) {
+          onDateClick(dateInfo.date);
+        }
+      }}
       eventContent={(eventInfo) => {
         const event = eventInfo.event;
         const status = event.extendedProps.status;
