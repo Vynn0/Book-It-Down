@@ -81,7 +81,8 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     if (initialActiveView) return initialActiveView; // Utamakan prop
     if (isRoomManager()) return 'roomManagement';
     if (isEmployee()) return 'addBooking';
-    return 'search';
+    if (isAdmin()) return 'addBooking'; // Admin should also default to addBooking when on search page
+    return 'addBooking'; // Default to addBooking for any user on search page
   });
 
   // Perubahan: Gunakan useEffect untuk sinkronisasi jika prop berubah

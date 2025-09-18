@@ -62,7 +62,15 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
     const path = location.pathname;
     if (path.includes('/admin/dashboard')) return 'userManagement';
     if (path.includes('/rooms/management')) return 'roomManagement';
-    if (path.includes('/searchpage')) return activeView || 'addBooking'; // Use passed activeView or default
+    if (path.includes('/searchpage')) {
+      // For searchpage, always use the activeView prop if provided
+      // This ensures the sidebar reflects the current view state
+      return activeView || 'addBooking';
+    }
+    if (path.includes('/rooms/') && path.includes('/book')) {
+      // When on a booking page, highlight "Add Booking"
+      return 'addBooking';
+    }
     return activeView;
   };
 
