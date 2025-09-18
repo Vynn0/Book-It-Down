@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
   Typography,
-  Card,
-  CardContent,
   CssBaseline,
   Button,
   Paper,
   Divider,
-  IconButton,
   Alert,
   Chip,
   CircularProgress
@@ -19,24 +17,24 @@ import { appTheme } from '../services';
 import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from '@mui/icons-material';
 import { Navbar, BookingModal } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
-import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck } from '../hooks';
-
-interface Room {
-  room_id: number;
-  room_name: string;
-  location: string;
-  capacity: number;
-  description: string;
-  created_at: string;
-  features?: string[];
-}
+import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement } from '../hooks';
+import type { Room } from '../hooks/useRoomManagement';
 
 interface BookRoomProps {
-  room: Room;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
-const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
+const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
+  // Get room ID from URL parameters
+  const { roomId } = useParams<{ roomId: string }>();
+  const navigate = useNavigate();
+  
+  // State for the room data
+  const [room, setRoom] = useState<Room | null>(null);
+  const [isLoadingRoom, setIsLoadingRoom] = useState(true);
+  const [roomError, setRoomError] = useState<string | null>(null);
+  
+  // Existing state
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -44,8 +42,94 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
   
   const { hasRole } = useAuth();
   const { createBooking, isLoading: bookingLoading } = useBooking();
-  const { bookings, isLoading: calendarLoading, error: calendarError, refreshBookings, getBookingColor } = useRoomBookings(room.room_id);
+  const { rooms, isLoadingRooms, fetchRooms } = useRoomManagement();
+  
+  // Conditional hooks based on room availability
+  const roomIdNum = roomId ? parseInt(roomId) : 0;
+  const { bookings, isLoading: calendarLoading, error: calendarError, refreshBookings, getBookingColor } = useRoomBookings(roomIdNum);
   const { checkTimeSlotAvailability } = useBookingConflictCheck();
+
+  // Optimized room loading logic
+  useEffect(() => {
+    const loadRoom = async () => {
+      if (!roomId) {
+        setRoomError('Room ID not provided');
+        setIsLoadingRoom(false);
+        return;
+      }
+
+      const roomIdNumber = parseInt(roomId);
+      
+      // Check if room already exists in loaded rooms
+      const existingRoom = rooms.find(r => r.room_id === roomIdNumber);
+      if (existingRoom) {
+        setRoom(existingRoom);
+        setIsLoadingRoom(false);
+        setRoomError(null);
+        return;
+      }
+
+      // If rooms are currently loading, wait for them
+      if (isLoadingRooms) {
+        return; // Let the loading finish, this effect will run again
+      }
+
+      // If no rooms loaded yet, fetch them
+      if (rooms.length === 0) {
+        try {
+          await fetchRooms();
+          // After fetching, check again (this will trigger another useEffect)
+        } catch (error) {
+          setRoomError('Failed to load room details');
+          setIsLoadingRoom(false);
+          console.error('Error loading room:', error);
+        }
+        return;
+      }
+
+      // Rooms loaded but room not found
+      setRoomError('Room not found');
+      setIsLoadingRoom(false);
+    };
+
+    loadRoom();
+  }, [roomId, rooms, isLoadingRooms, fetchRooms]);
+
+  // Handle back navigation
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate('/searchpage');
+    }
+  };
+
+  // Show loading state
+  if (isLoadingRoom || isLoadingRooms) {
+    return (
+      <ThemeProvider theme={appTheme}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>Loading room details...</Typography>
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
+  // Show error state
+  if (roomError || !room) {
+    return (
+      <ThemeProvider theme={appTheme}>
+        <CssBaseline />
+        <Container maxWidth="md" sx={{ mt: 4 }}>
+          <Alert severity="error">
+            {roomError || 'Room not found'}
+          </Alert>
+        </Container>
+      </ThemeProvider>
+    );
+  }
 
   const handleBookingConfirm = async (startTime: Date, endTime: Date) => {
     setBookingError(null);
@@ -97,22 +181,11 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#ffffff' }}>
         <Navbar
           title={`Room Details - ${room.room_name}`}
-          onBack={onBack}
+          onBack={handleBack}
           userRole={getUserRoleForNavbar()}
-          onMenuClick={() => {}} // Empty handler since we don't need menu in this page
+          onMenuClick={() => {}}
         />
-
         <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
-          {/* Back Button */}
-          <Button
-            startIcon={<ArrowBack />}
-            onClick={onBack}
-            variant="outlined"
-            sx={{ mb: 3, color: 'primary.main', borderColor: 'primary.main' }}
-          >
-            Back to Rooms
-          </Button>
-
           <Box sx={{ 
             display: 'flex', 
             flexDirection: { xs: 'column', lg: 'row' }, 
@@ -122,79 +195,49 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
             <Box sx={{ flex: { lg: '0 0 400px' }, width: { xs: '100%', lg: '400px' } }}>
               <Paper sx={{ p: 3, height: 'fit-content', backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 {/* Room Header */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                  <IconButton
-                    edge="start"
-                    color="primary"
-                    onClick={onBack}
-                    aria-label="go back"
-                    sx={{
-                      backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                      '&:hover': {
-                        backgroundColor: 'rgba(25, 118, 210, 0.08)'
-                      }
-                    }}
-                  >
-                    <ArrowBack />
-                  </IconButton>
-                  <Box>
-                    <Typography variant="h5" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
-                      {room.room_name}
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                      {room.location}
-                    </Typography>
-                  </Box>
+                          <Button
+            startIcon={<ArrowBack />}
+            onClick={handleBack}
+            variant="outlined"
+            sx={{ mb: 2 }}
+          >
+            Back to Search
+          </Button>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h5" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    {room.room_name}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    {room.location}
+                  </Typography>
                 </Box>
-                
                 <Divider sx={{ mb: 3 }} />
-                
                 {/* Room Details */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Info /> Room Information
                   </Typography>
-                  
                   {room.description && (
-                    <Typography variant="body1" paragraph sx={{ color: 'text.primary' }}>
+                    <Typography variant="body1" paragraph sx={{ color: 'text.primary', mb: 3 }}>
                       {room.description}
                     </Typography>
                   )}
-                  
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                    <Card variant="outlined" sx={{ backgroundColor: '#f8f9fa' }}>
-                      <CardContent sx={{ py: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOn color="primary" />
-                          <Box>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Location
-                            </Typography>
-                            <Typography variant="h6" color="primary">
-                              {room.location}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card variant="outlined" sx={{ backgroundColor: '#f8f9fa' }}>
-                      <CardContent sx={{ py: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <People color="secondary" />
-                          <Box>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Capacity
-                            </Typography>
-                            <Typography variant="h6" color="secondary">
-                              {room.capacity} People
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </CardContent>
-                    </Card>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 2, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
+                      <LocationOn color="primary" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Location</Typography>
+                        <Typography variant="body1" color="primary" sx={{ fontWeight: 500 }}>{room.location}</Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 2, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
+                      <People color="secondary" />
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary">Capacity</Typography>
+                        <Typography variant="body1" color="secondary" sx={{ fontWeight: 500 }}>{room.capacity} People</Typography>
+                      </Box>
+                    </Box>
                   </Box>
-
                   {/* Features Section */}
                   {room.features && room.features.length > 0 && (
                     <Box sx={{ mt: 3 }}>
@@ -215,7 +258,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
                     </Box>
                   )}
                 </Box>
-
                 {/* Booking Status Messages */}
                 {bookingSuccess && (
                   <Alert severity="success" sx={{ mb: 3 }}>
@@ -225,13 +267,11 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
                     </Box>
                   </Alert>
                 )}
-
                 {bookingError && (
                   <Alert severity="error" sx={{ mb: 3 }}>
                     {bookingError}
                   </Alert>
                 )}
-
                 {/* Booking Action Button */}
                 <Button
                   variant="contained"
@@ -253,7 +293,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
                 </Button>
               </Paper>
             </Box>
-
             {/* Right Panel - Calendar */}
             <Box sx={{ flex: 1 }}>
               {/* Calendar View */}
@@ -261,14 +300,12 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
                   <EventAvailable /> Current Bookings - Click Date to Book
                 </Typography>
-                
                 {/* Calendar Legend */}
                 <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <Chip label="Approved" sx={{ backgroundColor: '#28a745', color: 'white' }} size="small" />
                   <Chip label="Pending" sx={{ backgroundColor: '#ffc107', color: 'black' }} size="small" />
                   <Chip label="Rejected" sx={{ backgroundColor: '#dc3545', color: 'white' }} size="small" />
                 </Box>
-
                 {calendarLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
                     <CircularProgress />
@@ -297,7 +334,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ room, onBack }) => {
                 )}
               </Paper>
             </Box>
-
             {/* Booking Modal */}
             <BookingModal
               open={showBookingModal}

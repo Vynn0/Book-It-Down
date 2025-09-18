@@ -16,23 +16,51 @@ import {
     CircularProgress
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import { appTheme } from '../services'
 import { Add, Refresh } from '@mui/icons-material'
-import { Navbar, NotificationComponent, RoomFormComponent, RoomCard, Sidebar } from '../components/ui' // Perubahan: Impor Sidebar
-import { useRoomManagement, useNotification } from '../hooks' // Perubahan: Impor useAuth
+import { Navbar, NotificationComponent, RoomFormComponent, RoomCard, Sidebar } from '../components/ui'
+import { useRoomManagement, useNotification} from '../hooks'
 import { useState } from 'react'
 
-// Perubahan: Tambahkan prop navigasi
+// Make props optional since we'll use router hooks
 interface RoomManagementProps {
-  onBack: () => void;
-  onProfileClick: () => void;
-  onNavigateToSearch: () => void;
-  onNavigateToAdmin: () => void; // Prop baru
+  onBack?: () => void;
+  onProfileClick?: () => void;
+  onNavigateToSearch?: () => void;
+  onNavigateToAdmin?: () => void;
 }
 
-const drawerWidth = 240; // Definisikan lebar drawer
+const drawerWidth = 240;
 
-function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
+function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
+    const navigate = useNavigate();
+    // const { user } = useAuth();
+    
+    // Navigation handlers using router hooks with prop fallbacks
+    const handleBackNavigation = () => {
+        if (onBack) {
+            onBack();
+        } else {
+            navigate(-1);
+        }
+    };
+
+    const handleSearchNavigation = () => {
+        if (onNavigateToSearch) {
+            onNavigateToSearch();
+        } else {
+            navigate('/searchpage');
+        }
+    };
+
+    const handleAdminNavigation = () => {
+        if (onNavigateToAdmin) {
+            onNavigateToAdmin();
+        } else {
+            navigate('/admin/dashboard');
+        }
+    };
     const [isSidebarOpen, setSidebarOpen] = useState(true); // State untuk sidebar
     const handleSidebarToggle = () => {
         setSidebarOpen(!isSidebarOpen);
@@ -79,12 +107,12 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigate
         }
     }
 
-    // Perubahan: Handler untuk klik menu sidebar
+    // Handler untuk klik menu sidebar
     const handleMenuClick = (view: string) => {
     if (view === 'addBooking') {
-      onNavigateToSearch();
+      handleSearchNavigation();
     } else if (view === 'userManagement') {
-      onNavigateToAdmin(); // Panggil fungsi navigasi kembali ke admin
+      handleAdminNavigation();
     } else {
       setActiveView(view);
     }
@@ -131,8 +159,7 @@ function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                 >
                 <Navbar 
                     title="Room Management" 
-                    onBack={onBack} 
-                    onProfileClick={onProfileClick}
+                    onBack={handleBackNavigation} 
                     onMenuClick={handleSidebarToggle} 
                 />
                     <Container maxWidth="lg" sx={{ mt: 2, mb: 4}}>

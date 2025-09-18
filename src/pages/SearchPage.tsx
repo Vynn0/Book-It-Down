@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -13,24 +14,22 @@ import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
-import BookRoom from './BookRoom';
 
 interface SearchPageProps {
-  onBack: () => void;
-  onProfileClick: () => void;
-  onNavigateToAdmin: () => void;
-  onNavigateToRoomManagement: () => void;
+  onBack?: () => void;
+  onProfileClick?: () => void;
+  onNavigateToAdmin?: () => void;
+  onNavigateToRoomManagement?: () => void;
   initialActiveView?: string; // Perubahan: Tambahkan prop baru
 }
 
 const drawerWidth = 240; // Definisikan lebar drawer
 
 function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
+  const navigate = useNavigate();
   
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
-  const [showBookRoom, setShowBookRoom] = useState(false);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
   const { getRoleBasedView, isRoomManager, isEmployee, isAdmin, user } = useRoleBasedRouting();
@@ -42,12 +41,48 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setSidebarOpen(!isSidebarOpen);
   };
 
+  // Router/Prop wrapper functions
+  const handleBackToLogin = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleNavigateToProfile = () => {
+    if (onProfileClick) {
+      onProfileClick();
+    } else if (user?.userID) {
+      navigate(`/profile/${user.userID}`);
+    } else {
+      navigate('/profile');
+    }
+  };
+
+  const handleNavigateToAdmin = () => {
+    if (onNavigateToAdmin) {
+      onNavigateToAdmin();
+    } else {
+      navigate('/admin/dashboard');
+    }
+  };
+
+  const handleNavigateToRoomManagement = () => {
+    if (onNavigateToRoomManagement) {
+      onNavigateToRoomManagement();
+    } else {
+      navigate('/rooms/management');
+    }
+  };
+
   // Perubahan: Gunakan prop initialActiveView
   const [activeView, setActiveView] = useState(() => {
     if (initialActiveView) return initialActiveView; // Utamakan prop
     if (isRoomManager()) return 'roomManagement';
     if (isEmployee()) return 'addBooking';
-    return 'search';
+    if (isAdmin()) return 'addBooking'; // Admin should also default to addBooking when on search page
+    return 'addBooking'; // Default to addBooking for any user on search page
   });
 
   // Perubahan: Gunakan useEffect untuk sinkronisasi jika prop berubah
@@ -59,9 +94,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
 
   const handleMenuClick = (view: string) => {
     if (view === 'userManagement') {
-      onNavigateToAdmin();
+      handleNavigateToAdmin();
     } else if (view === 'roomManagement') {
-      onNavigateToRoomManagement();
+      handleNavigateToRoomManagement();
     } else {
       setActiveView(view);
     }
@@ -78,14 +113,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setHasSearched(true);
   };
 
-  const handleBackFromBooking = () => {
-    setSelectedRoom(null);
-    setShowBookRoom(false);
-  };
-
   const handleRoomSelect = (room: any) => {
-    setSelectedRoom(room);
-    setShowBookRoom(true);
+    // Navigate to the room booking page
+    navigate(`/rooms/${room.room_id}/book`);
   };
 
   const renderRoleBasedView = () => {
@@ -97,7 +127,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
       case 'room-manager':
         return;
       case 'employee':
-        return <EmployeeSearchView onBack={onBack} />;
+        return <EmployeeSearchView onBack={handleBackToLogin} />;
       default:
         return (
           <Card>
@@ -115,11 +145,6 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     if (isAdmin()) return 'administrator';
     return 'employee';
   };
-
-  // Show BookRoom if a room is selected
-  if (showBookRoom && selectedRoom) {
-    return <BookRoom room={selectedRoom} onBack={handleBackFromBooking} />;
-  }
 
   return (
     <ThemeProvider theme={appTheme}>
@@ -153,9 +178,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
         >
           <Navbar
             title={`Search Menu (${user?.name || 'User'})`}
-            onBack={onBack}
+            onBack={handleBackToLogin}
             userRole={getUserRoleForNavbar()}
-            onProfileClick={onProfileClick}
+            onProfileClick={handleNavigateToProfile}
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, pb: 4 }}>

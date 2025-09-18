@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Card,
@@ -13,10 +14,6 @@ import {
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
 import { ThemeProvider } from '@mui/material/styles'
-import SearchPage from './SearchPage'
-import AdminDashboard from './AdminDashboard'
-import RoomManagement from './RoomManagement'
-import Profile from './Profile'
 import { NotificationComponent } from '../components/ui'
 import {
   useAuth,
@@ -28,34 +25,12 @@ import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
 function App() {
-  const getInitialPage = (): 'login' | 'search' | 'admin' | 'profile' | 'roomManagement' => {
-    const session = SessionManager.getSession();
-    const storedUser = localStorage.getItem('authenticated_user');
-
-    if (session && SessionManager.isSessionValid() && storedUser) {
-      return (session.currentPage as 'login' | 'search' | 'admin' | 'profile' | 'roomManagement') || 'search';
-    }
-    return 'login';
-  };
-
-  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin' | 'profile' | 'roomManagement'>(getInitialPage)
-  // Perubahan: Tambahkan state untuk activeView
-  const [initialActiveView, setInitialActiveView] = useState<string | undefined>(undefined);
+  const navigate = useNavigate();
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const { login, isLoading, isAuthenticated } = useAuth()
+  const { login, isLoading } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
-
-  useEffect(() => {
-    const session = SessionManager.getSession();
-    if (isAuthenticated && session && SessionManager.isSessionValid()) {
-      const sessionPage = session.currentPage || 'search';
-      if (sessionPage !== currentPage) {
-        setCurrentPage(sessionPage as 'login' | 'search' | 'admin' | 'profile');
-      }
-    }
-  }, [isAuthenticated, currentPage]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,70 +48,23 @@ function App() {
       const isAdmin = result.user.roles.some(role => role.role_id === 1);
       const isRoomManager = result.user.roles.some(role => role.role_id === 2);
 
+      // Use router navigation only
       if (isAdmin) {
-        setCurrentPage('admin');
         SessionManager.updateCurrentPage('admin');
+        navigate('/admin/dashboard');
       } else if (isRoomManager) {
-        setCurrentPage('roomManagement');
         SessionManager.updateCurrentPage('roomManagement');
+        navigate('/rooms/management');
       } else {
-        setCurrentPage('search');
         SessionManager.updateCurrentPage('search');
+        navigate('/searchpage');
       }
     } else {
       showNotification(result.message, 'error')
     }
   }
-  // Fungsi navigasi yang lebih umum
-  const handleNavigate = (page: 'login' | 'search' | 'admin' | 'profile' | 'roomManagement', activeView?: string) => {
-    setInitialActiveView(activeView);
-    setCurrentPage(page);
-    SessionManager.updateCurrentPage(page);
-  };
-  
-  const handleBackToLogin = () => {
-    setCurrentPage('login')
-    SessionManager.updateCurrentPage('login')
-    setEmail('')
-    setPassword('')
-  }
 
-  if (isAuthenticated) {
-    switch (currentPage) {
-      case 'search':
-        return <SearchPage 
-          onBack={handleBackToLogin} 
-          onProfileClick={() => handleNavigate('profile')} 
-          onNavigateToAdmin={() => handleNavigate('admin')} 
-          onNavigateToRoomManagement={() => handleNavigate('roomManagement')} 
-          initialActiveView={initialActiveView} 
-        />;
-      case 'profile':
-        return <Profile onBack={() => handleNavigate('search')} />;
-      case 'admin':
-        return <AdminDashboard 
-          onBack={handleBackToLogin} 
-          onProfileClick={() => handleNavigate('profile')} 
-          onNavigateToSearch={() => handleNavigate('search', 'addBooking')}
-          // Tambahkan navigasi ke Room Management
-          onNavigateToRoomManagement={() => handleNavigate('roomManagement')}
-        />;
-      case 'roomManagement':
-        return <RoomManagement 
-          onBack={() => handleNavigate('search')} 
-          onProfileClick={() => handleNavigate('profile')} 
-          onNavigateToSearch={() => handleNavigate('search', 'addBooking')}
-          // Tambahkan navigasi kembali ke Admin Dashboard
-          onNavigateToAdmin={() => handleNavigate('admin')}
-        />;
-      default:
-        // Jika karena suatu hal halaman tidak valid, kembali ke search
-        handleNavigate('search');
-        return null;
-    }
-  }
-
-
+  // Only render the login form - router handles navigation
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />

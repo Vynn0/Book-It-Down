@@ -14,6 +14,7 @@ import {
   MeetingRoom,
   History,
 } from '@mui/icons-material'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useRoleBasedRouting } from '../../hooks'
 
 const drawerWidth = 240
@@ -28,7 +29,52 @@ interface SidebarProps {
 // ... (import dan kode lainnya)
 
 export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps) {
-  const { isAdmin, isRoomManager, isEmployee } = useRoleBasedRouting(); // isEmployee juga kita ambil untuk kejelasan
+  const { isAdmin, isRoomManager, isEmployee } = useRoleBasedRouting();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Router-aware navigation
+  const handleRouterNavigation = (view: string) => {
+    try {
+      switch (view) {
+        case 'userManagement':
+          navigate('/admin/dashboard');
+          break;
+        case 'roomManagement':
+          navigate('/rooms/management');
+          break;
+        case 'addBooking':
+        case 'bookingHistory':
+          navigate('/searchpage');
+          break;
+        default:
+          // Fallback to state-based navigation
+          onMenuClick(view);
+      }
+    } catch (error) {
+      // Fallback to prop-based navigation if router fails
+      onMenuClick(view);
+    }
+  };
+
+  // Determine active view based on current route
+  const getActiveView = () => {
+    const path = location.pathname;
+    if (path.includes('/admin/dashboard')) return 'userManagement';
+    if (path.includes('/rooms/management')) return 'roomManagement';
+    if (path.includes('/searchpage')) {
+      // For searchpage, always use the activeView prop if provided
+      // This ensures the sidebar reflects the current view state
+      return activeView || 'addBooking';
+    }
+    if (path.includes('/rooms/') && path.includes('/book')) {
+      // When on a booking page, highlight "Add Booking"
+      return 'addBooking';
+    }
+    return activeView;
+  };
+
+  const currentActiveView = getActiveView();
 
   const getMenuItems = () => {
     const allMenuItems = [
@@ -81,8 +127,8 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
-                selected={activeView === item.view}
-                onClick={() => onMenuClick(item.view)}
+                selected={currentActiveView === item.view}
+                onClick={() => handleRouterNavigation(item.view)}
                 sx={{
                   p: 2,
                   '&.Mui-selected': {
