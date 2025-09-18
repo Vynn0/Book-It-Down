@@ -33,9 +33,9 @@ interface RoomManagementProps {
 
 const drawerWidth = 240;
 
-function RoomManagement({ onBack, onProfileClick, onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
+function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    // const { user } = useAuth();
     
     // Navigation handlers using router hooks with prop fallbacks
     const handleBackNavigation = () => {
