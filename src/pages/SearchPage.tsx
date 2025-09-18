@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -16,16 +17,17 @@ import { useRoleBasedRouting, useRoomManagement } from '../hooks';
 import BookRoom from './BookRoom';
 
 interface SearchPageProps {
-  onBack: () => void;
-  onProfileClick: () => void;
-  onNavigateToAdmin: () => void;
-  onNavigateToRoomManagement: () => void;
+  onBack?: () => void;
+  onProfileClick?: () => void;
+  onNavigateToAdmin?: () => void;
+  onNavigateToRoomManagement?: () => void;
   initialActiveView?: string; // Perubahan: Tambahkan prop baru
 }
 
 const drawerWidth = 240; // Definisikan lebar drawer
 
 function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
+  const navigate = useNavigate();
   
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -40,6 +42,41 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   // Handler untuk membuka/menutup sidebar
   const handleSidebarToggle = () => {
     setSidebarOpen(!isSidebarOpen);
+  };
+
+  // Router/Prop wrapper functions
+  const handleBackToLogin = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleNavigateToProfile = () => {
+    if (onProfileClick) {
+      onProfileClick();
+    } else if (user?.userID) {
+      navigate(`/profile/${user.userID}`);
+    } else {
+      navigate('/profile');
+    }
+  };
+
+  const handleNavigateToAdmin = () => {
+    if (onNavigateToAdmin) {
+      onNavigateToAdmin();
+    } else {
+      navigate('/admin/dashboard');
+    }
+  };
+
+  const handleNavigateToRoomManagement = () => {
+    if (onNavigateToRoomManagement) {
+      onNavigateToRoomManagement();
+    } else {
+      navigate('/rooms/management');
+    }
   };
 
   // Perubahan: Gunakan prop initialActiveView
@@ -59,9 +96,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
 
   const handleMenuClick = (view: string) => {
     if (view === 'userManagement') {
-      onNavigateToAdmin();
+      handleNavigateToAdmin();
     } else if (view === 'roomManagement') {
-      onNavigateToRoomManagement();
+      handleNavigateToRoomManagement();
     } else {
       setActiveView(view);
     }
@@ -97,7 +134,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
       case 'room-manager':
         return;
       case 'employee':
-        return <EmployeeSearchView onBack={onBack} />;
+        return <EmployeeSearchView onBack={handleBackToLogin} />;
       default:
         return (
           <Card>
@@ -153,9 +190,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
         >
           <Navbar
             title={`Search Menu (${user?.name || 'User'})`}
-            onBack={onBack}
+            onBack={handleBackToLogin}
             userRole={getUserRoleForNavbar()}
-            onProfileClick={onProfileClick}
+            onProfileClick={handleNavigateToProfile}
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, pb: 4 }}>
