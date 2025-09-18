@@ -14,7 +14,6 @@ import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { useRoleBasedRouting, useRoomManagement } from '../hooks';
-import BookRoom from './BookRoom';
 
 interface SearchPageProps {
   onBack?: () => void;
@@ -31,8 +30,6 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
-  const [showBookRoom, setShowBookRoom] = useState(false);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
   const { getRoleBasedView, isRoomManager, isEmployee, isAdmin, user } = useRoleBasedRouting();
@@ -115,14 +112,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setHasSearched(true);
   };
 
-  const handleBackFromBooking = () => {
-    setSelectedRoom(null);
-    setShowBookRoom(false);
-  };
-
   const handleRoomSelect = (room: any) => {
-    setSelectedRoom(room);
-    setShowBookRoom(true);
+    // Navigate to the room booking page
+    navigate(`/rooms/${room.room_id}/book`);
   };
 
   const renderRoleBasedView = () => {
@@ -152,11 +144,6 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     if (isAdmin()) return 'administrator';
     return 'employee';
   };
-
-  // Show BookRoom if a room is selected
-  if (showBookRoom && selectedRoom) {
-    return <BookRoom room={selectedRoom} onBack={handleBackFromBooking} />;
-  }
 
   return (
     <ThemeProvider theme={appTheme}>

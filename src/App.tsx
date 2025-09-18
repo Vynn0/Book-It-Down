@@ -13,6 +13,7 @@ import SearchPage from './pages/SearchPage';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
 import RoomManagement from './pages/RoomManagement'; // Import the RoomManagement component
+import BookRoom from './pages/BookRoom';
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -76,6 +77,14 @@ const router = createBrowserRouter([
           </RoomManagerRoute>
         ),
       },
+      {
+        path: ":roomId/book",
+        element: (
+          <ProtectedRoute>
+            <BookRoomWrapper />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);
@@ -90,6 +99,16 @@ function RoomManagementWrapper() {
       onProfileClick={() => user?.userID ? navigate(`/profile/${user.userID}`) : navigate("/profile")}
       onNavigateToSearch={() => navigate("/searchpage")}
       onNavigateToAdmin={() => navigate("/admin/dashboard")}
+    />
+  );
+}
+
+function BookRoomWrapper() {
+  const navigate = useNavigate();
+
+  return (
+    <BookRoom
+      onBack={() => navigate(-1)}
     />
   );
 }
