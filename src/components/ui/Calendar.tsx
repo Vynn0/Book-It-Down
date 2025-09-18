@@ -47,7 +47,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick }) => {
       headerToolbar={{
         left: "prev,next today",
         center: "title",
-        right: "dayGridMonth,timeGridWeek,timeGridDay",
+        right: "dayGridMonth",
       }}
       events={events.map(event => ({
         ...event,
