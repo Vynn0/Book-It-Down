@@ -49,11 +49,7 @@ const router = createBrowserRouter([
         path: "dashboard",
         element: (
           <AdminRoute>
-            <AdminDashboard 
-              onBack={() => {}} 
-              onNavigateToSearch={() => {}} 
-              onNavigateToRoomManagement={() => {}} 
-            />
+            <AdminDashboard />
           </AdminRoute>
         ),
       },

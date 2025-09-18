@@ -14,6 +14,7 @@ import {
   Divider
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import { appTheme } from '../services'
 import { PersonAdd, Add } from '@mui/icons-material'
 import { Navbar, NotificationComponent, UserTable, EditUserModal, Sidebar } from '../components/ui'
@@ -24,15 +25,16 @@ import type { DatabaseUser } from '../types/user'
 import { useState, useEffect } from 'react'
 
 interface AdminDashboardProps {
-  onBack: () => void;
+  onBack?: () => void;
   onProfileClick?: () => void;
-  onNavigateToSearch: () => void;
-  onNavigateToRoomManagement: () => void; // Prop baru
+  onNavigateToSearch?: () => void;
+  onNavigateToRoomManagement?: () => void;
 }
 
 const drawerWidth = 240; // Definisikan lebar drawer
 
-function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) { // Perubahan: Terima prop baru
+function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -45,6 +47,39 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!isSidebarOpen);
+  };
+
+  // Router-aware navigation functions
+  const handleBackNavigation = () => {
+    try {
+      navigate('/login');
+    } catch (error) {
+      if (onBack) onBack();
+    }
+  };
+
+  const handleProfileNavigation = () => {
+    try {
+      navigate('/profile');
+    } catch (error) {
+      if (onProfileClick) onProfileClick();
+    }
+  };
+
+  const handleSearchNavigation = () => {
+    try {
+      navigate('/searchpage');
+    } catch (error) {
+      if (onNavigateToSearch) onNavigateToSearch();
+    }
+  };
+
+  const handleRoomManagementNavigation = () => {
+    try {
+      navigate('/rooms/management');
+    } catch (error) {
+      if (onNavigateToRoomManagement) onNavigateToRoomManagement();
+    }
   };
 
   const {
@@ -62,12 +97,12 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
     hideNotification
   } = useNotification()
 
-  // Perubahan: Buat handler untuk klik menu sidebar
+  // Router-aware menu click handler
   const handleMenuClick = (view: string) => {
     if (view === 'addBooking') {
-      onNavigateToSearch();
+      handleSearchNavigation();
     } else if (view === 'roomManagement') {
-      onNavigateToRoomManagement(); // Panggil fungsi navigasi baru
+      handleRoomManagementNavigation();
     } else {
       setActiveView(view);
     }
@@ -247,9 +282,9 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
         >         
           <Navbar
             title="Admin Dashboard"
-            onBack={onBack}
+            onBack={handleBackNavigation}
             userRole="administrator"
-            onProfileClick={onProfileClick}
+            onProfileClick={handleProfileNavigation}
             onMenuClick={handleSidebarToggle} // Tetap gunakan handler ini
           />
 
