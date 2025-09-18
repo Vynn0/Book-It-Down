@@ -19,7 +19,7 @@ import { appTheme } from '../services'
 import { PersonAdd, Add } from '@mui/icons-material'
 import { Navbar, NotificationComponent, UserTable, EditUserModal, Sidebar } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
-import { useUserManagement, useNotification } from '../hooks'
+import { useUserManagement, useNotification, useAuth } from '../hooks'
 import { supabase } from '../utils/supabase'
 import type { DatabaseUser } from '../types/user'
 import { useState, useEffect } from 'react'
@@ -35,6 +35,7 @@ const drawerWidth = 240; // Definisikan lebar drawer
 
 function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -60,7 +61,11 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
 
   const handleProfileNavigation = () => {
     try {
-      navigate('/profile');
+      if (user?.userID) {
+        navigate(`/profile/${user.userID}`);
+      } else {
+        navigate('/profile');
+      }
     } catch (error) {
       if (onProfileClick) onProfileClick();
     }

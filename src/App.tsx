@@ -1,16 +1,18 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { appTheme } from './services';
 import { AuthProvider } from './components/auth';
 import { SessionProvider } from './security';
 import { ProtectedRoute, GuestRoute, AdminRoute, RoomManagerRoute } from './components/routing/ProtectedRoute';
+import { useAuth } from './hooks';
 
 // Import pages directly (no wrappers needed)
 import LandingPage from './pages/LandingPage';
 import SearchPage from './pages/SearchPage';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
+import RoomManagement from './pages/RoomManagement'; // Import the RoomManagement component
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -70,16 +72,27 @@ const router = createBrowserRouter([
         path: "management",
         element: (
           <RoomManagerRoute>
-            <div style={{ padding: '20px' }}>
-              <h1>Room Management</h1>
-              <p>Room management features coming soon...</p>
-            </div>
+            <RoomManagementWrapper />
           </RoomManagerRoute>
         ),
       },
     ],
   },
 ]);
+
+function RoomManagementWrapper() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  return (
+    <RoomManagement
+      onBack={() => navigate(-1)}
+      onProfileClick={() => user?.userID ? navigate(`/profile/${user.userID}`) : navigate("/profile")}
+      onNavigateToSearch={() => navigate("/searchpage")}
+      onNavigateToAdmin={() => navigate("/admin/dashboard")}
+    />
+  );
+}
 
 function App() {
   return (

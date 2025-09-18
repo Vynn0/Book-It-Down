@@ -14,8 +14,13 @@ export function ProtectedRoute({
   requiredRoles = [],
   redirectTo = '/login' 
 }: ProtectedRouteProps) {
-  const { isAuthenticated, user, hasRole } = useAuth();
+  const { isAuthenticated, user, hasRole, isLoading } = useAuth();
   const location = useLocation();
+
+  // Wait for authentication to load before making any redirect decisions
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
@@ -27,8 +32,8 @@ export function ProtectedRoute({
     const hasRequiredRole = requiredRoles.some(roleId => hasRole(roleId));
     
     if (!hasRequiredRole) {
-      // Redirect to dashboard if user doesn't have required role
-      return <Navigate to="/dashboard" replace />;
+      // Redirect to searchpage if user doesn't have required role
+      return <Navigate to="/searchpage" replace />;
     }
   }
 
@@ -62,10 +67,15 @@ export function EmployeeRoute({ children }: { children: React.ReactNode }) {
 
 // Route for guests (non-authenticated users)
 export function GuestRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  // Wait for authentication to load
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
   
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/searchpage" replace />;
   }
   
   return <>{children}</>;
