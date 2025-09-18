@@ -1,11 +1,10 @@
-import { createBrowserRouter, RouterProvider, Navigate, useNavigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { appTheme } from './services';
 import { AuthProvider } from './components/auth';
 import { SessionProvider } from './security';
 import { ProtectedRoute, GuestRoute, AdminRoute, RoomManagerRoute } from './components/routing/ProtectedRoute';
-import { useAuth } from './hooks';
 
 // Import pages directly (no wrappers needed)
 import LandingPage from './pages/LandingPage';
@@ -73,7 +72,7 @@ const router = createBrowserRouter([
         path: "management",
         element: (
           <RoomManagerRoute>
-            <RoomManagementWrapper />
+            <RoomManagement />
           </RoomManagerRoute>
         ),
       },
@@ -81,37 +80,13 @@ const router = createBrowserRouter([
         path: ":roomId/book",
         element: (
           <ProtectedRoute>
-            <BookRoomWrapper />
+            <BookRoom />
           </ProtectedRoute>
         ),
       },
     ],
   },
 ]);
-
-function RoomManagementWrapper() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  return (
-    <RoomManagement
-      onBack={() => navigate(-1)}
-      onProfileClick={() => user?.userID ? navigate(`/profile/${user.userID}`) : navigate("/profile")}
-      onNavigateToSearch={() => navigate("/searchpage")}
-      onNavigateToAdmin={() => navigate("/admin/dashboard")}
-    />
-  );
-}
-
-function BookRoomWrapper() {
-  const navigate = useNavigate();
-
-  return (
-    <BookRoom
-      onBack={() => navigate(-1)}
-    />
-  );
-}
 
 function App() {
   return (

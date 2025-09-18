@@ -7,17 +7,32 @@ import {
   IconButton
 } from '@mui/material'
 import { Person, Menu as MenuIcon } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
 import { SessionIndicator } from '../../security'
+import { useAuth } from '../../hooks'
 
 interface NavbarProps {
   title: string;
-  onBack: () => void;
+  onBack?: () => void; // Make optional since we can use router
   userRole?: 'employee' | 'administrator';
-  onProfileClick?: () => void;
-  onMenuClick: () => void; // Prop baru
+  onProfileClick?: () => void; // Keep optional for backward compatibility
+  onMenuClick: () => void;
 }
 
 function Navbar({ title, onProfileClick, onMenuClick }: NavbarProps) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Handle profile navigation - use prop if provided, otherwise use router
+  const handleProfileClick = () => {
+    if (onProfileClick) {
+      onProfileClick();
+    } else if (user?.userID) {
+      navigate(`/profile/${user.userID}`);
+    } else {
+      navigate('/profile');
+    }
+  };
   return (
     <AppBar position="static" color="secondary">
       <Toolbar>
@@ -39,24 +54,22 @@ function Navbar({ title, onProfileClick, onMenuClick }: NavbarProps) {
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <SessionIndicator compact={true} />
-          {onProfileClick && (
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Person />}
-              onClick={onProfileClick}
-              sx={{
-                color: 'white',
-                borderColor: 'white',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderColor: 'white'
-                }
-              }}
-            >
-              Profile
-            </Button>
-          )}
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Person />}
+            onClick={handleProfileClick}
+            sx={{
+              color: 'white',
+              borderColor: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderColor: 'white'
+              }
+            }}
+          >
+            Profile
+          </Button>
         </Box>
       </Toolbar>
     </AppBar>
