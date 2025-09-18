@@ -20,7 +20,7 @@ import { useNavigate } from 'react-router-dom'
 import { appTheme } from '../services'
 import { Add, Refresh } from '@mui/icons-material'
 import { Navbar, NotificationComponent, RoomFormComponent, RoomCard, Sidebar } from '../components/ui'
-import { useRoomManagement, useNotification, useAuth } from '../hooks'
+import { useRoomManagement, useNotification} from '../hooks'
 import { useState } from 'react'
 
 // Make props optional since we'll use router hooks
