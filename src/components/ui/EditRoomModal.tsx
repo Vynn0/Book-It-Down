@@ -36,7 +36,7 @@ export default function EditRoomModal({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // reset ketika roomData / open berubah
+  // Reset ketika roomData / open berubah
   useEffect(() => {
     setImages(roomData.images ? [...roomData.images] : []);
     setFormData(roomData);
@@ -51,20 +51,17 @@ export default function EditRoomModal({
     const reader = new FileReader();
     reader.onload = () => {
       setImages((prev) => [...prev, reader.result as string]);
-      // jump to newly added image
-      setCurrentIndex(images.length);
+      setCurrentIndex(images.length); // langsung ke gambar baru
     };
     reader.readAsDataURL(file);
 
-    // clear input so same-file upload can trigger change again
-    e.currentTarget.value = "";
+    e.currentTarget.value = ""; // reset input agar bisa pilih file yang sama lagi
   };
 
   const handleDeleteImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
 
-    // adjust currentIndex safely
     if (newImages.length === 0) {
       setCurrentIndex(0);
     } else if (index < currentIndex) {
@@ -78,18 +75,20 @@ export default function EditRoomModal({
     if (images.length <= 1) return;
     setCurrentIndex((prev) => (prev + 1) % images.length);
   };
+
   const prevImage = () => {
     if (images.length <= 1) return;
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target as HTMLInputElement;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleUpdate = () => {
-    // TODO: kirim ke API / state management
     console.log("Updated Room:", { ...formData, images });
     onClose();
   };
@@ -106,18 +105,20 @@ export default function EditRoomModal({
         },
       }}
     >
-      {/* Dialog Title with space so it won't be cramped */}
+      {/* Title */}
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="h6">Edit Room</Typography>
-          {/* optional small info/empty to keep spacing */}
           <Box />
         </Box>
       </DialogTitle>
 
-      {/* Scrollable content area: set maxHeight and overflowY */}
-      <DialogContent dividers sx={{ px: 3, pt: 1, pb: 2, maxHeight: "60vh", overflowY: "auto" }}>
-        {/* Kembali button */}
+      {/* Scrollable Content */}
+      <DialogContent
+        dividers
+        sx={{ px: 3, pt: 1, pb: 2, maxHeight: "60vh", overflowY: "auto" }}
+      >
+        {/* Kembali Button */}
         <Box mb={2}>
           <Button
             onClick={onClose}
@@ -134,7 +135,7 @@ export default function EditRoomModal({
           </Button>
         </Box>
 
-        {/* Carousel / main image */}
+        {/* Main Image / Carousel */}
         <Box
           sx={{
             width: "100%",
@@ -229,7 +230,6 @@ export default function EditRoomModal({
             </Box>
           ))}
 
-          {/* Upload button (hidden input) */}
           <Button
             component="label"
             variant="outlined"
@@ -251,7 +251,7 @@ export default function EditRoomModal({
           </Typography>
         </Stack>
 
-        {/* Form fields with consistent spacing */}
+        {/* Form */}
         <Stack spacing={2} mt={3}>
           <TextField
             fullWidth
@@ -291,7 +291,7 @@ export default function EditRoomModal({
         </Stack>
       </DialogContent>
 
-      {/* Footer actions (fixed, tidak ikut scroll) */}
+      {/* Footer */}
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button color="error" variant="contained" sx={{ mr: 1 }}>
           HAPUS RUANGAN
