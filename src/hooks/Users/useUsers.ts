@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../utils/supabase'
-import type { DatabaseUser } from '../types/user'
+import { supabase } from '../../utils/supabase'
+import type { DatabaseUser } from '../../types/user'
 
 interface UseUsersReturn {
   users: DatabaseUser[]

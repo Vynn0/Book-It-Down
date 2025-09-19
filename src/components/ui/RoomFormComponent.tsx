@@ -5,7 +5,7 @@ import {
     CircularProgress
 } from '@mui/material'
 import { MeetingRoom } from '@mui/icons-material'
-import type { RoomForm } from '../../hooks/useRoomManagement'
+import type { RoomForm } from '../../hooks/Rooms/useRoomManagement'
 
 interface RoomFormComponentProps {
     roomForm: RoomForm

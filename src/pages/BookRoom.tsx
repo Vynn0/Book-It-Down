@@ -18,8 +18,8 @@ import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from
 import { Navbar, BookingModal } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
 import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement, useNavigation } from '../hooks';
-import useBookingStatusChecker from '../hooks/useBookingStatusChecker';
-import type { Room } from '../hooks/useRoomManagement';
+import useBookingStatusChecker from '../hooks/Booking/useBookingStatusChecker';
+import type { Room } from '../hooks/Rooms/useRoomManagement';
 
 interface BookRoomProps {
   onBack?: () => void;

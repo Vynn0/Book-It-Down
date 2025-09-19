@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabase';
-import { DateTimeUtils } from '../utils/dateUtils';
-import { BookingStatusManager } from '../utils/bookingStatusManager';
+import { supabase } from '../../utils/supabase';
+import { DateTimeUtils } from '../../utils/dateUtils';
+import { BookingStatusManager } from '../../utils/bookingStatusManager';
 
 export interface CalendarBooking {
   booking_id: number;

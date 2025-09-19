@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { supabase } from '../utils/supabase';
-import { useAuth } from './useAuth';
-import { DateTimeUtils } from '../utils/dateUtils';
-import { BookingStatusManager } from '../utils/bookingStatusManager';
+import { supabase } from '../../utils/supabase';
+import { useAuth } from '../useAuth';
+import { DateTimeUtils } from '../../utils/dateUtils';
+import { BookingStatusManager } from '../../utils/bookingStatusManager';
 
 export interface Booking {
   booking_id: number;

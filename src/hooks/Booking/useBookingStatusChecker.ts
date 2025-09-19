@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { BookingStatusManager } from '../utils/bookingStatusManager';
+import { BookingStatusManager } from '../../utils/bookingStatusManager';
 
 export function useBookingStatusChecker(intervalMinutes: number = 5) {
   const performStatusCheck = useCallback(async () => {

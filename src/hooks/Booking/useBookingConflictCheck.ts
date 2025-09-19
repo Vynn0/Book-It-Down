@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '../utils/supabase';
-import { DateTimeUtils } from '../utils/dateUtils';
+import { supabase } from '../../utils/supabase';
+import { DateTimeUtils } from '../../utils/dateUtils';
 
 export interface BookingConflict {
   booking_id: number;

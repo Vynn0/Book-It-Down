@@ -8,7 +8,7 @@ import {
   IconButton
 } from '@mui/material'
 import { PersonAdd, Visibility, VisibilityOff } from '@mui/icons-material'
-import type { UserForm } from '../../hooks/useUserManagement'
+import type { UserForm } from '../../hooks/Users/useUserManagement'
 
 interface UserFormComponentProps {
   userForm: UserForm
