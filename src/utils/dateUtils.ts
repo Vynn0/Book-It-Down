@@ -101,4 +101,36 @@ export class DateTimeUtils {
     const localDate = typeof date === 'string' ? this.fromUTC(date) : toZonedTime(date, JAKARTA_TIMEZONE);
     return format(localDate, 'dd/MM/yyyy');
   }
+
+  /**
+   * Check if a date is in the past (before today in Jakarta timezone)
+   */
+  static isPastDate(date: Date): boolean {
+    const currentDate = this.now();
+    const targetDate = toZonedTime(date, JAKARTA_TIMEZONE);
+    
+    // Compare dates only (ignore time)
+    const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    const targetDateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    
+    return targetDateOnly < currentDateOnly;
+  }
+
+  /**
+   * Check if a datetime is in the past (before current time in Jakarta timezone)
+   */
+  static isPastDateTime(date: Date): boolean {
+    const currentTime = this.now();
+    const targetTime = toZonedTime(date, JAKARTA_TIMEZONE);
+    
+    return targetTime < currentTime;
+  }
+
+  /**
+   * Get the start of today in Jakarta timezone
+   */
+  static getStartOfToday(): Date {
+    const today = this.now();
+    return this.getStartOfDay(today);
+  }
 }

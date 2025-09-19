@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
 import { DateTimeUtils } from '../utils/dateUtils';
+import { BookingStatusManager } from '../utils/bookingStatusManager';
 
 export interface CalendarBooking {
   booking_id: number;
   title: string;
   start: string;
   end: string;
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired';
   user_name?: string;
 }
 
@@ -25,7 +26,10 @@ export function useRoomBookings(roomId: number) {
     try {
       console.log('Fetching bookings for room:', roomId);
 
-      // Fetch bookings with user information
+      // First, update any expired bookings before fetching
+      await BookingStatusManager.updateExpiredBookings();
+
+      // Fetch bookings with user information (including past bookings for viewing)
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('booking')
         .select(`
@@ -59,7 +63,7 @@ export function useRoomBookings(roomId: number) {
           title: getBookingTitle(booking.status),
           start: startLocal.toISOString(),
           end: endLocal.toISOString(),
-          status: booking.status as 'Pending' | 'Approved' | 'Rejected' | 'Cancelled',
+          status: booking.status as 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired',
           user_name: booking.user?.name || 'Unknown User'
         };
       });
@@ -84,6 +88,10 @@ export function useRoomBookings(roomId: number) {
         return 'Ditolak';
       case 'Cancelled':
         return 'Dibatalkan';
+      case 'Completed':
+        return 'Selesai';
+      case 'Expired':
+        return 'Kadaluarsa';
       default:
         return 'Booking';
     }
@@ -99,6 +107,10 @@ export function useRoomBookings(roomId: number) {
         return '#dc3545'; // Red for rejected
       case 'Cancelled':
         return '#6c757d'; // Gray for cancelled
+      case 'Completed':
+        return '#17a2b8'; // Teal for completed
+      case 'Expired':
+        return '#fd7e14'; // Orange for expired
       default:
         return '#007bff'; // Blue default
     }

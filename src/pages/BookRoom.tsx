@@ -18,6 +18,7 @@ import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from
 import { Navbar, BookingModal } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
 import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement } from '../hooks';
+import useBookingStatusChecker from '../hooks/useBookingStatusChecker';
 import type { Room } from '../hooks/useRoomManagement';
 
 interface BookRoomProps {
@@ -43,6 +44,9 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   const { hasRole } = useAuth();
   const { createBooking, isLoading: bookingLoading } = useBooking();
   const { rooms, isLoadingRooms, fetchRooms } = useRoomManagement();
+  
+  // Enable automatic status checking every 5 minutes
+  useBookingStatusChecker(5);
   
   // Conditional hooks based on room availability
   const roomIdNum = roomId ? parseInt(roomId) : 0;
@@ -298,13 +302,20 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
               {/* Calendar View */}
               <Paper sx={{ p: 3, backgroundColor: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
-                  <EventAvailable /> Current Bookings - Click Date to Book
+                  <EventAvailable /> Room Bookings - Click Future Dates to Book
                 </Typography>
                 {/* Calendar Legend */}
-                <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <Chip label="Approved" sx={{ backgroundColor: '#28a745', color: 'white' }} size="small" />
-                  <Chip label="Pending" sx={{ backgroundColor: '#ffc107', color: 'black' }} size="small" />
-                  <Chip label="Rejected" sx={{ backgroundColor: '#dc3545', color: 'white' }} size="small" />
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+                    Booking Status:
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+                    <Chip label="Approved" sx={{ backgroundColor: '#28a745', color: 'white' }} size="small" />
+                    <Chip label="Pending" sx={{ backgroundColor: '#ffc107', color: 'black' }} size="small" />
+                    <Chip label="Completed" sx={{ backgroundColor: '#17a2b8', color: 'white' }} size="small" />
+                    <Chip label="Expired" sx={{ backgroundColor: '#fd7e14', color: 'white' }} size="small" />
+                    <Chip label="Rejected" sx={{ backgroundColor: '#dc3545', color: 'white' }} size="small" />
+                  </Box>
                 </Box>
                 {calendarLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>

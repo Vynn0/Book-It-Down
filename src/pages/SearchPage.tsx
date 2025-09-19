@@ -13,7 +13,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
-import { useRoleBasedRouting, useRoomManagement } from '../hooks';
+import { useRoleBasedRouting, useRoomManagement, useBookingStatusChecker } from '../hooks';
 
 interface SearchPageProps {
   onBack?: () => void;
@@ -33,6 +33,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   
   const { rooms, isLoadingRooms } = useRoomManagement();
   const { getRoleBasedView, isRoomManager, isEmployee, isAdmin, user } = useRoleBasedRouting();
+  
+  // Enable automatic booking status checking every 10 minutes
+  useBookingStatusChecker(10);
   
   const [isSidebarOpen, setSidebarOpen] = useState(true); // State untuk sidebar
   

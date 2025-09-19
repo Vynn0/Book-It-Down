@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { supabase } from '../utils/supabase';
 import { useAuth } from './useAuth';
 import { DateTimeUtils } from '../utils/dateUtils';
+import { BookingStatusManager } from '../utils/bookingStatusManager';
 
 export interface Booking {
   booking_id: number;
   user_id: number;
   room_id: number;
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | null;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired' | null;
   start_datetime: string;
   end_datetime: string;
   created_at: string;
@@ -17,7 +18,7 @@ export interface CreateBookingData {
   room_id: number;
   start_datetime: string;
   end_datetime: string;
-  status?: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
+  status?: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired';
 }
 
 export function useBooking() {
@@ -43,10 +44,14 @@ export function useBooking() {
         return { success: false, error: 'Start time must be before end time' };
       }
       
-      // Check if booking is not in the past
-      const now = new Date();
-      if (startTime < now) {
-        return { success: false, error: 'Cannot book rooms in the past' };
+      // Check if booking is not in the past (using timezone-aware validation)
+      if (DateTimeUtils.isPastDateTime(startTime)) {
+        return { success: false, error: 'Cannot book rooms in the past. Please select a current or future time.' };
+      }
+      
+      // Also check if the booking date is not a past date
+      if (DateTimeUtils.isPastDate(startTime)) {
+        return { success: false, error: 'Cannot book rooms for past dates. Please select today or a future date.' };
       }
       
       // Check maximum duration (2 hours)
@@ -142,6 +147,9 @@ export function useBooking() {
     setError(null);
 
     try {
+      // Update expired bookings before fetching
+      await BookingStatusManager.updateExpiredBookings();
+
       // Get current user's ID
       const { data: userData, error: userError } = await supabase
         .from('user')

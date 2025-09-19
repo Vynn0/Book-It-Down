@@ -104,15 +104,30 @@ export function BookingModal({
       return;
     }
 
+    // Check if the selected date is in the past
+    if (DateTimeUtils.isPastDate(selectedDate)) {
+      setAvailabilityError('Cannot book rooms for past dates. Please select a current or future date.');
+      setIsAvailable(false);
+      return;
+    }
+
+    // Create the start datetime to check if it's in the past
+    const startDateTime = dayjs(selectedDate)
+      .hour(startTime.hour())
+      .minute(startTime.minute())
+      .toDate();
+
+    // Check if the start time is in the past
+    if (DateTimeUtils.isPastDateTime(startDateTime)) {
+      setAvailabilityError('Cannot book rooms for past times. Please select a current or future time.');
+      setIsAvailable(false);
+      return;
+    }
+
     setIsChecking(true);
     setAvailabilityError(null);
 
     try {
-      const startDateTime = dayjs(selectedDate)
-        .hour(startTime.hour())
-        .minute(startTime.minute())
-        .toDate();
-      
       const endDateTime = dayjs(selectedDate)
         .hour(endTime.hour())
         .minute(endTime.minute())
@@ -137,12 +152,23 @@ export function BookingModal({
 
     setBookingError(null);
 
+    // Additional validation before booking
+    if (DateTimeUtils.isPastDate(selectedDate)) {
+      setBookingError('Cannot book rooms for past dates. Please select a current or future date.');
+      return;
+    }
+
+    const startDateTime = dayjs(selectedDate)
+      .hour(startTime.hour())
+      .minute(startTime.minute())
+      .toDate();
+
+    if (DateTimeUtils.isPastDateTime(startDateTime)) {
+      setBookingError('Cannot book rooms for past times. Please select a current or future time.');
+      return;
+    }
+
     try {
-      const startDateTime = dayjs(selectedDate)
-        .hour(startTime.hour())
-        .minute(startTime.minute())
-        .toDate();
-      
       const endDateTime = dayjs(selectedDate)
         .hour(endTime.hour())
         .minute(endTime.minute())
