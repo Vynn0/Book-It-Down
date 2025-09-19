@@ -1,10 +1,6 @@
 import { Box, Typography, Card, CardContent } from '@mui/material';
 
-interface RoomManagerSearchViewProps {
-  onBack: () => void;
-}
-
-export function RoomManagerSearchView({}: RoomManagerSearchViewProps) {
+export function RoomManagerSearchView({}) {
   return (
     <Box sx={{ p: 3 }}>
       <Card sx={{ mb: 3, bgcolor: '#e8f5e8' }}>
@@ -17,15 +13,15 @@ export function RoomManagerSearchView({}: RoomManagerSearchViewProps) {
           </Typography>
         </CardContent>
       </Card>
-      
-      <Typography variant="h6" gutterBottom>
+
+      {/* <Typography variant="h6" gutterBottom>
         Room Manager Features:
-      </Typography>
+      </Typography> */}
       <Box component="ul" sx={{ pl: 2 }}>
-        <Typography component="li">View and book all available rooms</Typography>
+        {/* <Typography component="li">View and book all available rooms</Typography>
         <Typography component="li">Manage existing bookings</Typography>
         <Typography component="li">Room availability reports</Typography>
-        <Typography component="li">Basic room maintenance requests</Typography>
+        <Typography component="li">Basic room maintenance requests</Typography> */}
       </Box>
     </Box>
   );

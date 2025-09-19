@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../utils/supabase'
+import { supabase } from '../../utils/supabase'
 import bcrypt from 'bcryptjs'
 
 export interface UserForm {

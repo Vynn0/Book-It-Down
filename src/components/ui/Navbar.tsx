@@ -2,74 +2,70 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  IconButton,
   Box,
-  Chip,
-  Button
+  Button,
+  IconButton
 } from '@mui/material'
-import { ArrowBack, Person, Logout } from '@mui/icons-material'
-import { useAuth } from '../../hooks/useAuth'
+import { Person, Menu as MenuIcon } from '@mui/icons-material'
+import { SessionIndicator } from '../../security'
+import { useNavigation } from '../../hooks'
 
 interface NavbarProps {
-  title: string
-  onBack: () => void
-  userRole?: 'employee' | 'administrator'
+  title: string;
+  onBack?: () => void; // Make optional since we can use router
+  userRole?: 'employee' | 'administrator';
+  onProfileClick?: () => void; // Keep optional for backward compatibility
+  onMenuClick: () => void;
 }
 
-function Navbar({ title, onBack, userRole = 'employee' }: NavbarProps) {
-  const { user, logout } = useAuth()
+function Navbar({ title, onProfileClick, onMenuClick }: NavbarProps) {
+  const { goToProfile } = useNavigation();
 
-  const handleLogout = () => {
-    logout()
-    onBack() // This will redirect to login
-  }
+  // Handle profile navigation - use prop if provided, otherwise use centralized navigation
+  const handleProfileClick = () => {
+    if (onProfileClick) {
+      onProfileClick();
+    } else {
+      goToProfile();
+    }
+  };
   return (
     <AppBar position="static" color="secondary">
       <Toolbar>
+        {/* Tombol Hamburger */}
         <IconButton
+          size="large"
           edge="start"
           color="inherit"
-          onClick={onBack}
+          aria-label="menu"
           sx={{ mr: 2 }}
-          aria-label="go back"
+          onClick={onMenuClick}
         >
-          <ArrowBack />
+          <MenuIcon />
         </IconButton>
-        
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+
+        <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
           {title}
         </Typography>
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Chip
-            icon={<Person />}
-            label={userRole === 'administrator' ? 'Admin' : 'Employee'}
-            color={userRole === 'administrator' ? 'warning' : 'primary'}
+          <SessionIndicator compact={true} />
+          <Button
             variant="outlined"
-            sx={{ 
+            size="small"
+            startIcon={<Person />}
+            onClick={handleProfileClick}
+            sx={{
               color: 'white',
               borderColor: 'white',
-              '& .MuiChip-icon': { color: 'white' }
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderColor: 'white'
+              }
             }}
-          />
-          {user && (
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Logout />}
-              onClick={handleLogout}
-              sx={{
-                color: 'white',
-                borderColor: 'white',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderColor: 'white'
-                }
-              }}
-            >
-              Logout
-            </Button>
-          )}
+          >
+            Profile
+          </Button>
         </Box>
       </Toolbar>
     </AppBar>

@@ -13,63 +13,45 @@ import {
 } from '@mui/material'
 import { Email, Lock } from '@mui/icons-material'
 import { ThemeProvider } from '@mui/material/styles'
-import SearchPage from './SearchPage'
-import AdminDashboard from './AdminDashboard'
 import { NotificationComponent } from '../components/ui'
-import { 
-  useAuth, 
-  useNotification 
+import {
+  useAuth,
+  useNotification,
+  useNavigation
 } from '../hooks'
 import { appTheme } from '../services'
 import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'login' | 'search' | 'admin'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  
-  const { login, isLoading, isAuthenticated } = useAuth()
+
+  const { login, isLoading } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
+  const { handlePostLogin } = useNavigation()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!email.trim() || !password.trim()) {
       showNotification('Please enter both email and password', 'error')
       return
     }
 
     const result = await login(email, password)
-    
-    if (result.success) {
+
+    if (result.success && result.user) {
       showNotification(result.message, 'success')
-      setCurrentPage('search')
+      
+      // Use centralized navigation service
+      handlePostLogin()
     } else {
       showNotification(result.message, 'error')
     }
   }
 
-  // const handleAdminAccess = () => {
-  //   setCurrentPage('admin')
-  // }
-
-  const handleBackToLogin = () => {
-    setCurrentPage('login')
-    setEmail('')
-    setPassword('')
-  }
-
-  // If authenticated and trying to access protected pages
-  if (isAuthenticated && currentPage === 'search') {
-    return <SearchPage onBack={handleBackToLogin} />
-  }
-
-  // Show AdminDashboard
-  if (currentPage === 'admin') {
-    return <AdminDashboard onBack={handleBackToLogin} />
-  }
-
+  // Only render the login form - router handles navigation
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
@@ -83,7 +65,6 @@ function App() {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        {/* Overlay transparan */}
         <Box
           sx={{
             position: 'absolute',
@@ -91,30 +72,29 @@ function App() {
             left: 0,
             width: '100%',
             height: '100%',
-            bgcolor: 'rgba(0,0,0,0.7)', // Ubah alpha untuk transparansi
+            bgcolor: 'rgba(0,0,0,0.7)',
             zIndex: 1,
           }}
         />
-        {/* Konten utama */}
         <Box sx={{ position: 'relative', zIndex: 2 }}>
           <Container maxWidth="sm">
-                <Box sx={{ textAlign: 'center', mb: 2 }}>
-                 <img
-                   src={viorenLogo}
-                   alt="Vioren Logo"
-                   style={{ maxWidth: '100px', height: 'auto' }}
-                 />
-               </Box>
-               <Typography
-                  variant="h4"
-                  component="h1"
-                  align="center"
-                  color="white"
-                  fontWeight="600"
-                  mb={4}
-                >
-                  Book It Down
-                </Typography>
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+              <img
+                src={viorenLogo}
+                alt="Vioren Logo"
+                style={{ maxWidth: '100px', height: 'auto' }}
+              />
+            </Box>
+            <Typography
+              variant="h4"
+              component="h1"
+              align="center"
+              color="white"
+              fontWeight="600"
+              mb={4}
+            >
+              Book It Down
+            </Typography>
             <Card
               sx={{
                 maxWidth: 700,
@@ -134,7 +114,6 @@ function App() {
                 >
                   Login
                 </Typography>
-                
                 <Box component="form" onSubmit={handleLogin}>
                   <TextField
                     fullWidth
@@ -153,7 +132,6 @@ function App() {
                     }}
                     sx={{ mb: 2 }}
                   />
-                  
                   <TextField
                     fullWidth
                     type="password"
@@ -171,54 +149,27 @@ function App() {
                     }}
                     sx={{ mb: 3 }}
                   />
-                
-                <Box sx={{ display: 'flex', justifyContent: 'center'}}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="large"
-                    disabled={isLoading}
-                    startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
-                    sx={{
-                      py: 1.5,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      width: '50%',
-                      fontSize: '1.1rem',
-                      color: 'white',
-                      fontWeight: 600,
-                      mb: 2
-                    }}
-                  >
-                    {isLoading ? 'Logging in...' : 'Login'}
-                  </Button>
-                </Box>
-                  
-                  {/* Developer Access Button
-                  <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <Button
-                      variant="outlined"
+                      type="submit"
+                      variant="contained"
                       size="large"
-                      onClick={handleAdminAccess}
+                      disabled={isLoading}
+                      startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
                       sx={{
                         py: 1.5,
                         borderRadius: 2,
-                        display: 'flex',
-                        justifyContent: 'center',
                         textTransform: 'none',
-                        fontSize: '1rem',
+                        width: '50%',
+                        fontSize: '1.1rem',
+                        color: 'white',
                         fontWeight: 600,
-                        borderColor: 'secondary.main',
-                        color: 'secondary.main',
-                        '&:hover': {
-                          backgroundColor: 'secondary.main',
-                          color: 'white'
-                        }
+                        mb: 2
                       }}
                     >
-                      🔧 Developer: Admin Dashboard
+                      {isLoading ? 'Logging in...' : 'Login'}
                     </Button>
-                    </Box> */}
+                  </Box>
                 </Box>
               </CardContent>
             </Card>
