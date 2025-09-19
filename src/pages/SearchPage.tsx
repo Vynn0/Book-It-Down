@@ -133,7 +133,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
       case 'room-manager':
         return;
       case 'employee':
-        return <EmployeeSearchView onBack={handleBackToLogin} />;
+        return;
       default:
         return (
           <Card>
