@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import SideProfile from '../components/ui/SideProfile';
-import { useAuth } from '../hooks/useAuth';
-import { SessionManager } from '../security/sessionManager';
+import { useAuth, useNavigation } from '../hooks';
 
 interface ProfileProps {
   onBack?: () => void;
@@ -10,7 +8,7 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ onBack }) => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { goToLogin, goToSearch } = useNavigation();
   const [currentView, setCurrentView] = useState<'profile' | 'riwayat'>('profile');
 
   const handleProfileClick = () => {
@@ -26,27 +24,21 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
   const handleLogoutClick = () => {
     console.log('Logout clicked');
     logout();
-    // Try router navigation first, fallback to onBack prop
-    try {
-      navigate('/login');
-    } catch (error) {
-      if (onBack) {
-        onBack();
-      }
+    // Use centralized navigation with fallback
+    if (onBack) {
+      onBack();
+    } else {
+      goToLogin();
     }
   };
 
   const handleBackClick = () => {
     console.log('Back button clicked');
-    // Try router navigation first, fallback to onBack prop
-    try {
-      navigate('/searchpage');
-    } catch (error) {
-      // If router navigation fails, use prop-based navigation
-      SessionManager.updateCurrentPage('search');
-      if (onBack) {
-        onBack();
-      }
+    // Use centralized navigation with fallback
+    if (onBack) {
+      onBack();
+    } else {
+      goToSearch();
     }
   };
 

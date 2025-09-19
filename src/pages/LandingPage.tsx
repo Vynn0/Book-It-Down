@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Card,
@@ -17,20 +16,20 @@ import { ThemeProvider } from '@mui/material/styles'
 import { NotificationComponent } from '../components/ui'
 import {
   useAuth,
-  useNotification
+  useNotification,
+  useNavigation
 } from '../hooks'
-import { SessionManager } from '../security/sessionManager'
 import { appTheme } from '../services'
 import viorenLogo from '../assets/vioren-logo.png'
 import backgroundImage from '../assets/landing-page.jpg'
 
 function App() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const { login, isLoading } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
+  const { handlePostLogin } = useNavigation()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,20 +44,8 @@ function App() {
     if (result.success && result.user) {
       showNotification(result.message, 'success')
       
-      const isAdmin = result.user.roles.some(role => role.role_id === 1);
-      const isRoomManager = result.user.roles.some(role => role.role_id === 2);
-
-      // Use router navigation only
-      if (isAdmin) {
-        SessionManager.updateCurrentPage('admin');
-        navigate('/admin/dashboard');
-      } else if (isRoomManager) {
-        SessionManager.updateCurrentPage('roomManagement');
-        navigate('/rooms/management');
-      } else {
-        SessionManager.updateCurrentPage('search');
-        navigate('/searchpage');
-      }
+      // Use centralized navigation service
+      handlePostLogin()
     } else {
       showNotification(result.message, 'error')
     }

@@ -14,12 +14,11 @@ import {
   Divider
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
-import { useNavigate } from 'react-router-dom'
 import { appTheme } from '../services'
 import { PersonAdd, Add } from '@mui/icons-material'
 import { Navbar, NotificationComponent, UserTable, EditUserModal, Sidebar } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
-import { useUserManagement, useNotification, useAuth } from '../hooks'
+import { useUserManagement, useNotification, useNavigation } from '../hooks'
 import { supabase } from '../utils/supabase'
 import type { DatabaseUser } from '../types/user'
 import { useState, useEffect } from 'react'
@@ -34,8 +33,13 @@ interface AdminDashboardProps {
 const drawerWidth = 240; // Definisikan lebar drawer
 
 function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const { 
+    goToLogin, 
+    goToProfile, 
+    goToSearch, 
+    goToRoomManagement 
+  } = useNavigation();
+  
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -50,40 +54,36 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
     setSidebarOpen(!isSidebarOpen);
   };
 
-  // Router-aware navigation functions
+  // Centralized navigation functions with fallbacks
   const handleBackNavigation = () => {
-    try {
-      navigate('/login');
-    } catch (error) {
-      if (onBack) onBack();
+    if (onBack) {
+      onBack();
+    } else {
+      goToLogin();
     }
   };
 
   const handleProfileNavigation = () => {
-    try {
-      if (user?.userID) {
-        navigate(`/profile/${user.userID}`);
-      } else {
-        navigate('/profile');
-      }
-    } catch (error) {
-      if (onProfileClick) onProfileClick();
+    if (onProfileClick) {
+      onProfileClick();
+    } else {
+      goToProfile();
     }
   };
 
   const handleSearchNavigation = () => {
-    try {
-      navigate('/searchpage');
-    } catch (error) {
-      if (onNavigateToSearch) onNavigateToSearch();
+    if (onNavigateToSearch) {
+      onNavigateToSearch();
+    } else {
+      goToSearch();
     }
   };
 
   const handleRoomManagementNavigation = () => {
-    try {
-      navigate('/rooms/management');
-    } catch (error) {
-      if (onNavigateToRoomManagement) onNavigateToRoomManagement();
+    if (onNavigateToRoomManagement) {
+      onNavigateToRoomManagement();
+    } else {
+      goToRoomManagement();
     }
   };
 

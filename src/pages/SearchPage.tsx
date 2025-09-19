@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -13,7 +12,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
-import { useRoleBasedRouting, useRoomManagement, useBookingStatusChecker } from '../hooks';
+import { useRoleBasedRouting, useRoomManagement, useBookingStatusChecker, useNavigation } from '../hooks';
 
 interface SearchPageProps {
   onBack?: () => void;
@@ -26,7 +25,13 @@ interface SearchPageProps {
 const drawerWidth = 240; // Definisikan lebar drawer
 
 function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
-  const navigate = useNavigate();
+  const { 
+    goToLogin, 
+    goToProfile, 
+    goToAdminDashboard, 
+    goToRoomManagement,
+    goToBookRoom 
+  } = useNavigation();
   
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -44,22 +49,20 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setSidebarOpen(!isSidebarOpen);
   };
 
-  // Router/Prop wrapper functions
+  // Centralized navigation with prop fallbacks
   const handleBackToLogin = () => {
     if (onBack) {
       onBack();
     } else {
-      navigate('/login');
+      goToLogin();
     }
   };
 
   const handleNavigateToProfile = () => {
     if (onProfileClick) {
       onProfileClick();
-    } else if (user?.userID) {
-      navigate(`/profile/${user.userID}`);
     } else {
-      navigate('/profile');
+      goToProfile();
     }
   };
 
@@ -67,7 +70,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     if (onNavigateToAdmin) {
       onNavigateToAdmin();
     } else {
-      navigate('/admin/dashboard');
+      goToAdminDashboard();
     }
   };
 
@@ -75,7 +78,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     if (onNavigateToRoomManagement) {
       onNavigateToRoomManagement();
     } else {
-      navigate('/rooms/management');
+      goToRoomManagement();
     }
   };
 
@@ -117,8 +120,8 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   };
 
   const handleRoomSelect = (room: any) => {
-    // Navigate to the room booking page
-    navigate(`/rooms/${room.room_id}/book`);
+    // Navigate to the room booking page using centralized navigation
+    goToBookRoom(room.room_id.toString());
   };
 
   const renderRoleBasedView = () => {

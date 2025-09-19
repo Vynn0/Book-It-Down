@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -17,7 +17,7 @@ import { appTheme } from '../services';
 import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from '@mui/icons-material';
 import { Navbar, BookingModal } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
-import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement } from '../hooks';
+import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement, useNavigation } from '../hooks';
 import useBookingStatusChecker from '../hooks/useBookingStatusChecker';
 import type { Room } from '../hooks/useRoomManagement';
 
@@ -28,7 +28,7 @@ interface BookRoomProps {
 const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   // Get room ID from URL parameters
   const { roomId } = useParams<{ roomId: string }>();
-  const navigate = useNavigate();
+  const { goToSearch } = useNavigation();
   
   // State for the room data
   const [room, setRoom] = useState<Room | null>(null);
@@ -104,7 +104,7 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
     if (onBack) {
       onBack();
     } else {
-      navigate('/searchpage');
+      goToSearch();
     }
   };
 

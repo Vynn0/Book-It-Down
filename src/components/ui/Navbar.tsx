@@ -7,9 +7,8 @@ import {
   IconButton
 } from '@mui/material'
 import { Person, Menu as MenuIcon } from '@mui/icons-material'
-import { useNavigate } from 'react-router-dom'
 import { SessionIndicator } from '../../security'
-import { useAuth } from '../../hooks'
+import { useNavigation } from '../../hooks'
 
 interface NavbarProps {
   title: string;
@@ -20,17 +19,14 @@ interface NavbarProps {
 }
 
 function Navbar({ title, onProfileClick, onMenuClick }: NavbarProps) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const { goToProfile } = useNavigation();
 
-  // Handle profile navigation - use prop if provided, otherwise use router
+  // Handle profile navigation - use prop if provided, otherwise use centralized navigation
   const handleProfileClick = () => {
     if (onProfileClick) {
       onProfileClick();
-    } else if (user?.userID) {
-      navigate(`/profile/${user.userID}`);
     } else {
-      navigate('/profile');
+      goToProfile();
     }
   };
   return (

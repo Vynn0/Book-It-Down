@@ -16,11 +16,10 @@ import {
     CircularProgress
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
-import { useNavigate } from 'react-router-dom'
 import { appTheme } from '../services'
 import { Add, Refresh } from '@mui/icons-material'
 import { Navbar, NotificationComponent, RoomFormComponent, RoomCard, Sidebar } from '../components/ui'
-import { useRoomManagement, useNotification} from '../hooks'
+import { useRoomManagement, useNotification, useNavigation } from '../hooks'
 import { useState } from 'react'
 
 // Make props optional since we'll use router hooks
@@ -34,15 +33,15 @@ interface RoomManagementProps {
 const drawerWidth = 240;
 
 function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
-    const navigate = useNavigate();
+    const { goBack, goToSearch, goToAdminDashboard } = useNavigation();
     // const { user } = useAuth();
     
-    // Navigation handlers using router hooks with prop fallbacks
+    // Navigation handlers using centralized navigation with prop fallbacks
     const handleBackNavigation = () => {
         if (onBack) {
             onBack();
         } else {
-            navigate(-1);
+            goBack();
         }
     };
 
@@ -50,7 +49,7 @@ function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomM
         if (onNavigateToSearch) {
             onNavigateToSearch();
         } else {
-            navigate('/searchpage');
+            goToSearch();
         }
     };
 
@@ -58,7 +57,7 @@ function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomM
         if (onNavigateToAdmin) {
             onNavigateToAdmin();
         } else {
-            navigate('/admin/dashboard');
+            goToAdminDashboard();
         }
     };
     const [isSidebarOpen, setSidebarOpen] = useState(true); // State untuk sidebar

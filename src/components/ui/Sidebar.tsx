@@ -14,8 +14,8 @@ import {
   MeetingRoom,
   History,
 } from '@mui/icons-material'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useRoleBasedRouting } from '../../hooks'
+import { useLocation } from 'react-router-dom'
+import { useRoleBasedRouting, useNavigation } from '../../hooks'
 
 const drawerWidth = 240
 
@@ -30,29 +30,33 @@ interface SidebarProps {
 
 export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps) {
   const { isAdmin, isRoomManager, isEmployee } = useRoleBasedRouting();
-  const navigate = useNavigate();
+  const { 
+    goToAdminDashboard, 
+    goToRoomManagement, 
+    goToSearch 
+  } = useNavigation();
   const location = useLocation();
 
-  // Router-aware navigation
+  // Centralized navigation with fallbacks
   const handleRouterNavigation = (view: string) => {
     try {
       switch (view) {
         case 'userManagement':
-          navigate('/admin/dashboard');
+          goToAdminDashboard();
           break;
         case 'roomManagement':
-          navigate('/rooms/management');
+          goToRoomManagement();
           break;
         case 'addBooking':
         case 'bookingHistory':
-          navigate('/searchpage');
+          goToSearch();
           break;
         default:
           // Fallback to state-based navigation
           onMenuClick(view);
       }
     } catch (error) {
-      // Fallback to prop-based navigation if router fails
+      // Fallback to prop-based navigation if centralized navigation fails
       onMenuClick(view);
     }
   };
