@@ -11,7 +11,6 @@ import {
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
-import { EmployeeSearchView } from '../components/ui/Employee/EmployeeSearchView';
 import { useRoleBasedRouting, useRoomManagement, useBookingStatusChecker, useNavigation } from '../hooks';
 
 interface SearchPageProps {
