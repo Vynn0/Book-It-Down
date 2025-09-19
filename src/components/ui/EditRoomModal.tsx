@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,6 +7,9 @@ import {
   Button,
   IconButton,
   TextField,
+  Box,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { ChevronLeft, ChevronRight, Add, Close } from "@mui/icons-material";
 
@@ -31,179 +34,271 @@ export default function EditRoomModal({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [formData, setFormData] = useState(roomData);
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // reset ketika roomData / open berubah
+  useEffect(() => {
+    setImages(roomData.images ? [...roomData.images] : []);
+    setFormData(roomData);
+    setCurrentIndex(0);
+  }, [roomData, isOpen]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    if (images.length >= 3) return;
+    if (!e.target.files || e.target.files.length === 0) return;
+    if (images.length >= 3) return; // max 3
 
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = () => {
       setImages((prev) => [...prev, reader.result as string]);
+      // jump to newly added image
+      setCurrentIndex(images.length);
     };
     reader.readAsDataURL(file);
+
+    // clear input so same-file upload can trigger change again
+    e.currentTarget.value = "";
   };
 
   const handleDeleteImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
-    if (currentIndex >= images.length - 1) {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+
+    // adjust currentIndex safely
+    if (newImages.length === 0) {
       setCurrentIndex(0);
+    } else if (index < currentIndex) {
+      setCurrentIndex((ci) => ci - 1);
+    } else if (currentIndex >= newImages.length) {
+      setCurrentIndex(newImages.length - 1);
     }
   };
 
-  const nextImage = () =>
+  const nextImage = () => {
+    if (images.length <= 1) return;
     setCurrentIndex((prev) => (prev + 1) % images.length);
-  const prevImage = () =>
+  };
+  const prevImage = () => {
+    if (images.length <= 1) return;
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target as HTMLInputElement;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleUpdate = () => {
+    // TODO: kirim ke API / state management
     console.log("Updated Room:", { ...formData, images });
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Room</DialogTitle>
-      <DialogContent dividers>
-        {/* Tombol Kembali */}
-        <Button
-          onClick={onClose}
-          variant="contained"
-          sx={{ mb: 2, backgroundColor: "orange", "&:hover": { backgroundColor: "darkorange" } }}
-        >
-          Kembali
-        </Button>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+        },
+      }}
+    >
+      {/* Dialog Title with space so it won't be cramped */}
+      <DialogTitle>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Typography variant="h6">Edit Room</Typography>
+          {/* optional small info/empty to keep spacing */}
+          <Box />
+        </Box>
+      </DialogTitle>
 
-        {/* Carousel */}
-        <div className="relative w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+      {/* Scrollable content area: set maxHeight and overflowY */}
+      <DialogContent dividers sx={{ px: 3, pt: 1, pb: 2, maxHeight: "60vh", overflowY: "auto" }}>
+        {/* Kembali button */}
+        <Box mb={2}>
+          <Button
+            onClick={onClose}
+            variant="contained"
+            sx={{
+              backgroundColor: "orange",
+              color: "white",
+              "&:hover": { backgroundColor: "darkorange" },
+              px: 2,
+              py: 0.8,
+            }}
+          >
+            KEMBALI
+          </Button>
+        </Box>
+
+        {/* Carousel / main image */}
+        <Box
+          sx={{
+            width: "100%",
+            height: 240,
+            bgcolor: (theme) => theme.palette.grey[100],
+            borderRadius: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
           {images.length > 0 ? (
             <img
               src={images[currentIndex]}
-              alt="Room"
-              className="w-full h-full object-cover"
+              alt={`room-${currentIndex}`}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
-            <span className="text-gray-400">No Image</span>
+            <Typography color="text.secondary">No Image</Typography>
           )}
 
           {images.length > 1 && (
             <>
               <IconButton
+                aria-label="previous"
                 onClick={prevImage}
                 sx={{
                   position: "absolute",
                   left: 8,
-                  backgroundColor: "rgba(0,0,0,0.5)",
+                  backgroundColor: "rgba(0,0,0,0.45)",
                   color: "white",
-                  "&:hover": { backgroundColor: "rgba(0,0,0,0.7)" },
+                  "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
                 }}
+                size="small"
               >
                 <ChevronLeft />
               </IconButton>
+
               <IconButton
+                aria-label="next"
                 onClick={nextImage}
                 sx={{
                   position: "absolute",
                   right: 8,
-                  backgroundColor: "rgba(0,0,0,0.5)",
+                  backgroundColor: "rgba(0,0,0,0.45)",
                   color: "white",
-                  "&:hover": { backgroundColor: "rgba(0,0,0,0.7)" },
+                  "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
                 }}
+                size="small"
               >
                 <ChevronRight />
               </IconButton>
             </>
           )}
-        </div>
+        </Box>
 
-        {/* Thumbnail + Upload */}
-        <div className="flex gap-2 mt-3">
+        {/* Thumbnails + Upload */}
+        <Stack direction="row" spacing={1} alignItems="center" mt={2}>
           {images.map((img, i) => (
-            <div key={i} className="relative w-20 h-20">
-              <img
+            <Box key={i} sx={{ position: "relative" }}>
+              <Box
+                component="img"
                 src={img}
-                alt={`thumb-${i}`}
-                className="w-full h-full object-cover rounded-lg border cursor-pointer"
                 onClick={() => setCurrentIndex(i)}
+                sx={{
+                  width: 80,
+                  height: 60,
+                  objectFit: "cover",
+                  borderRadius: 1,
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  cursor: "pointer",
+                }}
               />
               <IconButton
-                onClick={() => handleDeleteImage(i)}
                 size="small"
+                onClick={() => handleDeleteImage(i)}
                 sx={{
                   position: "absolute",
-                  top: 4,
-                  right: 4,
-                  backgroundColor: "red",
+                  top: -6,
+                  right: -6,
+                  backgroundColor: "error.main",
                   color: "white",
-                  "&:hover": { backgroundColor: "darkred" },
+                  "&:hover": { backgroundColor: "error.dark" },
+                  boxShadow: 1,
                 }}
+                aria-label={`delete-image-${i}`}
               >
                 <Close fontSize="small" />
               </IconButton>
-            </div>
+            </Box>
           ))}
 
-          {images.length < 3 && (
-            <label className="w-20 h-20 border-2 border-dashed flex items-center justify-center rounded-lg cursor-pointer">
-              <Add />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </label>
-          )}
-        </div>
+          {/* Upload button (hidden input) */}
+          <Button
+            component="label"
+            variant="outlined"
+            startIcon={<Add />}
+            sx={{ minWidth: 80, height: 60, borderStyle: "dashed" }}
+          >
+            <input
+              ref={fileInputRef}
+              accept="image/*"
+              type="file"
+              hidden
+              onChange={handleImageUpload}
+            />
+            Upload
+          </Button>
 
-        {/* Form Fields */}
-        <div className="mt-4 space-y-3">
+          <Typography variant="caption" color="text.secondary" ml={1}>
+            (max 3 gambar)
+          </Typography>
+        </Stack>
+
+        {/* Form fields with consistent spacing */}
+        <Stack spacing={2} mt={3}>
           <TextField
             fullWidth
+            label="Room Name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            label="Room Name"
+            size="small"
           />
           <TextField
             fullWidth
+            label="Location"
             name="location"
             value={formData.location}
             onChange={handleChange}
-            label="Location"
+            size="small"
           />
           <TextField
             fullWidth
+            label="Capacity"
             name="capacity"
             type="number"
             value={formData.capacity}
             onChange={handleChange}
-            label="Capacity"
+            size="small"
           />
           <TextField
             fullWidth
+            label="Description"
             name="description"
             value={formData.description}
             onChange={handleChange}
-            label="Description"
             multiline
-            rows={3}
+            rows={4}
+            size="small"
           />
-        </div>
+        </Stack>
       </DialogContent>
 
-      {/* Actions */}
-      <DialogActions>
-        <Button color="error" variant="contained">
-          Hapus Ruangan
+      {/* Footer actions (fixed, tidak ikut scroll) */}
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button color="error" variant="contained" sx={{ mr: 1 }}>
+          HAPUS RUANGAN
         </Button>
+        <Box sx={{ flexGrow: 1 }} />
         <Button onClick={handleUpdate} color="success" variant="contained">
-          Perbarui
+          PERBARUI
         </Button>
       </DialogActions>
     </Dialog>
