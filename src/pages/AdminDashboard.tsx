@@ -18,10 +18,10 @@ import { appTheme } from '../services'
 import { PersonAdd, Add } from '@mui/icons-material'
 import { Navbar, NotificationComponent, UserTable, EditUserModal, Sidebar } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
-import { useUserManagement, useNotification, useNavigation } from '../hooks'
+import { useUserManagement, useNotification, useNavigation, useUsers } from '../hooks'
 import { supabase } from '../utils/supabase'
 import type { DatabaseUser } from '../types/user'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 interface AdminDashboardProps {
   onBack?: () => void;
@@ -40,13 +40,12 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
     goToRoomManagement 
   } = useNavigation();
   
+  const { users, isLoading: isLoadingUsers, error: usersError, refetchUsers } = useUsers();
+  
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<DatabaseUser | null>(null)
-  const [users, setUsers] = useState<DatabaseUser[]>([])
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
-  const [usersError, setUsersError] = useState<string | null>(null)
 
   const [isSidebarOpen, setSidebarOpen] = useState(true); // Default: terbuka untuk tampilan desktop
 
@@ -113,65 +112,6 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      setIsLoadingUsers(true)
-      setUsersError(null)
-
-      const { data: usersData, error: usersError } = await supabase
-        .from('user')
-        .select(`
-          user_id,
-          name,
-          email,
-          created_at
-        `)
-        .order('created_at', { ascending: false })
-
-      if (usersError) {
-        throw new Error(usersError.message)
-      }
-
-      const { data: userRolesData, error: rolesError } = await supabase
-        .from('user_role')
-        .select(`
-          user_id,
-          role_id,
-          roles(role_id, role_name)
-        `)
-
-      if (rolesError) {
-        console.warn('Error fetching user roles:', rolesError)
-      }
-
-      const usersWithRoles = usersData?.map(user => {
-        const userRoles = userRolesData?.filter(ur => ur.user_id === user.user_id) || []
-        const roles = userRoles.map(ur => ({
-          role_id: ur.role_id,
-          role_name: (ur.roles as any)?.role_name || 'Unknown'
-        }))
-
-        return {
-          ...user,
-          user_id: String(user.user_id || ''),
-          roles
-        }
-      }) || []
-
-      console.log('Fetched users:', usersWithRoles)
-      setUsers(usersWithRoles)
-    } catch (error: any) {
-      console.error('Error fetching users:', error)
-      setUsersError(error.message || 'Failed to fetch users')
-    } finally {
-      setIsLoadingUsers(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
   const handleOpenModal = () => {
     resetForm()
     setIsModalOpen(true)
@@ -206,7 +146,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
     if (result.success) {
       showNotification(result.message, 'success')
       handleCloseModal()
-      fetchUsers()
+      refetchUsers()
     } else {
       showNotification(result.message, 'error')
     }
@@ -248,7 +188,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
       }
 
       showNotification('User updated successfully!', 'success')
-      fetchUsers()
+      refetchUsers()
       handleCloseEditModal()
     } catch (error: any) {
       console.error('Error updating user:', error)
