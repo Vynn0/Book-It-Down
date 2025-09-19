@@ -42,7 +42,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUse
 
   return (
     <Paper sx={{ mt: 7, mb: 4 }}>
-      <Box sx={{ borderBottom: '1px solid #e0e0e0' }}>
+      <Box sx={{ pt: 3, pl: 3, pr: 2, borderBottom: '1px solid #e0e0e0' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ pb: 3 }}>
             <Typography variant="h5" component="h2" color="secondary">
