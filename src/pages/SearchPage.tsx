@@ -36,7 +36,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   const [hasSearched, setHasSearched] = useState(false);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
-  const { getRoleBasedView, isRoomManager, isEmployee, isAdmin, user } = useRoleBasedRouting();
+  const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
   
   // Enable automatic booking status checking every 10 minutes
   useBookingStatusChecker(10);
@@ -84,9 +84,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   // Perubahan: Gunakan prop initialActiveView
   const [activeView, setActiveView] = useState(() => {
     if (initialActiveView) return initialActiveView; // Utamakan prop
-    if (isRoomManager()) return 'roomManagement';
-    if (isEmployee()) return 'addBooking';
-    if (isAdmin()) return 'addBooking'; // Admin should also default to addBooking when on search page
+    // All roles default to 'addBooking' when on search page for consistency
     return 'addBooking'; // Default to addBooking for any user on search page
   });
 

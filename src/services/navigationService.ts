@@ -155,8 +155,8 @@ class NavigationService {
       SessionManager.updateCurrentPage('admin');
       this.navigate!('/admin/dashboard');
     } else if (roles.includes('room-manager')) {
-      SessionManager.updateCurrentPage('roomManagement');
-      this.navigate!('/rooms/management');
+      SessionManager.updateCurrentPage('search');
+      this.navigate!('/searchpage');
     } else {
       SessionManager.updateCurrentPage('search');
       this.navigate!('/searchpage');
