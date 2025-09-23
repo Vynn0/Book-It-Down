@@ -26,6 +26,7 @@ export interface UseRoomManagementReturn {
     updateRoomForm: (field: keyof RoomForm, value: string | number) => void
     resetForm: () => void
     addRoom: (roomData: RoomForm) => Promise<{ success: boolean; message: string }>
+    updateRoom: (roomId: number, roomData: RoomForm) => Promise<{ success: boolean; message: string }>
     validateForm: (roomData: RoomForm) => string | null
     fetchRooms: () => Promise<void>
     refreshRooms: () => Promise<void>
@@ -140,6 +141,44 @@ export const useRoomManagement = (): UseRoomManagementReturn => {
         }
     }
 
+    const updateRoom = async (roomId: number, roomData: RoomForm): Promise<{ success: boolean; message: string }> => {
+        setIsLoading(true)
+
+        try {
+            // Update room in Supabase
+            const { error } = await supabase
+                .from('room')
+                .update({
+                    room_name: roomData.room_name.trim(),
+                    location: roomData.location.trim(),
+                    capacity: roomData.capacity,
+                    description: roomData.description.trim(),
+                })
+                .eq('room_id', roomId)
+
+            if (error) {
+                throw error
+            }
+
+            // Refresh rooms list after successful update
+            await fetchRooms()
+
+            return {
+                success: true,
+                message: `Room "${roomData.room_name}" updated successfully!`
+            }
+
+        } catch (error: any) {
+            console.error('Error updating room:', error)
+            return {
+                success: false,
+                message: error.message || 'Failed to update room. Please try again.'
+            }
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     return {
         rooms,
         roomForm,
@@ -148,6 +187,7 @@ export const useRoomManagement = (): UseRoomManagementReturn => {
         updateRoomForm,
         resetForm,
         addRoom,
+        updateRoom,
         validateForm,
         fetchRooms,
         refreshRooms

@@ -17,22 +17,26 @@ interface EditRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
   roomData: {
+    room_id?: number;
     name: string;
     location: string;
     capacity: number;
     description: string;
     images: string[];
   };
+  onSave?: (roomId: number, formData: { room_name: string; location: string; capacity: number; description: string }) => Promise<{ success: boolean; message: string }>;
 }
 
 export default function EditRoomModal({
   isOpen,
   onClose,
   roomData,
+  onSave,
 }: EditRoomModalProps) {
   const [images, setImages] = useState<string[]>(roomData.images || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [formData, setFormData] = useState(roomData);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -88,9 +92,45 @@ export default function EditRoomModal({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleUpdate = () => {
-    console.log("Updated Room:", { ...formData, images });
-    onClose();
+  const validateForm = (): string | null => {
+    if (!formData.name.trim()) return 'Room name is required';
+    if (!formData.location.trim()) return 'Location is required';
+    if (formData.capacity < 1) return 'Capacity must be at least 1';
+    if (formData.capacity > 1000) return 'Capacity cannot exceed 1000';
+    return null;
+  };
+
+  const handleUpdate = async () => {
+    if (!onSave || !roomData.room_id) {
+      console.log("Updated Room:", { ...formData, images });
+      onClose();
+      return;
+    }
+
+    // Validate form data
+    const validationError = validateForm();
+    if (validationError) {
+      alert(validationError); // You can replace this with a proper notification
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await onSave(roomData.room_id, {
+        room_name: formData.name,
+        location: formData.location,
+        capacity: formData.capacity,
+        description: formData.description,
+      });
+
+      if (result.success) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error updating room:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -297,8 +337,8 @@ export default function EditRoomModal({
           HAPUS RUANGAN
         </Button>
         <Box sx={{ flexGrow: 1 }} />
-        <Button onClick={handleUpdate} color="success" variant="contained">
-          PERBARUI
+        <Button onClick={handleUpdate} color="success" variant="contained" disabled={isLoading}>
+          {isLoading ? "UPDATING..." : "PERBARUI"}
         </Button>
       </DialogActions>
     </Dialog>

@@ -349,6 +349,7 @@ function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomM
     updateRoomForm,
     resetForm,
     addRoom,
+    updateRoom,
     validateForm,
     refreshRooms
   } = useRoomManagement();
@@ -527,11 +528,22 @@ function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomM
               isOpen={isEditModalOpen}
               onClose={handleCloseEditModal}
               roomData={{
+                room_id: selectedRoom.room_id,
                 name: selectedRoom.room_name,
                 location: selectedRoom.location,
                 capacity: selectedRoom.capacity,
                 description: selectedRoom.description,
                 images: []
+              }}
+              onSave={async (roomId, formData) => {
+                const result = await updateRoom(roomId, formData);
+                if (result.success) {
+                  showNotification(result.message, "success");
+                  handleCloseEditModal();
+                } else {
+                  showNotification(result.message, "error");
+                }
+                return result;
               }}
             />
           )}
