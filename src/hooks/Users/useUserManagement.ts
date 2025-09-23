@@ -41,11 +41,11 @@ export const useUserManagement = (): UseUserManagementReturn => {
     if (!userData.email.trim()) return 'Email is required'
     if (!userData.password.trim()) return 'Password is required'
     if (userData.password.length < 6) return 'Password must be at least 6 characters'
-    
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(userData.email)) return 'Please enter a valid email address'
-    
+
     return null
   }
 
@@ -57,8 +57,8 @@ export const useUserManagement = (): UseUserManagementReturn => {
       const saltRounds = 12
       const hashedPassword = await bcrypt.hash(userData.password, saltRounds)
 
-      // Insert user into Supabase
-      const { error } = await supabase
+      // Insert user into Supabase and get the created user
+      const { data: newUser, error } = await supabase
         .from('user')
         .insert([
           {
@@ -68,15 +68,43 @@ export const useUserManagement = (): UseUserManagementReturn => {
             created_at: new Date().toISOString()
           }
         ])
-        .select()
+        .select('user_id')
+        .single()
 
       if (error) {
         throw error
       }
 
+      // Get the Employee role ID (assuming it's role_id = 3, but we'll fetch it dynamically)
+      const { data: employeeRole, error: roleError } = await supabase
+        .from('roles')
+        .select('role_id')
+        .eq('role_name', 'Employee')
+        .single()
+
+      if (roleError) {
+        console.error('Error fetching Employee role:', roleError)
+        // Continue without assigning role if role fetch fails
+      } else if (employeeRole && newUser) {
+        // Assign Employee role to the new user
+        const { error: userRoleError } = await supabase
+          .from('user_role')
+          .insert([
+            {
+              user_id: newUser.user_id,
+              role_id: employeeRole.role_id
+            }
+          ])
+
+        if (userRoleError) {
+          console.error('Error assigning Employee role:', userRoleError)
+          // Don't fail the entire operation if role assignment fails
+        }
+      }
+
       return {
         success: true,
-        message: `User "${userData.name}" added successfully!`
+        message: `User "${userData.name}" added successfully with Employee role!`
       }
 
     } catch (error: any) {

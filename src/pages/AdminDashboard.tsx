@@ -33,15 +33,15 @@ interface AdminDashboardProps {
 const drawerWidth = 240; // Definisikan lebar drawer
 
 function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
-  const { 
-    goToLogin, 
-    goToProfile, 
-    goToSearch, 
-    goToRoomManagement 
+  const {
+    goToLogin,
+    goToProfile,
+    goToSearch,
+    goToRoomManagement
   } = useNavigation();
-  
+
   const { users, isLoading: isLoadingUsers, error: usersError, refetchUsers } = useUsers();
-  
+
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -200,16 +200,16 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
-        <Sidebar 
-            activeView={activeView} 
-            onMenuClick={handleMenuClick} 
-            open={isSidebarOpen} 
-            onClose={() => setSidebarOpen(false)} 
+        <Sidebar
+          activeView={activeView}
+          onMenuClick={handleMenuClick}
+          open={isSidebarOpen}
+          onClose={() => setSidebarOpen(false)}
         />
-        <Box 
-          component="main" 
-          sx={{ 
-            flexGrow: 1, 
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
             // Perubahan styling untuk efek push
             transition: (theme) => theme.transitions.create('margin', {
               easing: theme.transitions.easing.sharp,
@@ -224,7 +224,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
               marginLeft: 0,
             }),
           }}
-        >         
+        >
           <Navbar
             title="Admin Dashboard"
             onBack={handleBackNavigation}
@@ -235,7 +235,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
 
           <Container maxWidth="lg" sx={{ mt: 2 }}>
             <Box sx={{ pt: 3, pl: 3, pr: 3, gap: 2 }}>
-              <Box sx={{ mb: 3}}>
+              <Box sx={{ mb: 3 }}>
                 <Typography variant="h5" component="h1" color="secondary" gutterBottom>
                   User Management Dashboard
                 </Typography>
@@ -243,7 +243,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                   Manage users, roles, and permissions from this central dashboard.
                 </Typography>
               </Box>
-                <Divider sx={{ mb: 3, borderTop: '1px solid' }} />
+              <Divider sx={{ mb: 3, borderTop: '1px solid' }} />
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
                 <Card sx={{ border: '1px solid rgba(0,0,0,0.2)', boxShadow: '0 5px 5px 0 rgba(0,0,0,0.2)' }}>
@@ -289,12 +289,12 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                 </Card>
               </Box>
 
-            <UserTable
-              users={users}
-              isLoading={isLoadingUsers}
-              error={usersError}
-              onAddUser={handleOpenModal}
-              onEditUser={handleOpenEditModal}
+              <UserTable
+                users={users}
+                isLoading={isLoadingUsers}
+                error={usersError}
+                onAddUser={handleOpenModal}
+                onEditUser={handleOpenEditModal}
               />
             </Box>
           </Container>
