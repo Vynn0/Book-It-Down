@@ -121,7 +121,7 @@ const BookingHistory: React.FC = () => {
                         <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Start Time</b></TableCell>
                         <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>End Time</b></TableCell>
                         <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Created At</b></TableCell>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Status</b></TableCell>
+                        {/* <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Status</b></TableCell> */}
                       </TableRow>
                     </TableHead>
                     <TableBody>
