@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../useAuth';
 import { DateTimeUtils } from '../../utils/dateUtils';
@@ -138,7 +138,9 @@ export function useBooking() {
     });
   };
 
-  const getUserBookings = async (): Promise<{ success: boolean; bookings?: Booking[]; error?: string }> => {
+  // src/hooks/Booking/useBooking.ts
+// ...
+  const getUserBookings = useCallback(async (): Promise<{ success: boolean; bookings?: Booking[]; error?: string }> => {
     if (!user) {
       return { success: false, error: 'User not authenticated' };
     }
@@ -167,7 +169,7 @@ export function useBooking() {
         .from('booking')
         .select('*')
         .eq('user_id', userData.user_id)
-        .order('start_datetime', { ascending: true });
+        .order('start_datetime', { ascending: false }); // Diubah menjadi descending agar yg baru di atas
 
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
@@ -181,7 +183,7 @@ export function useBooking() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   return {
     createBooking,

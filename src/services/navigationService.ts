@@ -25,6 +25,7 @@ export type NavigationTarget =
   | 'room-management' 
   | 'profile' 
   | 'book-room'
+  | 'booking-history'
   | 'back';
 
 export interface NavigationOptions {
@@ -129,6 +130,11 @@ class NavigationService {
             console.warn('Room ID required for book-room navigation');
             this.navigateTo('search', user);
           }
+          break;
+
+        case 'booking-history':
+          SessionManager.updateCurrentPage('history');
+          this.navigate('/history');
           break;
 
         case 'back':

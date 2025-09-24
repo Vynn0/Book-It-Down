@@ -33,7 +33,8 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
   const { 
     goToAdminDashboard, 
     goToRoomManagement, 
-    goToSearch 
+    goToSearch,
+    goToBookingHistory
   } = useNavigation();
   const location = useLocation();
 
@@ -48,8 +49,10 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
           goToRoomManagement();
           break;
         case 'addBooking':
-        case 'bookingHistory':
           goToSearch();
+          break;
+        case 'bookingHistory':
+          goToBookingHistory();
           break;
         default:
           // Fallback to state-based navigation

@@ -13,6 +13,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
 import RoomManagement from './pages/RoomManagement'; // Import the RoomManagement component
 import BookRoom from './pages/BookRoom';
+import BookingHistory from './pages/BookingHistory'; // <-- 1. TAMBAHKAN IMPORT INI
+
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -65,6 +67,14 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+    {
+      path: "/history",
+      element: (
+        <ProtectedRoute>
+          <BookingHistory />
+        </ProtectedRoute>
+      )
+    },
   {
     path: "/rooms",
     children: [
