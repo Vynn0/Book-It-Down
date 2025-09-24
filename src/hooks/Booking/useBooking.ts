@@ -184,10 +184,34 @@ export function useBooking() {
       setIsLoading(false);
     }
   }, [user]);
+  const getCurrentBookings = async (): Promise<{
+    success: boolean;
+    bookings?: Booking[];
+    error?: string;
+  }> => {
+    setIsLoading(true);
+    try {
+      const now = new Date().toISOString();
+      const { data, error: fetchError } = await supabase
+        .from('bookings')
+        .select('*')
+        .gte('end_datetime', now)   // hanya booking yang belum berakhir
+        .lte('start_datetime', now) // dan sudah dimulai
+        .order('start_datetime', { ascending: true });
+
+      if (fetchError) throw fetchError;
+      return { success: true, bookings: data as Booking[] };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return {
     createBooking,
     createQuickBooking,
+    getCurrentBookings,
     getUserBookings,
     isLoading,
     error
