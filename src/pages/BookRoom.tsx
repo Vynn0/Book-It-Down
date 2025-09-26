@@ -569,24 +569,6 @@ return (
                       {bookingError}
                     </Alert>
                   )}
-                  <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    startIcon={<EventAvailable />}
-                    disabled={bookingLoading}
-                    sx={{
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      backgroundColor: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'primary.dark'
-                      }
-                    }}
-                  >
-                    Click on Calendar Date to Book
-                  </Button>
                 </Paper>
               </Box>
 
