@@ -15,6 +15,7 @@ export interface UseUserManagementReturn {
   resetForm: () => void
   addUser: (userData: UserForm) => Promise<{ success: boolean; message: string }>
   validateForm: (userData: UserForm) => string | null
+  resetPassword: (userId: string, newPassword: string) => Promise<{ success: boolean; message: string }>
 }
 
 export const useUserManagement = (): UseUserManagementReturn => {
@@ -118,12 +119,55 @@ export const useUserManagement = (): UseUserManagementReturn => {
     }
   }
 
+  const resetPassword = async (userId: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    setIsLoading(true)
+
+    try {
+      // Validate password
+      if (!newPassword.trim()) {
+        return { success: false, message: 'Password is required' }
+      }
+      if (newPassword.length < 6) {
+        return { success: false, message: 'Password must be at least 6 characters' }
+      }
+
+      // Hash the new password
+      const saltRounds = 12
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds)
+
+      // Update user password in database
+      const { error } = await supabase
+        .from('user')
+        .update({ password: hashedPassword })
+        .eq('user_id', userId)
+
+      if (error) {
+        throw error
+      }
+
+      return {
+        success: true,
+        message: 'Password has been reset successfully!'
+      }
+
+    } catch (error: any) {
+      console.error('Error resetting password:', error)
+      return {
+        success: false,
+        message: error.message || 'Failed to reset password. Please try again.'
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     userForm,
     isLoading,
     updateUserForm,
     resetForm,
     addUser,
-    validateForm
+    validateForm,
+    resetPassword
   }
 }

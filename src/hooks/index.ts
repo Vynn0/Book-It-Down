@@ -1,6 +1,7 @@
 // Custom hooks
 export * from './Users/useUserManagement'
 export * from './Rooms/useRoomManagement'
+export * from './Rooms/useRoomImages'
 export * from './useNotification'
 export * from './useAuth'
 export * from './useRoleBasedRouting'
@@ -10,4 +11,5 @@ export * from './Booking/useBooking'
 export * from './Rooms/useRoomBookings'
 export * from './Booking/useBookingConflictCheck'
 export { default as useBookingStatusChecker } from './Booking/useBookingStatusChecker'
+export * from './Booking/useAllBookings'
 export * from './Users/useUsers'

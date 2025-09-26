@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, createContext, useContext, useMemo, useCallback } from 'react'
 import { supabase } from '../utils/supabase'
 import { SessionManager } from '../security/sessionManager'
 import bcrypt from 'bcryptjs'
@@ -197,7 +197,7 @@ export const useAuthLogic = () => {
     }
   }
 
-  const logout = () => {
+  const logout = useCallback(() => {
     // Clear both authentication and session data
     localStorage.removeItem('authenticated_user')
     SessionManager.clearSession()
@@ -206,23 +206,23 @@ export const useAuthLogic = () => {
       isLoading: false,
       isAuthenticated: false
     })
-  }
+  }, [])
 
-  const hasRole = (roleId: number): boolean => {
+  const hasRole = useCallback((roleId: number): boolean => {
     return authState.user?.roles?.some(role => role.role_id === roleId) || false
-  }
+  }, [authState.user?.roles])
 
-  const getUserRoles = (): UserRole[] => {
+  const getUserRoles = useCallback((): UserRole[] => {
     return authState.user?.roles || []
-  }
+  }, [authState.user?.roles])
 
-  return {
+  return useMemo(() => ({
     ...authState,
     login,
     logout,
     hasRole,
     getUserRoles
-  }
+  }), [authState, login, logout, hasRole, getUserRoles])
 }
 
 export { AuthContext }

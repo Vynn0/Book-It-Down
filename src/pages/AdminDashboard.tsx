@@ -18,7 +18,7 @@ import { appTheme } from '../services'
 import { PersonAdd, Add } from '@mui/icons-material'
 import { Navbar, NotificationComponent, UserTable, EditUserModal, Sidebar } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
-import { useUserManagement, useNotification, useNavigation, useUsers } from '../hooks'
+import { useUserManagement, useNotification, useNavigation, useUsers, useAllBookings } from '../hooks'
 import { supabase } from '../utils/supabase'
 import type { DatabaseUser } from '../types/user'
 import { useState } from 'react'
@@ -41,6 +41,13 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
   } = useNavigation();
 
   const { users, isLoading: isLoadingUsers, error: usersError, refetchUsers } = useUsers();
+  
+  // Get all bookings data for admin dashboard stats
+  const { 
+    isLoading: isLoadingBookings, 
+    getTodayBookingsCount, 
+    getActiveBookingsCount 
+  } = useAllBookings();
 
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -266,10 +273,10 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                       Active Sessions
                     </Typography>
                     <Typography variant="h3" component="div">
-                      12
+                      {isLoadingBookings ? '-' : getActiveBookingsCount()}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Currently logged in
+                      Total pending/approved bookings
                     </Typography>
                   </CardContent>
                 </Card>
@@ -280,7 +287,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                       Room Bookings
                     </Typography>
                     <Typography variant="h3" component="div">
-                      8
+                      {isLoadingBookings ? '-' : getTodayBookingsCount()}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Active bookings today

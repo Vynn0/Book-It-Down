@@ -14,6 +14,7 @@ import Profile from './pages/Profile';
 import RoomManagement from './pages/RoomManagement'; // Import the RoomManagement component
 import BookRoom from './pages/BookRoom';
 import BookingHistory from './pages/BookingHistory'; // <-- 1. TAMBAHKAN IMPORT INI
+import CurrentBooking from './pages/CurrentBooking'; // <-- 2. ADD CURRENT BOOKING IMPORT
 
 
 // Create router configuration
@@ -72,6 +73,14 @@ const router = createBrowserRouter([
       element: (
         <ProtectedRoute>
           <BookingHistory />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: "/current",
+      element: (
+        <ProtectedRoute>
+          <CurrentBooking />
         </ProtectedRoute>
       )
     },

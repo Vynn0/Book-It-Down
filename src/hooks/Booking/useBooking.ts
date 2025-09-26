@@ -184,10 +184,61 @@ export function useBooking() {
       setIsLoading(false);
     }
   }, [user]);
+  const getCurrentBookings = useCallback(async (): Promise<{
+    success: boolean;
+    bookings?: Booking[];
+    error?: string;
+  }> => {
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Update expired bookings before fetching
+      await BookingStatusManager.updateExpiredBookings();
+
+      // Get current user's ID
+      const { data: userData, error: userError } = await supabase
+        .from('user')
+        .select('user_id')
+        .eq('email', user.email)
+        .single();
+
+      if (userError || !userData) {
+        console.error('Error fetching user data:', userError);
+        return { success: false, error: 'Failed to get user information' };
+      }
+
+      // Fetch user's current/upcoming bookings that are approved or pending
+      const { data, error: fetchError } = await supabase
+        .from('booking')
+        .select('*')
+        .eq('user_id', userData.user_id)
+        .in('status', ['Approved', 'Pending'])
+        .gte('end_datetime', new Date().toISOString()) // Only future or ongoing bookings
+        .order('start_datetime', { ascending: true });
+
+      if (fetchError) {
+        console.error('Error fetching current bookings:', fetchError);
+        return { success: false, error: 'Failed to fetch current bookings' };
+      }
+
+      return { success: true, bookings: data as Booking[] };
+    } catch (err: any) {
+      console.error('Unexpected error:', err);
+      return { success: false, error: 'An unexpected error occurred' };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
 
   return {
     createBooking,
     createQuickBooking,
+    getCurrentBookings,
     getUserBookings,
     isLoading,
     error

@@ -15,9 +15,9 @@ import {
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from '@mui/icons-material';
-import { Navbar, BookingModal, Sidebar } from '../components/ui';
+import { Navbar, BookingModal, Sidebar, RoomImageCarousel } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
-import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement, useNavigation } from '../hooks';
+import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement, useNavigation, useRoomImages } from '../hooks';
 import useBookingStatusChecker from '../hooks/Booking/useBookingStatusChecker';
 import type { Room } from '../hooks/Rooms/useRoomManagement';
 
@@ -48,6 +48,10 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   const { hasRole } = useAuth();
   const { createBooking, isLoading: bookingLoading } = useBooking();
   const { rooms, isLoadingRooms, fetchRooms } = useRoomManagement();
+  const { images, isLoading: imagesLoading, getRoomImages } = useRoomImages();
+  
+  // Memoize images to prevent unnecessary re-renders
+  const memoizedImages = React.useMemo(() => images, [images]);
   
   // Enable automatic status checking every 5 minutes
   useBookingStatusChecker(5);
@@ -120,6 +124,22 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
 
     loadRoom();
   }, [roomId, rooms, isLoadingRooms, fetchRooms]);
+
+  // Separate effect to load images when room is set
+  useEffect(() => {
+    const loadImages = async () => {
+      if (room?.room_id && !imagesLoading && memoizedImages.length === 0) {
+        try {
+          await getRoomImages(room.room_id);
+        } catch (error) {
+          console.error('Failed to load room images:', error);
+        }
+      }
+    };
+
+    loadImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.room_id, memoizedImages.length, imagesLoading]); // Intentionally excluding getRoomImages to avoid infinite loop
 
   // Handle back navigation
   const handleBack = () => {
@@ -255,6 +275,18 @@ return (
                   >
                     Back to Search
                   </Button>
+
+                  {/* Image Carousel */}
+                  <Box sx={{ mb: 3 }}>
+                    <RoomImageCarousel
+                      images={memoizedImages}
+                      isLoading={imagesLoading}
+                      height={250}
+                      enableKeyboardNavigation={true}
+                      showImageCounter={true}
+                      showPrimaryIndicator={true}
+                    />
+                  </Box>
                   {/* ... Sisa konten panel kiri (tidak berubah) ... */}
                    <Box sx={{ mb: 3 }}>
                     <Typography variant="h5" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
@@ -324,24 +356,6 @@ return (
                       {bookingError}
                     </Alert>
                   )}
-                  <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    startIcon={<EventAvailable />}
-                    disabled={bookingLoading}
-                    sx={{
-                      py: 1.5,
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      backgroundColor: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'primary.dark'
-                      }
-                    }}
-                  >
-                    Click on Calendar Date to Book
-                  </Button>
                 </Paper>
               </Box>
 
