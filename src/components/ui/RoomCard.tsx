@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Typography, Button, Skeleton } from "@mui/material";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRoomImages } from "../../hooks";
 
 interface Room {
@@ -21,45 +21,87 @@ interface RoomCardProps {
   onSelect?: (room: Room) => void;
 }
 
+// Simple cache to avoid repeated API calls for the same room
+const imageCache = new Map<number, string | null>();
+
 export default function RoomCard({ room, imageSrc, onSelect }: RoomCardProps) {
   const { getRoomImages } = useRoomImages();
-  const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
-  const [isLoadingImage, setIsLoadingImage] = useState(true);
+  const [imageState, setImageState] = useState<{
+    url: string | null;
+    isLoading: boolean;
+    hasAttempted: boolean;
+  }>({
+    url: null,
+    isLoading: true,
+    hasAttempted: false
+  });
 
-  // Load primary image from Supabase
-  useEffect(() => {
-    const loadPrimaryImage = async () => {
-      setIsLoadingImage(true);
-      setPrimaryImageUrl(null); // Reset image URL
-      
-      try {
-        const result = await getRoomImages(room.room_id);
-        if (result.success && result.images) {
-          // Find the primary image
-          const primaryImage = result.images.find(img => img.is_primary);
-          
-          if (primaryImage) {
-            setPrimaryImageUrl(primaryImage.image_url);
-          } else if (result.images.length > 0) {
-            // If no primary image is set, use the first image
-            setPrimaryImageUrl(result.images[0].image_url);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading room image:', error);
-      } finally {
-        setIsLoadingImage(false);
+  // Memoize the final display image to prevent unnecessary re-calculations
+  const displayImage = useMemo(() => {
+    // Priority: Cached Supabase image > imageSrc prop > placeholder
+    return imageState.url || imageSrc || "https://via.placeholder.com/345x180/3C355F/FFFFFF?text=Room+Image";
+  }, [imageState.url, imageSrc]);
+
+  // Optimized image loading with caching
+  const loadRoomImage = useCallback(async (roomId: number) => {
+    // Check cache first
+    if (imageCache.has(roomId)) {
+      const cachedUrl = imageCache.get(roomId) ?? null;
+      setImageState({
+        url: cachedUrl,
+        isLoading: false,
+        hasAttempted: true
+      });
+      return;
+    }
+
+    setImageState(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      const result = await getRoomImages(roomId);
+      let primaryImageUrl: string | null = null;
+
+      if (result.success && result.images) {
+        // Find primary image or use first available
+        const primaryImage = result.images.find(img => img.is_primary);
+        primaryImageUrl = primaryImage?.image_url || result.images[0]?.image_url || null;
       }
-    };
 
-    loadPrimaryImage();
-  }, [room.room_id]); // Only depend on room.room_id
+      // Cache the result (even if null)
+      imageCache.set(roomId, primaryImageUrl);
+      
+      setImageState({
+        url: primaryImageUrl,
+        isLoading: false,
+        hasAttempted: true
+      });
+    } catch (error) {
+      console.error('Error loading room image:', error);
+      // Cache the failure
+      imageCache.set(roomId, null);
+      setImageState({
+        url: null,
+        isLoading: false,
+        hasAttempted: true
+      });
+    }
+  }, [getRoomImages]);
 
-  // Priority: Supabase primary image > passed imageSrc > placeholder
-  const displayImage = 
-    primaryImageUrl || 
-    imageSrc || 
-    "https://via.placeholder.com/345x180/3C355F/FFFFFF?text=Room+Image";
+  // Load image only once per room
+  useEffect(() => {
+    if (!imageState.hasAttempted) {
+      loadRoomImage(room.room_id);
+    }
+  }, [room.room_id, imageState.hasAttempted, loadRoomImage]);
+
+  // Reset state when room changes
+  useEffect(() => {
+    setImageState({
+      url: imageCache.get(room.room_id) || null,
+      isLoading: !imageCache.has(room.room_id),
+      hasAttempted: imageCache.has(room.room_id)
+    });
+  }, [room.room_id]);
 
   return (
     <Card
@@ -80,13 +122,13 @@ export default function RoomCard({ room, imageSrc, onSelect }: RoomCardProps) {
           borderTopLeftRadius: "16px",
           borderTopRightRadius: "16px",
           position: "relative",
-          bgcolor: isLoadingImage ? "#f5f5f5" : "transparent",
+          bgcolor: imageState.isLoading ? "#f5f5f5" : "transparent",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        {isLoadingImage ? (
+        {imageState.isLoading ? (
           <Skeleton
             variant="rectangular"
             width="100%"
