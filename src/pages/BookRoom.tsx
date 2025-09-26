@@ -177,13 +177,14 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
     );
   }
 
-  const handleBookingConfirm = async (startTime: Date, endTime: Date) => {
+  const handleBookingConfirm = async (startTime: Date, endTime: Date, title: string) => {
     setBookingError(null);
     setBookingSuccess(false);
     
     try {
       const result = await createBooking({
         room_id: room.room_id,
+        title: title,
         start_datetime: startTime.toISOString(),
         end_datetime: endTime.toISOString(),
         status: 'Pending'

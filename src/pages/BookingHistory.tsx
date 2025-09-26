@@ -20,7 +20,11 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  Stack
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -29,7 +33,8 @@ import {
   CheckCircle as ApprovedIcon,
   Pending as PendingIcon,
   Cancel as CancelledIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
@@ -48,6 +53,8 @@ const BookingHistory: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -92,11 +99,15 @@ const BookingHistory: React.FC = () => {
     }
   };
 
+  // Handle viewing booking details
+  const handleViewBooking = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  };
+
   // Handle action button for pending/approved bookings
   const handleBookingAction = (booking: Booking) => {
-    // Placeholder for now - this could navigate to edit/manage booking
-    console.log('Action for booking:', booking.booking_id);
-    // Future implementation: navigate to booking details or edit page
+    handleViewBooking(booking);
   };
 
   // Get statistics
@@ -260,6 +271,14 @@ const BookingHistory: React.FC = () => {
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
+                          Title
+                        </TableCell>
+                        <TableCell sx={{ 
+                          bgcolor: 'grey.50', 
+                          fontWeight: 'bold',
+                          borderBottom: 2,
+                          borderColor: 'divider'
+                        }}>
                           Schedule
                         </TableCell>
                         <TableCell align="center" sx={{ 
@@ -302,6 +321,17 @@ const BookingHistory: React.FC = () => {
                                 Created: {DateTimeUtils.formatLocal(booking.created_at)}
                               </Typography>
                             </Stack>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" sx={{ 
+                              fontWeight: 500,
+                              color: 'primary.main',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              maxWidth: '200px'
+                            }}>
+                              {booking.title || 'No title'}
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Stack spacing={1}>
@@ -356,6 +386,66 @@ const BookingHistory: React.FC = () => {
           </Container>
         </Box>
       </Box>
+
+      {/* Booking Details Modal */}
+      <Dialog 
+        open={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        maxWidth="md" 
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h6">
+            Booking Details #{selectedBooking?.booking_id}
+          </Typography>
+          <IconButton onClick={() => setIsModalOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedBooking && (
+            <Stack spacing={3}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <Box sx={{ gridColumn: '1 / -1' }}>
+                  <Typography variant="subtitle2" color="text.secondary">Title</Typography>
+                  <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 500 }}>
+                    {selectedBooking.title || 'No title'}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">Room</Typography>
+                  <Typography variant="body1">{selectedBooking.room_id}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">Status</Typography>
+                  {getStatusChip(selectedBooking.status || 'unknown')}
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">Start Time</Typography>
+                  <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.start_datetime)}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">End Time</Typography>
+                  <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.end_datetime)}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">Created</Typography>
+                  <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.created_at)}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">User ID</Typography>
+                  <Typography variant="body1">{selectedBooking.user_id}</Typography>
+                </Box>
+              </Box>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsModalOpen(false)}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
 };

@@ -8,6 +8,7 @@ export interface Booking {
   booking_id: number;
   user_id: number;
   room_id: number;
+  title: string; // Added title field
   status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired' | null;
   start_datetime: string;
   end_datetime: string;
@@ -16,6 +17,7 @@ export interface Booking {
 
 export interface CreateBookingData {
   room_id: number;
+  title: string; // Added title field
   start_datetime: string;
   end_datetime: string;
   status?: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired';
@@ -101,6 +103,7 @@ export function useBooking() {
         .insert({
           user_id: userData.user_id,
           room_id: bookingData.room_id,
+          title: bookingData.title,
           start_datetime: startDateTimeUTC.toISOString(),
           end_datetime: endDateTimeUTC.toISOString(),
           status: bookingData.status || 'Pending',
@@ -125,13 +128,14 @@ export function useBooking() {
     }
   };
 
-  const createQuickBooking = async (roomId: number): Promise<{ success: boolean; booking?: Booking; error?: string }> => {
+  const createQuickBooking = async (roomId: number, title: string = 'Quick Booking'): Promise<{ success: boolean; booking?: Booking; error?: string }> => {
     // Create a booking for the next hour (current time to current time + 1 hour)
     const now = DateTimeUtils.now();
     const endTime = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
 
     return createBooking({
       room_id: roomId,
+      title: title,
       start_datetime: now.toISOString(),
       end_datetime: endTime.toISOString(),
       status: 'Pending'
