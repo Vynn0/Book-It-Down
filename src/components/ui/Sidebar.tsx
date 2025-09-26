@@ -80,9 +80,9 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
     if (path.includes('/admin/dashboard')) return 'userManagement'
     if (path.includes('/rooms/management')) return 'roomManagement'
     if (path.includes('/history')) return 'bookingHistory' // ✅ Added this case
+    if (path.includes('/current')) return 'currentBooking' // ✅ Fixed path check
     if (path.includes('/searchpage')) return activeView || 'addBooking'
     if (path.includes('/rooms/') && path.includes('/book')) return 'addBooking'
-    if (path.includes('/current-booking')) return 'currentBooking' // ✅ ditambahkan
     return activeView
   }
 

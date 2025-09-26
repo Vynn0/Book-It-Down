@@ -93,7 +93,7 @@ export function useNavigation() {
   };
 
   const goToCurrentBooking = () => {
-    navigate('/current-booking')
+    navigate('/current')
   }
 
   /**

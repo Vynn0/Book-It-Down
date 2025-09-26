@@ -193,7 +193,7 @@ export function useBooking() {
     try {
       const now = new Date().toISOString();
       const { data, error: fetchError } = await supabase
-        .from('bookings')
+        .from('booking')
         .select('*')
         .gte('end_datetime', now)   // hanya booking yang belum berakhir
         .lte('start_datetime', now) // dan sudah dimulai
