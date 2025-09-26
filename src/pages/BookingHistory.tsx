@@ -17,7 +17,6 @@ import {
   Button,
   Card,
   CardContent,
-  Grid,
   Divider,
   IconButton,
   Tooltip,
@@ -147,56 +146,53 @@ const BookingHistory: React.FC = () => {
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
             {/* Statistics Cards */}
-            <Grid container spacing={3} sx={{ mb: 3 }}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card elevation={2}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography color="text.secondary" gutterBottom>
-                      Total Bookings
-                    </Typography>
-                    <Typography variant="h4" component="div" color="primary">
-                      {stats.total}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card elevation={2}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography color="text.secondary" gutterBottom>
-                      Approved
-                    </Typography>
-                    <Typography variant="h4" component="div" color="success.main">
-                      {stats.approved}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card elevation={2}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography color="text.secondary" gutterBottom>
-                      Pending
-                    </Typography>
-                    <Typography variant="h4" component="div" color="warning.main">
-                      {stats.pending}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card elevation={2}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Typography color="text.secondary" gutterBottom>
-                      Cancelled
-                    </Typography>
-                    <Typography variant="h4" component="div" color="error.main">
-                      {stats.cancelled}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, 
+              gap: 3, 
+              mb: 3 
+            }}>
+              <Card elevation={2}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography color="text.secondary" gutterBottom>
+                    Total Bookings
+                  </Typography>
+                  <Typography variant="h4" component="div" color="primary">
+                    {stats.total}
+                  </Typography>
+                </CardContent>
+              </Card>
+              <Card elevation={2}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography color="text.secondary" gutterBottom>
+                    Approved
+                  </Typography>
+                  <Typography variant="h4" component="div" color="success.main">
+                    {stats.approved}
+                  </Typography>
+                </CardContent>
+              </Card>
+              <Card elevation={2}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography color="text.secondary" gutterBottom>
+                    Pending
+                  </Typography>
+                  <Typography variant="h4" component="div" color="warning.main">
+                    {stats.pending}
+                  </Typography>
+                </CardContent>
+              </Card>
+              <Card elevation={2}>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography color="text.secondary" gutterBottom>
+                    Cancelled
+                  </Typography>
+                  <Typography variant="h4" component="div" color="error.main">
+                    {stats.cancelled}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
 
             {/* Main Content */}
             <Paper elevation={3} sx={{ overflow: 'hidden' }}>
@@ -285,7 +281,7 @@ const BookingHistory: React.FC = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {bookings.map((booking, index) => (
+                      {bookings.map((booking) => (
                         <TableRow
                           key={booking.booking_id}
                           sx={{ 
