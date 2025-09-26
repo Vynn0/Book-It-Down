@@ -117,8 +117,12 @@ const CurrentBooking: React.FC = () => {
     };
     return stats;
   };
-
   const stats = getBookingStats();
+
+const getUserRoles = () => {
+    if (!user?.roles || user.roles.length === 0) return 'No role assigned';
+    return user.roles.map(role => role.role_name).join(', ');
+  };
 
   return (
     <ThemeProvider theme={appTheme}>
@@ -151,7 +155,7 @@ const CurrentBooking: React.FC = () => {
           }}
         >
           <Navbar
-            title={`Current Bookings (${user?.name || 'User'})`}
+            title={`Current Bookings (${getUserRoles()})`}
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>

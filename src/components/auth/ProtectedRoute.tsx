@@ -1,44 +1,84 @@
-import React from 'react'
-import { Box, CircularProgress, Typography } from '@mui/material'
-import { useAuth } from '../../hooks/useAuth'
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth, useNavigation } from '../../hooks';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
-  fallback?: React.ReactNode
+  children: React.ReactNode;
+  requireAuth?: boolean;
+  requiredRoles?: number[];
+  redirectTo?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+export function ProtectedRoute({ 
   children, 
-  fallback 
-}) => {
-  const { isAuthenticated, isLoading } = useAuth()
+  requireAuth = true, 
+  requiredRoles = [],
+  redirectTo = '/login' 
+}: ProtectedRouteProps) {
+  const { isAuthenticated, user, hasRole, isLoading } = useAuth();
+  const location = useLocation();
 
-  // Show loading spinner while checking authentication
   if (isLoading) {
-    return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          gap: 2
-        }}
-      >
-        <CircularProgress size={60} />
-        <Typography variant="h6" color="text.secondary">
-          Loading...
-        </Typography>
-      </Box>
-    )
+    return <div>Loading...</div>;
   }
 
-  // If not authenticated, show fallback (login page) or redirect
-  if (!isAuthenticated) {
-    return fallback ? <>{fallback}</> : null
+  if (requireAuth && !isAuthenticated) {
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // If authenticated, show protected content
-  return <>{children}</>
+  if (requiredRoles.length > 0 && user) {
+    const hasRequiredRole = requiredRoles.some(roleId => hasRole(roleId));
+    
+    if (!hasRequiredRole) {
+      // Jika tidak punya peran, arahkan ke searchpage sebagai fallback
+      return <Navigate to="/searchpage" replace />;
+    }
+  }
+
+  return <>{children}</>;
+}
+
+// ... (Komponen AdminRoute, RoomManagerRoute, EmployeeRoute tidak berubah) ...
+export function AdminRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute requiredRoles={[1]}> {/* Role ID 1 = Admin */}
+      {children}
+    </ProtectedRoute>
+  );
+}
+
+export function RoomManagerRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute requiredRoles={[1, 2]}> {/* Role ID 1 = Admin, 2 = Room Manager */}
+      {children}
+    </ProtectedRoute>
+  );
+}
+
+export function EmployeeRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute requiredRoles={[1, 2, 3]}> {/* All roles can access employee features */}
+      {children}
+    </ProtectedRoute>
+  );
+}
+
+
+// === UBAH LOGIKA GUESTROUTE DI BAWAH INI ===
+export function GuestRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const { getDefaultRoute } = useNavigation(); // <-- Gunakan hook navigasi
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (isAuthenticated) {
+    // Jangan redirect ke '/searchpage' secara statis.
+    // Gunakan fungsi getDefaultRoute() untuk mendapatkan tujuan yang benar
+    // berdasarkan peran pengguna yang sedang login.
+    const defaultRoute = getDefaultRoute();
+    return <Navigate to={defaultRoute} replace />;
+  }
+  
+  return <>{children}</>;
 }

@@ -14,7 +14,6 @@ import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
 import { useRoleBasedRouting, useRoomManagement, useBookingStatusChecker, useNavigation } from '../hooks';
 
 interface SearchPageProps {
-  onBack?: () => void;
   onProfileClick?: () => void;
   onNavigateToAdmin?: () => void;
   onNavigateToRoomManagement?: () => void;
@@ -23,10 +22,8 @@ interface SearchPageProps {
 
 const drawerWidth = 240; // Definisikan lebar drawer
 
-function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
+function SearchPage({ onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
   const { 
-    goToLogin, 
-    goToProfile, 
     goToAdminDashboard, 
     goToRoomManagement,
     goToBookRoom 
@@ -36,7 +33,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   const [hasSearched, setHasSearched] = useState(false);
   
   const { rooms, isLoadingRooms } = useRoomManagement();
-  const { getRoleBasedView, isAdmin, user } = useRoleBasedRouting();
+  const { getRoleBasedView, user } = useRoleBasedRouting();
   
   // Enable automatic booking status checking every 10 minutes
   useBookingStatusChecker(10);
@@ -49,22 +46,6 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   };
 
   // Centralized navigation with prop fallbacks
-  const handleBackToLogin = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      goToLogin();
-    }
-  };
-
-  const handleNavigateToProfile = () => {
-    if (onProfileClick) {
-      onProfileClick();
-    } else {
-      goToProfile();
-    }
-  };
-
   const handleNavigateToAdmin = () => {
     if (onNavigateToAdmin) {
       onNavigateToAdmin();
@@ -94,7 +75,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
       setActiveView(initialActiveView);
     }
   }, [initialActiveView]);
-
+  
   const handleMenuClick = (view: string) => {
     if (view === 'userManagement') {
       handleNavigateToAdmin();
@@ -115,7 +96,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     setFilteredRooms(filtered);
     setHasSearched(true);
   };
-
+  
   const handleRoomSelect = (room: any) => {
     // Navigate to the room booking page using centralized navigation
     goToBookRoom(room.room_id.toString());
@@ -127,8 +108,8 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     switch (roleView) {
       case 'admin':
         return;
-      case 'room-manager':
-        return;
+        case 'room-manager':
+          return;
       case 'employee':
         return;
       default:
@@ -141,15 +122,15 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
             </CardContent>
           </Card>
         );
-    }
-  };
-
-  const getUserRoleForNavbar = (): 'employee' | 'administrator' => {
-    if (isAdmin()) return 'administrator';
-    return 'employee';
-  };
-
-  return (
+      }
+    };
+    
+    const getUserRoles = () => {
+      if (!user?.roles || user.roles.length === 0) return 'No role assigned';
+      return user.roles.map(role => role.role_name).join(', ');
+    };
+    
+    return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
@@ -180,10 +161,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
           }}
         >
           <Navbar
-            title={`Search Menu (${user?.name || 'User'})`}
-            onBack={handleBackToLogin}
-            userRole={getUserRoleForNavbar()}
-            onProfileClick={handleNavigateToProfile}
+            title={`Search Menu (${getUserRoles()})`}
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, pb: 4 }}>

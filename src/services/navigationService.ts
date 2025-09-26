@@ -156,13 +156,15 @@ class NavigationService {
   /**
    * Navigate to the appropriate dashboard based on user roles
    */
-  private navigateToRoleBasedDashboard(roles: UserRole[]) {
+   private navigateToRoleBasedDashboard(roles: UserRole[]) {
+    // Prioritaskan peran Admin. Jika pengguna memiliki peran admin,
+    // langsung arahkan ke dasbor admin tanpa memeriksa peran lain.
     if (roles.includes('admin')) {
       SessionManager.updateCurrentPage('admin');
       this.navigate!('/admin/dashboard');
     } else if (roles.includes('room-manager')) {
-      SessionManager.updateCurrentPage('search');
-      this.navigate!('/searchpage');
+      SessionManager.updateCurrentPage('roomManagement'); // Arahkan room manager ke room management
+      this.navigate!('/rooms/management');
     } else {
       SessionManager.updateCurrentPage('search');
       this.navigate!('/searchpage');

@@ -120,8 +120,12 @@ const BookingHistory: React.FC = () => {
     };
     return stats;
   };
-
   const stats = getBookingStats();
+
+  const getUserRoles = () => {
+    if (!user?.roles || user.roles.length === 0) return 'No role assigned';
+    return user.roles.map(role => role.role_name).join(', ');
+  };
 
   return (
     <ThemeProvider theme={appTheme}>
@@ -152,7 +156,7 @@ const BookingHistory: React.FC = () => {
           }}
         >
           <Navbar
-            title={`Booking History (${user?.name || 'User'})`}
+            title={`Booking History (${getUserRoles()})`}
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
