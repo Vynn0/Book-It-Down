@@ -1,6 +1,7 @@
 // Custom hooks
 export * from './Users/useUserManagement'
 export * from './Rooms/useRoomManagement'
+export * from './Rooms/useRoomImages'
 export * from './useNotification'
 export * from './useAuth'
 export * from './useRoleBasedRouting'
