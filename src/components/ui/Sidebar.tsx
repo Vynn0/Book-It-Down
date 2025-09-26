@@ -52,9 +52,6 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
         case 'addBooking':
           goToSearch()
           break
-        case 'bookingHistory':
-          goToBookingHistory()
-          break
         case 'currentBooking':
           if (goToCurrentBooking) {
             goToCurrentBooking()
@@ -62,6 +59,9 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
             console.warn('goToCurrentBooking not available, using fallback')
             onMenuClick(view)
           }
+          break
+        case 'bookingHistory':
+          goToBookingHistory()
           break
         default:
           console.warn('Unhandled view:', view, 'using onMenuClick fallback')
@@ -93,8 +93,8 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
       { text: 'User Management', icon: <Group />, view: 'userManagement', roles: ['admin'] },
       { text: 'Room Management', icon: <MeetingRoom />, view: 'roomManagement', roles: ['admin', 'room-manager'] },
       { text: 'Add Booking', icon: <EventAvailable />, view: 'addBooking', roles: ['admin', 'room-manager', 'employee'] },
-      { text: 'Booking History', icon: <History />, view: 'bookingHistory', roles: ['admin', 'room-manager', 'employee'] },
       { text: 'Current Booking', icon: <History />, view: 'currentBooking', roles: ['admin', 'room-manager', 'employee'] }, // ✅ baru
+      { text: 'Booking History', icon: <History />, view: 'bookingHistory', roles: ['admin', 'room-manager', 'employee'] },
     ]
 
     return allMenuItems.filter(item => {
