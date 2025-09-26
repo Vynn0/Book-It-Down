@@ -24,7 +24,6 @@ import type { DatabaseUser } from '../types/user'
 import { useState } from 'react'
 
 interface AdminDashboardProps {
-  onBack?: () => void;
   onProfileClick?: () => void;
   onNavigateToSearch?: () => void;
   onNavigateToRoomManagement?: () => void;
@@ -32,10 +31,8 @@ interface AdminDashboardProps {
 
 const drawerWidth = 240; // Definisikan lebar drawer
 
-function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
+function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
   const {
-    goToLogin,
-    goToProfile,
     goToSearch,
     goToRoomManagement
   } = useNavigation();
@@ -61,22 +58,6 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
   };
 
   // Centralized navigation functions with fallbacks
-  const handleBackNavigation = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      goToLogin();
-    }
-  };
-
-  const handleProfileNavigation = () => {
-    if (onProfileClick) {
-      onProfileClick();
-    } else {
-      goToProfile();
-    }
-  };
-
   const handleSearchNavigation = () => {
     if (onNavigateToSearch) {
       onNavigateToSearch();
@@ -234,9 +215,6 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
         >
           <Navbar
             title="Admin Dashboard"
-            onBack={handleBackNavigation}
-            userRole="administrator"
-            onProfileClick={handleProfileNavigation}
             onMenuClick={handleSidebarToggle} // Tetap gunakan handler ini
           />
 

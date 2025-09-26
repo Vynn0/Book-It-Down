@@ -17,7 +17,7 @@ import { appTheme } from '../services';
 import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from '@mui/icons-material';
 import { Navbar, BookingModal, Sidebar, RoomImageCarousel } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
-import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement, useNavigation, useRoomImages } from '../hooks';
+import { useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement, useNavigation, useRoomImages } from '../hooks';
 import useBookingStatusChecker from '../hooks/Booking/useBookingStatusChecker';
 import type { Room } from '../hooks/Rooms/useRoomManagement';
 
@@ -45,7 +45,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
-  const { hasRole } = useAuth();
   const { createBooking, isLoading: bookingLoading } = useBooking();
   const { rooms, isLoadingRooms, fetchRooms } = useRoomManagement();
   const { images, isLoading: imagesLoading, getRoomImages } = useRoomImages();
@@ -216,12 +215,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
     setSelectedDate(null);
   };
 
-  // Get user roles for navbar display
-  const getUserRoleForNavbar = (): 'employee' | 'administrator' => {
-    if (hasRole(1)) return 'administrator'; // Role ID 1 is admin
-    return 'employee';
-  };
-
   // Ganti seluruh bagian 'return' dengan ini:
 return (
     <ThemeProvider theme={appTheme}>
@@ -255,7 +248,6 @@ return (
         >
           <Navbar
             title={`Room Details - ${room.room_name}`}
-            userRole={getUserRoleForNavbar()}
             onMenuClick={handleSidebarToggle} // Ganti onBack menjadi onMenuClick
           />
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>

@@ -23,7 +23,6 @@ import { useRoomManagement, useNotification, useNavigation } from "../hooks";
 
 // Props opsional
 interface RoomManagementProps {
-  onBack?: () => void;
   onProfileClick?: () => void;
   onNavigateToSearch?: () => void;
   onNavigateToAdmin?: () => void;
@@ -31,11 +30,10 @@ interface RoomManagementProps {
 
 const drawerWidth = 240;
 
-function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
-  const { goBack, goToSearch, goToAdminDashboard } = useNavigation();
+function RoomManagement({ onNavigateToSearch, onNavigateToAdmin }: RoomManagementProps) {
+  const { goToSearch, goToAdminDashboard } = useNavigation();
 
   // Navigation handlers
-  const handleBackNavigation = () => (onBack ? onBack() : goBack());
   const handleSearchNavigation = () => (onNavigateToSearch ? onNavigateToSearch() : goToSearch());
   const handleAdminNavigation = () => (onNavigateToAdmin ? onNavigateToAdmin() : goToAdminDashboard());
 
@@ -145,7 +143,7 @@ function RoomManagement({ onBack, onNavigateToSearch, onNavigateToAdmin }: RoomM
             })
           }}
         >
-          <Navbar title="Room Management" onBack={handleBackNavigation} onMenuClick={handleSidebarToggle} />
+          <Navbar title="Room Management" onMenuClick={handleSidebarToggle} />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
             <Box sx={{ p: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
