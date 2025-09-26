@@ -12,8 +12,26 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Alert
+  Alert,
+  Chip,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  Divider,
+  IconButton,
+  Tooltip,
+  Stack
 } from '@mui/material';
+import {
+  Edit as EditIcon,
+  Visibility as ViewIcon,
+  Schedule as ScheduleIcon,
+  CheckCircle as ApprovedIcon,
+  Pending as PendingIcon,
+  Cancel as CancelledIcon,
+  History as HistoryIcon
+} from '@mui/icons-material';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, Sidebar } from '../components/ui';
@@ -61,6 +79,40 @@ const BookingHistory: React.FC = () => {
     else if (view === 'addBooking') goToSearch();
   };
 
+  // Get status-specific styling
+  const getStatusChip = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return <Chip icon={<ApprovedIcon />} label="Approved" color="success" size="small" />;
+      case 'pending':
+        return <Chip icon={<PendingIcon />} label="Pending" color="warning" size="small" />;
+      case 'cancelled':
+        return <Chip icon={<CancelledIcon />} label="Cancelled" color="error" size="small" />;
+      default:
+        return <Chip icon={<HistoryIcon />} label={status} color="default" size="small" />;
+    }
+  };
+
+  // Handle action button for pending/approved bookings
+  const handleBookingAction = (booking: Booking) => {
+    // Placeholder for now - this could navigate to edit/manage booking
+    console.log('Action for booking:', booking.booking_id);
+    // Future implementation: navigate to booking details or edit page
+  };
+
+  // Get statistics
+  const getBookingStats = () => {
+    const stats = {
+      total: bookings.length,
+      approved: bookings.filter(b => b.status?.toLowerCase() === 'approved').length,
+      pending: bookings.filter(b => b.status?.toLowerCase() === 'pending').length,
+      cancelled: bookings.filter(b => b.status?.toLowerCase() === 'cancelled').length,
+    };
+    return stats;
+  };
+
+  const stats = getBookingStats();
+
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
@@ -94,51 +146,210 @@ const BookingHistory: React.FC = () => {
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
-            <Paper sx={{ p: 3, overflow: 'hidden' }}>
-              <Typography variant="h5" component="h1" color="secondary" gutterBottom>
-                Lists of Finished Bookings
-              </Typography>
+            {/* Statistics Cards */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card elevation={2}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography color="text.secondary" gutterBottom>
+                      Total Bookings
+                    </Typography>
+                    <Typography variant="h4" component="div" color="primary">
+                      {stats.total}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card elevation={2}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography color="text.secondary" gutterBottom>
+                      Approved
+                    </Typography>
+                    <Typography variant="h4" component="div" color="success.main">
+                      {stats.approved}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card elevation={2}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography color="text.secondary" gutterBottom>
+                      Pending
+                    </Typography>
+                    <Typography variant="h4" component="div" color="warning.main">
+                      {stats.pending}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card elevation={2}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography color="text.secondary" gutterBottom>
+                      Cancelled
+                    </Typography>
+                    <Typography variant="h4" component="div" color="error.main">
+                      {stats.cancelled}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+
+            {/* Main Content */}
+            <Paper elevation={3} sx={{ overflow: 'hidden' }}>
+              <Box sx={{ p: 3, pb: 0 }}>
+                <Typography variant="h5" component="h1" color="secondary" gutterBottom>
+                  Booking History
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  View and manage all your room booking requests
+                </Typography>
+                <Divider />
+              </Box>
 
               {isBookingLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
-                  <CircularProgress />
-                  <Typography sx={{ ml: 2 }}>Loading history...</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                  <CircularProgress size={40} />
+                  <Typography sx={{ ml: 2 }}>Loading your booking history...</Typography>
                 </Box>
               ) : error ? (
-                <Alert severity="error">{error}</Alert>
+                <Box sx={{ p: 3 }}>
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {error}
+                  </Alert>
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => window.location.reload()}
+                    sx={{ mt: 1 }}
+                  >
+                    Try Again
+                  </Button>
+                </Box>
               ) : bookings.length === 0 ? (
-                <Typography sx={{ textAlign: 'center', py: 5 }}>
-                  You have no booking history.
-                </Typography>
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                  <HistoryIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    No Booking History
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    You haven't made any room bookings yet.
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    startIcon={<ScheduleIcon />}
+                    onClick={goToSearch}
+                  >
+                    Book a Room
+                  </Button>
+                </Box>
               ) : (
-                <TableContainer sx={{ maxHeight: '70vh' }}>
+                <TableContainer sx={{ maxHeight: '60vh' }}>
                   <Table stickyHeader aria-label="booking history table">
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>ID Booking</b></TableCell>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>User ID</b></TableCell>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Room ID</b></TableCell>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Start Time</b></TableCell>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>End Time</b></TableCell>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Created At</b></TableCell>
-                        <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}><b>Status</b></TableCell>
+                        <TableCell sx={{ 
+                          bgcolor: 'grey.50', 
+                          fontWeight: 'bold',
+                          borderBottom: 2,
+                          borderColor: 'divider'
+                        }}>
+                          Booking Details
+                        </TableCell>
+                        <TableCell sx={{ 
+                          bgcolor: 'grey.50', 
+                          fontWeight: 'bold',
+                          borderBottom: 2,
+                          borderColor: 'divider'
+                        }}>
+                          Schedule
+                        </TableCell>
+                        <TableCell align="center" sx={{ 
+                          bgcolor: 'grey.50', 
+                          fontWeight: 'bold',
+                          borderBottom: 2,
+                          borderColor: 'divider'
+                        }}>
+                          Status
+                        </TableCell>
+                        <TableCell align="center" sx={{ 
+                          bgcolor: 'grey.50', 
+                          fontWeight: 'bold',
+                          borderBottom: 2,
+                          borderColor: 'divider'
+                        }}>
+                          Actions
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {bookings.map((booking) => (
+                      {bookings.map((booking, index) => (
                         <TableRow
                           key={booking.booking_id}
-                          sx={{ '&:last-child td, &:last-child th': { borderBottom: 0 } }} // Biarkan ini agar baris terakhir tidak ada border bawah ganda
+                          sx={{ 
+                            '&:nth-of-type(odd)': { bgcolor: 'grey.25' },
+                            '&:hover': { bgcolor: 'action.hover' },
+                            transition: 'background-color 0.2s ease'
+                          }}
                         >
-                          <TableCell component="th" scope="row" sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}>
-                            {booking.booking_id}
+                          <TableCell>
+                            <Stack spacing={1}>
+                              <Typography variant="subtitle2" fontWeight="bold">
+                                #{booking.booking_id}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Room: {booking.room_id}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Created: {DateTimeUtils.formatLocal(booking.created_at)}
+                              </Typography>
+                            </Stack>
                           </TableCell>
-                          <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}>{booking.user_id}</TableCell>
-                          <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}>{booking.room_id}</TableCell>
-                          <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}>{DateTimeUtils.formatLocal(booking.start_datetime)}</TableCell>
-                          <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}>{DateTimeUtils.formatLocal(booking.end_datetime)}</TableCell>
-                          <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}>{DateTimeUtils.formatLocal(booking.created_at)}</TableCell>
-                          <TableCell sx={{ border: '1px solid rgba(224, 224, 224, 1)' }}>{booking.status}</TableCell>
+                          <TableCell>
+                            <Stack spacing={1}>
+                              <Typography variant="body2">
+                                <strong>Start:</strong> {DateTimeUtils.formatLocal(booking.start_datetime)}
+                              </Typography>
+                              <Typography variant="body2">
+                                <strong>End:</strong> {DateTimeUtils.formatLocal(booking.end_datetime)}
+                              </Typography>
+                            </Stack>
+                          </TableCell>
+                          <TableCell align="center">
+                            {getStatusChip(booking.status || 'unknown')}
+                          </TableCell>
+                          <TableCell align="center">
+                            {(booking.status?.toLowerCase() === 'pending' || booking.status?.toLowerCase() === 'approved') ? (
+                              <Stack direction="row" spacing={1} justifyContent="center">
+                                <Tooltip title="View Details">
+                                  <IconButton 
+                                    size="small" 
+                                    color="primary"
+                                    onClick={() => handleBookingAction(booking)}
+                                  >
+                                    <ViewIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                {booking.status?.toLowerCase() === 'pending' && (
+                                  <Tooltip title="Edit Booking">
+                                    <IconButton 
+                                      size="small" 
+                                      color="secondary"
+                                      onClick={() => handleBookingAction(booking)}
+                                    >
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                              </Stack>
+                            ) : (
+                              <Typography variant="caption" color="text.secondary">
+                                No actions
+                              </Typography>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
