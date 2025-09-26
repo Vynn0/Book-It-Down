@@ -15,7 +15,9 @@ import {
     Select,
     MenuItem,
     OutlinedInput,
-    Alert
+    Alert,
+    InputAdornment,
+    IconButton
 } from '@mui/material'
 import type { SelectChangeEvent } from '@mui/material'
 import { useState, useEffect } from 'react'
@@ -23,6 +25,8 @@ import type { DatabaseUser, Role } from '../../../types/user'
 import { supabase } from '../../../utils/supabase'
 import { getRoleColor } from '../../../utils/roleUtils'
 import { useAuth } from '../../../hooks/useAuth'
+import { useUserManagement } from '../../../hooks/Users/useUserManagement'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
 
 interface EditUserModalProps {
     open: boolean
@@ -30,17 +34,27 @@ interface EditUserModalProps {
     onClose: () => void
     onEditUser?: (user: DatabaseUser) => void
     onConfirmEdit?: (userId: string, newName: string, newRoleIds: number[]) => void
+    onResetPassword?: () => void
 }
 
-function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditUserModalProps) {
+function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit, onResetPassword }: EditUserModalProps) {
     const [isEditMode, setIsEditMode] = useState(false)
+    const [isPasswordResetMode, setIsPasswordResetMode] = useState(false)
     const [editedName, setEditedName] = useState('')
     const [editedRoleIds, setEditedRoleIds] = useState<number[]>([])
     const [availableRoles, setAvailableRoles] = useState<Role[]>([])
     const [isLoadingRoles, setIsLoadingRoles] = useState(false)
     
-    // Get current logged-in user
+    // Password reset state
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [passwordError, setPasswordError] = useState('')
+    
+    // Get current logged-in user and user management hook
     const { user: currentUser } = useAuth()
+    const { resetPassword, isLoading: isResettingPassword } = useUserManagement()
     
     // Check if the user being viewed is the same as the logged-in user
     // Convert both IDs to strings to ensure consistent comparison
@@ -77,6 +91,14 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
             setEditedRoleIds(user.roles?.map(role => role.role_id) || [])
         }
         setIsEditMode(false)
+        setIsPasswordResetMode(false)
+        
+        // Reset password fields
+        setNewPassword('')
+        setConfirmPassword('')
+        setPasswordError('')
+        setShowPassword(false)
+        setShowConfirmPassword(false)
 
         // Fetch roles when modal opens
         if (open) {
@@ -105,19 +127,67 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
 
     const handleCancelEdit = () => {
         setIsEditMode(false)
+        setIsPasswordResetMode(false)
+        setPasswordError('')
         if (user) {
             setEditedName(user.name) // Reset to original name
             setEditedRoleIds(user.roles?.map(role => role.role_id) || []) // Reset to original roles
+            setNewPassword('')
+            setConfirmPassword('')
         }
     }
 
     const handleClose = () => {
         setIsEditMode(false)
+        setIsPasswordResetMode(false)
+        setPasswordError('')
         if (user) {
             setEditedName(user.name) // Reset to original name
             setEditedRoleIds(user.roles?.map(role => role.role_id) || []) // Reset to original roles
+            setNewPassword('')
+            setConfirmPassword('')
         }
         onClose()
+    }
+
+    const handlePasswordReset = () => {
+        if (isViewingOwnProfile) return
+        setIsPasswordResetMode(true)
+        setIsEditMode(false)
+    }
+
+    const handleConfirmPasswordReset = async () => {
+        if (!user) return
+
+        // Validate passwords
+        if (!newPassword.trim()) {
+            setPasswordError('Password is required')
+            return
+        }
+        if (newPassword.length < 6) {
+            setPasswordError('Password must be at least 6 characters')
+            return
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordError('Passwords do not match')
+            return
+        }
+
+        // Reset password
+        const result = await resetPassword(user.user_id, newPassword)
+        
+        if (result.success) {
+            setPasswordError('')
+            setNewPassword('')
+            setConfirmPassword('')
+            setIsPasswordResetMode(false)
+            if (onResetPassword) {
+                onResetPassword()
+            }
+            alert(result.message) // Simple success notification
+        } else {
+            setPasswordError(result.message)
+        }
     }
 
     const handleRoleChange = (event: SelectChangeEvent<number[]>) => {
@@ -134,7 +204,9 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
         >
             <DialogTitle>
                 <Box sx={{ color: '#3C355F', fontWeight: 'bold', fontSize: '1.25rem' }}>
-                    {isEditMode ? 'Edit User Details' : 'View User Details'}
+                    {isPasswordResetMode ? 'Reset User Password' : 
+                     isEditMode ? 'Edit User Details' : 
+                     'View User Details'}
                 </Box>
             </DialogTitle>
             <DialogContent>
@@ -279,6 +351,75 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
                                 </Typography>
                             </Box>
                         </Paper>
+
+                        {/* Password Reset Section */}
+                        {isPasswordResetMode && (
+                            <Paper sx={{ p: 2, mb: 2, backgroundColor: '#fff9c4' }}>
+                                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: '#f57c00' }}>
+                                    Reset Password for {user.name}
+                                </Typography>
+                                
+                                {passwordError && (
+                                    <Alert severity="error" sx={{ mb: 2 }}>
+                                        {passwordError}
+                                    </Alert>
+                                )}
+
+                                <Box sx={{ mb: 2 }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        New Password
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        variant="outlined"
+                                        size="small"
+                                        placeholder="Enter new password (min 6 characters)"
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        edge="end"
+                                                    >
+                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                </Box>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                        Confirm New Password
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        variant="outlined"
+                                        size="small"
+                                        placeholder="Confirm new password"
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        edge="end"
+                                                    >
+                                                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                </Box>
+                            </Paper>
+                        )}
                     </Box>
                 )}
             </DialogContent>
@@ -293,7 +434,31 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
                     Close
                 </Button>
 
-                {isEditMode ? (
+                {isPasswordResetMode ? (
+                    <>
+                        <Button
+                            onClick={handleCancelEdit}
+                            sx={{
+                                color: '#666',
+                                '&:hover': { backgroundColor: '#f5f5f5' }
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleConfirmPasswordReset}
+                            disabled={!newPassword || !confirmPassword || newPassword !== confirmPassword}
+                            sx={{
+                                backgroundColor: '#f57c00',
+                                '&:hover': { backgroundColor: '#ef6c00' },
+                                '&:disabled': { backgroundColor: '#ccc' }
+                            }}
+                        >
+                            Reset Password
+                        </Button>
+                    </>
+                ) : isEditMode ? (
                     <>
                         <Button
                             onClick={handleCancelEdit}
@@ -322,23 +487,43 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit }: EditU
                         </Button>
                     </>
                 ) : (
-                    <Button
-                        variant="contained"
-                        onClick={handleEditClick}
-                        disabled={!!isViewingOwnProfile}
-                        sx={{
-                            backgroundColor: isViewingOwnProfile ? '#ccc' : '#FF9B0F',
-                            '&:hover': { 
-                                backgroundColor: isViewingOwnProfile ? '#ccc' : '#e88a00' 
-                            },
-                            '&:disabled': { 
-                                backgroundColor: '#ccc',
-                                color: '#666'
-                            }
-                        }}
-                    >
-                        {isViewingOwnProfile ? 'Cannot Edit Own Profile' : 'Edit User'}
-                    </Button>
+                    <>
+                        <Button
+                            variant="contained"
+                            onClick={handleEditClick}
+                            disabled={!!isViewingOwnProfile}
+                            sx={{
+                                backgroundColor: isViewingOwnProfile ? '#ccc' : '#FF9B0F',
+                                '&:hover': { 
+                                    backgroundColor: isViewingOwnProfile ? '#ccc' : '#e88a00' 
+                                },
+                                '&:disabled': { 
+                                    backgroundColor: '#ccc',
+                                    color: '#666'
+                                }
+                            }}
+                        >
+                            {isViewingOwnProfile ? 'Cannot Edit Own Profile' : 'Edit User'}
+                        </Button>
+                        
+                        {/* Reset Password Button - Only show for admin and not own profile */}
+                        {!isViewingOwnProfile && (
+                            <Button
+                                variant="outlined"
+                                onClick={handlePasswordReset}
+                                sx={{
+                                    color: '#f57c00',
+                                    borderColor: '#f57c00',
+                                    '&:hover': { 
+                                        backgroundColor: '#fff3e0',
+                                        borderColor: '#ef6c00' 
+                                    }
+                                }}
+                            >
+                                Reset Password
+                            </Button>
+                        )}
+                    </>
                 )}
             </DialogActions>
         </Dialog>
