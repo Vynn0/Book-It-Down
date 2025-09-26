@@ -11,7 +11,8 @@ import {
   CircularProgress,
   Divider,
   Paper,
-  IconButton
+  IconButton,
+  TextField
 } from '@mui/material';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -32,7 +33,7 @@ interface BookingModalProps {
   selectedDate: Date | null;
   roomId: number;
   roomName: string;
-  onBookingConfirm: (startTime: Date, endTime: Date) => Promise<{ success: boolean; error?: string }>;
+  onBookingConfirm: (startTime: Date, endTime: Date, title: string) => Promise<{ success: boolean; error?: string }>;
   onCheckAvailability: (roomId: number, startTime: Date, endTime: Date) => Promise<boolean>;
   isBookingInProgress?: boolean;
 }
@@ -49,6 +50,7 @@ export function BookingModal({
 }: BookingModalProps) {
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
+  const [title, setTitle] = useState<string>('');
   const [isChecking, setIsChecking] = useState(false);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -62,9 +64,11 @@ export function BookingModal({
       const defaultEnd = dayjs(selectedDate).hour(10).minute(0).second(0);
       setStartTime(defaultStart);
       setEndTime(defaultEnd);
+      setTitle(''); // Reset title
     } else {
       setStartTime(null);
       setEndTime(null);
+      setTitle('');
     }
     setAvailabilityError(null);
     setBookingError(null);
@@ -148,7 +152,10 @@ export function BookingModal({
   };
 
   const handleBooking = async () => {
-    if (!startTime || !endTime || !selectedDate || !isAvailable) return;
+    if (!startTime || !endTime || !selectedDate || !isAvailable || !title.trim()) {
+      setBookingError('Please fill in all fields including the booking title and check availability');
+      return;
+    }
 
     setBookingError(null);
 
@@ -174,7 +181,7 @@ export function BookingModal({
         .minute(endTime.minute())
         .toDate();
 
-      const result = await onBookingConfirm(startDateTime, endDateTime);
+      const result = await onBookingConfirm(startDateTime, endDateTime, title.trim());
       
       if (result.success) {
         onClose();
@@ -288,6 +295,27 @@ export function BookingModal({
                 Duration: {getDurationText()}
               </Typography>
             )}
+          </Box>
+
+          {/* Booking Title Input */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CalendarToday color="primary" />
+              Booking Title
+            </Typography>
+            <TextField
+              fullWidth
+              label="What is this meeting about?"
+              placeholder="e.g., Team Meeting, Client Presentation, Workshop"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              variant="outlined"
+              multiline
+              rows={2}
+              inputProps={{ maxLength: 255 }}
+              helperText={`${title.length}/255 characters`}
+              sx={{ mb: 1 }}
+            />
           </Box>
 
           <Divider sx={{ mb: 3 }} />

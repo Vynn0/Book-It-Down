@@ -34,6 +34,7 @@ export function useRoomBookings(roomId: number) {
         .from('booking')
         .select(`
           booking_id,
+          title,
           start_datetime,
           end_datetime,
           status,
@@ -60,7 +61,7 @@ export function useRoomBookings(roomId: number) {
         
         return {
           booking_id: booking.booking_id,
-          title: getBookingTitle(booking.status),
+          title: booking.title || getBookingTitle(booking.status),
           start: startLocal.toISOString(),
           end: endLocal.toISOString(),
           status: booking.status as 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired',

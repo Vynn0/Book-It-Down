@@ -260,6 +260,14 @@ const CurrentBooking: React.FC = () => {
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
+                          Title
+                        </TableCell>
+                        <TableCell sx={{ 
+                          bgcolor: 'grey.50', 
+                          fontWeight: 'bold',
+                          borderBottom: 2,
+                          borderColor: 'divider'
+                        }}>
                           Schedule
                         </TableCell>
                         <TableCell align="center" sx={{ 
@@ -302,6 +310,17 @@ const CurrentBooking: React.FC = () => {
                                 Created: {DateTimeUtils.formatLocal(booking.created_at)}
                               </Typography>
                             </Stack>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" sx={{ 
+                              fontWeight: 500,
+                              color: 'primary.main',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              maxWidth: '200px'
+                            }}>
+                              {booking.title || 'No title'}
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Stack spacing={1}>
@@ -370,6 +389,12 @@ const CurrentBooking: React.FC = () => {
           {selectedBooking && (
             <Stack spacing={3}>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <Box sx={{ gridColumn: '1 / -1' }}>
+                  <Typography variant="subtitle2" color="text.secondary">Title</Typography>
+                  <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 500 }}>
+                    {selectedBooking.title || 'No title'}
+                  </Typography>
+                </Box>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">Room</Typography>
                   <Typography variant="body1">{selectedBooking.room_id}</Typography>
