@@ -44,7 +44,6 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
   
   // Get all bookings data for admin dashboard stats
   const { 
-    bookings: allBookings, 
     isLoading: isLoadingBookings, 
     getTodayBookingsCount, 
     getActiveBookingsCount 
