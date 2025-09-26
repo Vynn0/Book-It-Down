@@ -10,14 +10,12 @@ import {
   Divider,
   Alert,
   Chip,
-  CircularProgress,
-  IconButton,
-  CardMedia
+  CircularProgress
 } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
-import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People, ChevronLeft, ChevronRight, ImageNotSupported } from '@mui/icons-material';
-import { Navbar, BookingModal, Sidebar } from '../components/ui';
+import { ArrowBack, Info, CheckCircle, EventAvailable, LocationOn, People } from '@mui/icons-material';
+import { Navbar, BookingModal, Sidebar, RoomImageCarousel } from '../components/ui';
 import Calendar from '../components/ui/Calendar';
 import { useAuth, useBooking, useRoomBookings, useBookingConflictCheck, useRoomManagement, useNavigation, useRoomImages } from '../hooks';
 import useBookingStatusChecker from '../hooks/Booking/useBookingStatusChecker';
@@ -36,9 +34,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
   const [roomError, setRoomError] = useState<string | null>(null);
-  
-  // Image carousel state
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState('addBooking');
@@ -69,19 +64,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   const handleSidebarToggle = () => {
     setSidebarOpen(!isSidebarOpen);
   };
-
-  // Image navigation functions - using useCallback to prevent unnecessary re-renders
-  const handlePrevImage = React.useCallback(() => {
-    if (memoizedImages.length > 0) {
-      setCurrentImageIndex((prev) => (prev === 0 ? memoizedImages.length - 1 : prev - 1));
-    }
-  }, [memoizedImages.length]);
-
-  const handleNextImage = React.useCallback(() => {
-    if (memoizedImages.length > 0) {
-      setCurrentImageIndex((prev) => (prev === memoizedImages.length - 1 ? 0 : prev + 1));
-    }
-  }, [memoizedImages.length]);
 
   // TAMBAHKAN FUNGSI INI (untuk navigasi dari sidebar)
   const handleMenuClick = (view: string) => {
@@ -158,34 +140,6 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
     loadImages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.room_id, memoizedImages.length, imagesLoading]); // Intentionally excluding getRoomImages to avoid infinite loop
-
-  // Reset current image index when images change
-  useEffect(() => {
-    if (memoizedImages.length > 0) {
-      setCurrentImageIndex(0);
-    }
-  }, [memoizedImages.length]); // Only depend on images length, not the entire array
-
-  // Keyboard navigation for carousel
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (memoizedImages.length <= 1) return;
-      
-      switch (event.key) {
-        case 'ArrowLeft':
-          event.preventDefault();
-          handlePrevImage();
-          break;
-        case 'ArrowRight':
-          event.preventDefault();
-          handleNextImage();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [memoizedImages.length, handlePrevImage, handleNextImage]);
 
   // Handle back navigation
   const handleBack = () => {
@@ -324,181 +278,14 @@ return (
 
                   {/* Image Carousel */}
                   <Box sx={{ mb: 3 }}>
-                    {imagesLoading ? (
-                      <Box sx={{ 
-                        height: 250, 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        backgroundColor: '#f5f5f5',
-                        borderRadius: 2,
-                        border: '2px dashed #ddd'
-                      }}>
-                        <CircularProgress size={30} />
-                        <Typography sx={{ ml: 2, color: 'text.secondary' }}>Loading images...</Typography>
-                      </Box>
-                    ) : memoizedImages && memoizedImages.length > 0 ? (
-                      <Box sx={{ 
-                        position: 'relative', 
-                        borderRadius: 2, 
-                        overflow: 'hidden',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        backgroundColor: '#000'
-                      }}>
-                        <CardMedia
-                          component="img"
-                          height="250"
-                          image={memoizedImages[currentImageIndex]?.image_url}
-                          alt={memoizedImages[currentImageIndex]?.image_name || `Room image ${currentImageIndex + 1}`}
-                          sx={{
-                            objectFit: 'cover',
-                            width: '100%',
-                            backgroundColor: '#f5f5f5',
-                            transition: 'opacity 0.3s ease-in-out'
-                          }}
-                          onError={(e) => {
-                            console.error('Image failed to load:', memoizedImages[currentImageIndex]?.image_url);
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                        
-                        {/* Navigation arrows - always show if more than 1 image */}
-                        {memoizedImages.length > 1 && (
-                          <>
-                            <IconButton
-                              onClick={handlePrevImage}
-                              sx={{
-                                position: 'absolute',
-                                left: 12,
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                backgroundColor: 'rgba(0,0,0,0.6)',
-                                color: 'white',
-                                width: 40,
-                                height: 40,
-                                '&:hover': {
-                                  backgroundColor: 'rgba(0,0,0,0.8)',
-                                  transform: 'translateY(-50%) scale(1.1)',
-                                },
-                                transition: 'all 0.2s ease'
-                              }}
-                              size="medium"
-                            >
-                              <ChevronLeft fontSize="large" />
-                            </IconButton>
-                            <IconButton
-                              onClick={handleNextImage}
-                              sx={{
-                                position: 'absolute',
-                                right: 12,
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                backgroundColor: 'rgba(0,0,0,0.6)',
-                                color: 'white',
-                                width: 40,
-                                height: 40,
-                                '&:hover': {
-                                  backgroundColor: 'rgba(0,0,0,0.8)',
-                                  transform: 'translateY(-50%) scale(1.1)',
-                                },
-                                transition: 'all 0.2s ease'
-                              }}
-                              size="medium"
-                            >
-                              <ChevronRight fontSize="large" />
-                            </IconButton>
-                          </>
-                        )}
-
-                        {/* Image indicators - only show if more than 1 image */}
-                        {memoizedImages.length > 1 && (
-                          <Box sx={{
-                            position: 'absolute',
-                            bottom: 12,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            display: 'flex',
-                            gap: 1,
-                            backgroundColor: 'rgba(0,0,0,0.5)',
-                            padding: '6px 12px',
-                            borderRadius: 3
-                          }}>
-                            {memoizedImages.map((_, index) => (
-                              <Box
-                                key={index}
-                                onClick={() => setCurrentImageIndex(index)}
-                                sx={{
-                                  width: 10,
-                                  height: 10,
-                                  borderRadius: '50%',
-                                  backgroundColor: index === currentImageIndex 
-                                    ? 'white' 
-                                    : 'rgba(255,255,255,0.4)',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.3s ease',
-                                  '&:hover': {
-                                    backgroundColor: index === currentImageIndex 
-                                      ? 'white' 
-                                      : 'rgba(255,255,255,0.7)',
-                                    transform: 'scale(1.2)'
-                                  }
-                                }}
-                              />
-                            ))}
-                          </Box>
-                        )}
-
-                        {/* Image counter */}
-                        <Box sx={{
-                          position: 'absolute',
-                          top: 12,
-                          right: 12,
-                          backgroundColor: 'rgba(0,0,0,0.7)',
-                          color: 'white',
-                          padding: '4px 10px',
-                          borderRadius: 2,
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          backdropFilter: 'blur(4px)'
-                        }}>
-                          {currentImageIndex + 1} / {memoizedImages.length}
-                        </Box>
-
-                        {/* Primary indicator */}
-                        {memoizedImages[currentImageIndex]?.is_primary && (
-                          <Box sx={{
-                            position: 'absolute',
-                            top: 12,
-                            left: 12,
-                            backgroundColor: 'rgba(76, 175, 80, 0.9)',
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: 1,
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            backdropFilter: 'blur(4px)'
-                          }}>
-                            PRIMARY
-                          </Box>
-                        )}
-                      </Box>
-                    ) : (
-                      <Box sx={{ 
-                        height: 250, 
-                        display: 'flex', 
-                        flexDirection: 'column',
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: 2,
-                        color: 'text.secondary',
-                        border: '2px dashed #ddd'
-                      }}>
-                        <ImageNotSupported sx={{ fontSize: 48, mb: 2, color: 'text.disabled' }} />
-                        <Typography variant="body1" sx={{ fontWeight: 500 }}>No images available</Typography>
-                        <Typography variant="body2" sx={{ mt: 0.5 }}>Room images will appear here</Typography>
-                      </Box>
-                    )}
+                    <RoomImageCarousel
+                      images={memoizedImages}
+                      isLoading={imagesLoading}
+                      height={250}
+                      enableKeyboardNavigation={true}
+                      showImageCounter={true}
+                      showPrimaryIndicator={true}
+                    />
                   </Box>
                   {/* ... Sisa konten panel kiri (tidak berubah) ... */}
                    <Box sx={{ mb: 3 }}>
