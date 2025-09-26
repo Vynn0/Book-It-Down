@@ -54,7 +54,7 @@ function EditUserModal({ open, user, onClose, onEditUser, onConfirmEdit, onReset
     
     // Get current logged-in user and user management hook
     const { user: currentUser } = useAuth()
-    const { resetPassword, isLoading: isResettingPassword } = useUserManagement()
+    const { resetPassword} = useUserManagement()
     
     // Check if the user being viewed is the same as the logged-in user
     // Convert both IDs to strings to ensure consistent comparison
