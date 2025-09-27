@@ -24,7 +24,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  TextField
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -33,20 +34,28 @@ import {
   CheckCircle as ApprovedIcon,
   Pending as PendingIcon,
   Close as CloseIcon,
-  EventAvailable as EventIcon
+  EventAvailable as EventIcon,
+  Save as SaveIcon
 } from '@mui/icons-material';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, Sidebar } from '../components/ui';
 import { useAuth, useBooking, useNavigation } from '../hooks';
+import { useBookingConflictCheck } from '../hooks/Booking/useBookingConflictCheck';
 import type { Booking } from '../hooks/Booking/useBooking';
 import { DateTimeUtils } from '../utils/dateUtils';
+import { supabase } from '../utils/supabase';
 
 const drawerWidth = 240;
 
 const CurrentBooking: React.FC = () => {
   const { user } = useAuth();
-  const { getCurrentBookings, isLoading: isBookingLoading } = useBooking();
+  const { getCurrentBookings, updateBooking, isLoading: isBookingLoading } = useBooking();
+  const { isChecking } = useBookingConflictCheck();
   const { goToSearch, goToAdminDashboard, goToRoomManagement } = useNavigation();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -54,6 +63,14 @@ const CurrentBooking: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedStartTime, setEditedStartTime] = useState<dayjs.Dayjs | null>(null);
+  const [editedEndTime, setEditedEndTime] = useState<dayjs.Dayjs | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -100,12 +117,124 @@ const CurrentBooking: React.FC = () => {
   const handleViewBooking = (booking: Booking) => {
     setSelectedBooking(booking);
     setIsModalOpen(true);
+    setIsEditMode(false);
+    setEditError(null);
   };
 
-  // Handle editing booking (placeholder for now)
+  // Handle editing booking
   const handleEditBooking = (booking: Booking) => {
-    console.log('Edit booking:', booking.booking_id);
-    // Future implementation: navigate to edit booking page or open edit modal
+    setSelectedBooking(booking);
+    setEditedTitle(booking.title || '');
+    setEditedStartTime(dayjs(booking.start_datetime));
+    setEditedEndTime(dayjs(booking.end_datetime));
+    setIsEditMode(true);
+    setIsModalOpen(true);
+    setEditError(null);
+  };
+
+  // Handle canceling edit mode
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditError(null);
+    if (selectedBooking) {
+      setEditedTitle(selectedBooking.title || '');
+      setEditedStartTime(dayjs(selectedBooking.start_datetime));
+      setEditedEndTime(dayjs(selectedBooking.end_datetime));
+    }
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    setSelectedBooking(null);
+    setEditError(null);
+  };
+
+  // Handle saving the edited booking
+  const handleSaveEdit = async () => {
+    if (!selectedBooking || !editedStartTime || !editedEndTime) {
+      setEditError('Please fill in all required fields');
+      return;
+    }
+
+    if (!editedTitle.trim()) {
+      setEditError('Title is required');
+      return;
+    }
+
+    if (editedTitle.length > 255) {
+      setEditError('Title must be 255 characters or less');
+      return;
+    }
+
+    if (editedStartTime.isAfter(editedEndTime)) {
+      setEditError('Start time must be before end time');
+      return;
+    }
+
+    const startDate = editedStartTime.toDate();
+    const endDate = editedEndTime.toDate();
+
+    // Check if the time is in the past
+    if (startDate < new Date()) {
+      setEditError('Cannot schedule booking in the past');
+      return;
+    }
+
+    setIsUpdating(true);
+    setEditError(null);
+
+    try {
+      // Check for conflicts (excluding current booking)
+      const { data: conflictingBookings, error: conflictError } = await supabase
+        .from('booking')
+        .select('booking_id')
+        .eq('room_id', selectedBooking.room_id)
+        .neq('booking_id', selectedBooking.booking_id) // Exclude current booking
+        .in('status', ['Pending', 'Approved'])
+        .or(`and(start_datetime.lt.${endDate.toISOString()},end_datetime.gt.${startDate.toISOString()})`);
+
+      if (conflictError) {
+        setEditError('Error checking for booking conflicts');
+        return;
+      }
+
+      if (conflictingBookings && conflictingBookings.length > 0) {
+        setEditError('This time slot conflicts with another booking');
+        return;
+      }
+
+      // Update the booking
+      const result = await updateBooking(selectedBooking.booking_id, {
+        title: editedTitle.trim(),
+        start_datetime: startDate.toISOString(),
+        end_datetime: endDate.toISOString()
+      });
+
+      if (result.success && result.booking) {
+        // Update local state
+        setBookings(prev => prev.map(booking => 
+          booking.booking_id === selectedBooking.booking_id 
+            ? result.booking! 
+            : booking
+        ));
+        
+        setSelectedBooking(result.booking);
+        setIsEditMode(false);
+        setEditError(null);
+        
+        // Show success message (you can implement a notification system)
+        alert('Booking updated successfully!');
+      } else {
+        setEditError(result.error || 'Failed to update booking');
+      }
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      setEditError('An unexpected error occurred');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Get statistics
@@ -377,73 +506,179 @@ const getUserRoles = () => {
       {/* Booking Details Modal */}
       <Dialog 
         open={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         maxWidth="md" 
         fullWidth
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h6">
-            Booking Details #{selectedBooking?.booking_id}
+            {isEditMode ? 'Edit Booking' : 'Booking Details'} #{selectedBooking?.booking_id}
           </Typography>
-          <IconButton onClick={() => setIsModalOpen(false)}>
+          <IconButton onClick={handleCloseModal}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           {selectedBooking && (
-            <Stack spacing={3}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                <Box sx={{ gridColumn: '1 / -1' }}>
-                  <Typography variant="subtitle2" color="text.secondary">Title</Typography>
-                  <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 500 }}>
-                    {selectedBooking.title || 'No title'}
-                  </Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Stack spacing={3}>
+                {editError && (
+                  <Alert severity="error">
+                    {editError}
+                  </Alert>
+                )}
+                
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                      Title
+                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        fullWidth
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        placeholder="Enter booking title"
+                        variant="outlined"
+                        size="small"
+                        inputProps={{ maxLength: 255 }}
+                        helperText={`${editedTitle.length}/255 characters`}
+                      />
+                    ) : (
+                      <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 500 }}>
+                        {selectedBooking.title || 'No title'}
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                      Room
+                    </Typography>
+                    <Typography variant="body1">{selectedBooking.room_id}</Typography>
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                      Status
+                    </Typography>
+                    {getStatusChip(selectedBooking.status || 'unknown')}
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                      Start Time
+                    </Typography>
+                    {isEditMode ? (
+                      <DateTimePicker
+                        value={editedStartTime}
+                        onChange={(newValue) => {
+                          setEditedStartTime(newValue ? dayjs(newValue) : null);
+                        }}
+                        slotProps={{
+                          textField: { 
+                            size: 'small',
+                            fullWidth: true 
+                          }
+                        }}
+                        minDateTime={dayjs()} // Prevent past dates
+                      />
+                    ) : (
+                      <Typography variant="body1">
+                        {DateTimeUtils.formatLocal(selectedBooking.start_datetime)}
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                      End Time
+                    </Typography>
+                    {isEditMode ? (
+                      <DateTimePicker
+                        value={editedEndTime}
+                        onChange={(newValue) => {
+                          setEditedEndTime(newValue ? dayjs(newValue) : null);
+                        }}
+                        slotProps={{
+                          textField: { 
+                            size: 'small',
+                            fullWidth: true 
+                          }
+                        }}
+                        minDateTime={editedStartTime || dayjs()} // End time must be after start time
+                      />
+                    ) : (
+                      <Typography variant="body1">
+                        {DateTimeUtils.formatLocal(selectedBooking.end_datetime)}
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  {!isEditMode && (
+                    <>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                          Created
+                        </Typography>
+                        <Typography variant="body1">
+                          {DateTimeUtils.formatLocal(selectedBooking.created_at)}
+                        </Typography>
+                      </Box>
+                      
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                          User ID
+                        </Typography>
+                        <Typography variant="body1">{selectedBooking.user_id}</Typography>
+                      </Box>
+                    </>
+                  )}
                 </Box>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Room</Typography>
-                  <Typography variant="body1">{selectedBooking.room_id}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Status</Typography>
-                  {getStatusChip(selectedBooking.status || 'unknown')}
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Start Time</Typography>
-                  <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.start_datetime)}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">End Time</Typography>
-                  <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.end_datetime)}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Created</Typography>
-                  <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.created_at)}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">User ID</Typography>
-                  <Typography variant="body1">{selectedBooking.user_id}</Typography>
-                </Box>
-              </Box>
-            </Stack>
+              </Stack>
+            </LocalizationProvider>
           )}
         </DialogContent>
         <DialogActions>
-          {selectedBooking?.status?.toLowerCase() === 'pending' && (
-            <Button 
-              variant="contained" 
-              color="secondary"
-              startIcon={<EditIcon />}
-              onClick={() => {
-                setIsModalOpen(false);
-                handleEditBooking(selectedBooking);
-              }}
-            >
-              Edit Booking
-            </Button>
+          {isEditMode ? (
+            <>
+              <Button 
+                onClick={handleCancelEdit}
+                disabled={isUpdating}
+                sx={{ color: '#666' }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={handleSaveEdit}
+                disabled={isUpdating || isChecking}
+                startIcon={isUpdating ? <CircularProgress size={16} /> : <SaveIcon />}
+                sx={{
+                  backgroundColor: '#4CAF50',
+                  '&:hover': { backgroundColor: '#45a049' }
+                }}
+              >
+                {isUpdating ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </>
+          ) : (
+            <>
+              {['pending', 'approved'].includes(selectedBooking?.status?.toLowerCase() || '') && (
+                <Button 
+                  variant="contained" 
+                  color="secondary"
+                  startIcon={<EditIcon />}
+                  onClick={() => setIsEditMode(true)}
+                >
+                  Edit Booking
+                </Button>
+              )}
+              <Button onClick={handleCloseModal}>
+                Close
+              </Button>
+            </>
           )}
-          <Button onClick={() => setIsModalOpen(false)}>
-            Close
-          </Button>
         </DialogActions>
       </Dialog>
     </ThemeProvider>

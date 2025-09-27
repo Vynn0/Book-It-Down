@@ -239,11 +239,81 @@ export function useBooking() {
     }
   }, [user]);
 
+  const updateBooking = async (
+    bookingId: number,
+    updatedData: { title: string; start_datetime: string; end_datetime: string }
+  ): Promise<{ success: boolean; booking?: Booking; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Validate booking times
+      const startTime = new Date(updatedData.start_datetime);
+      const endTime = new Date(updatedData.end_datetime);
+      
+      // Check if start time is before end time
+      if (startTime >= endTime) {
+        return { success: false, error: 'Start time must be before end time' };
+      }
+      
+      // Check if booking is not in the past (using timezone-aware validation)
+      if (DateTimeUtils.isPastDateTime(startTime)) {
+        return { success: false, error: 'Cannot schedule booking in the past' };
+      }
+
+      // Get current user's ID
+      const { data: userData, error: userError } = await supabase
+        .from('user')
+        .select('user_id')
+        .eq('email', user.email)
+        .single();
+
+      if (userError || !userData) {
+        console.error('Error fetching user data:', userError);
+        return { success: false, error: 'Failed to get user information' };
+      }
+
+      // Convert times to UTC
+      const startDateTimeUTC = DateTimeUtils.toUTC(startTime);
+      const endDateTimeUTC = DateTimeUtils.toUTC(endTime);
+
+      // Update the booking
+      const { data, error: updateError } = await supabase
+        .from('booking')
+        .update({
+          title: updatedData.title,
+          start_datetime: startDateTimeUTC.toISOString(),
+          end_datetime: endDateTimeUTC.toISOString(),
+        })
+        .eq('booking_id', bookingId)
+        .eq('user_id', userData.user_id) // Ensure user can only update their own bookings
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating booking:', updateError);
+        return { success: false, error: 'Failed to update booking' };
+      }
+
+      return { success: true, booking: data };
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      return { success: false, error: 'An unexpected error occurred' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     createBooking,
     createQuickBooking,
     getCurrentBookings,
     getUserBookings,
+    updateBooking,
     isLoading,
     error
   };
