@@ -106,7 +106,7 @@ export function useBooking() {
           title: bookingData.title,
           start_datetime: startDateTimeUTC.toISOString(),
           end_datetime: endDateTimeUTC.toISOString(),
-          status: bookingData.status || 'Pending',
+          status: bookingData.status || 'Approved', // Default to Approved for quick bookings
           created_at: new Date().toISOString()
         })
         .select()
@@ -138,7 +138,7 @@ export function useBooking() {
       title: title,
       start_datetime: now.toISOString(),
       end_datetime: endTime.toISOString(),
-      status: 'Pending'
+      status: 'Approved' // Quick bookings are auto-approved
     });
   };
 

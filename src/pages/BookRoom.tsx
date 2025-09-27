@@ -186,7 +186,7 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
         title: title,
         start_datetime: startTime.toISOString(),
         end_datetime: endTime.toISOString(),
-        status: 'Pending'
+        status: 'Approved'
       });
       
       if (result.success) {
