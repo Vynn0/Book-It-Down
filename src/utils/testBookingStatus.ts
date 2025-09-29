@@ -19,8 +19,8 @@ export async function testBookingStatusSystem() {
     
     if (result.success && result.summary) {
       console.log('✅ Status check completed successfully');
+      console.log(`   - Pending to Approved updates: ${result.summary.pendingToApprovedUpdates}`);
       console.log(`   - Expired bookings updated: ${result.summary.expiredUpdates}`);
-      console.log(`   - Started bookings updated: ${result.summary.startedUpdates}`);
       console.log(`   - Total bookings checked: ${result.summary.totalChecked}`);
     } else {
       console.log('❌ Status check failed:', result.error);
