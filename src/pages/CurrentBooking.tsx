@@ -63,7 +63,7 @@ const CurrentBooking: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
@@ -105,9 +105,9 @@ const CurrentBooking: React.FC = () => {
   const getStatusChip = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
-        return <Chip icon={<ApprovedIcon />} label="Approved" color="success" size="small" />;
+        return <Chip icon={<ApprovedIcon />} label="Ongoing" color="success" size="small" />;
       case 'pending':
-        return <Chip icon={<PendingIcon />} label="Pending" color="warning" size="small" />;
+        return <Chip icon={<PendingIcon />} label="Upcoming" color="warning" size="small" />;
       default:
         return <Chip label={status} color="default" size="small" />;
     }
@@ -214,16 +214,16 @@ const CurrentBooking: React.FC = () => {
 
       if (result.success && result.booking) {
         // Update local state
-        setBookings(prev => prev.map(booking => 
-          booking.booking_id === selectedBooking.booking_id 
-            ? result.booking! 
+        setBookings(prev => prev.map(booking =>
+          booking.booking_id === selectedBooking.booking_id
+            ? result.booking!
             : booking
         ));
-        
+
         setSelectedBooking(result.booking);
         setIsEditMode(false);
         setEditError(null);
-        
+
         // Show success message (you can implement a notification system)
         alert('Booking updated successfully!');
       } else {
@@ -248,7 +248,7 @@ const CurrentBooking: React.FC = () => {
   };
   const stats = getBookingStats();
 
-const getUserRoles = () => {
+  const getUserRoles = () => {
     if (!user?.roles || user.roles.length === 0) return 'No role assigned';
     return user.roles.map(role => role.role_name).join(', ');
   };
@@ -289,11 +289,11 @@ const getUserRoles = () => {
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
             {/* Statistics Cards */}
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, 
-              gap: 3, 
-              mb: 3 
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+              gap: 3,
+              mb: 3
             }}>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
@@ -349,8 +349,8 @@ const getUserRoles = () => {
                   <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
                   </Alert>
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     onClick={() => window.location.reload()}
                     sx={{ mt: 1 }}
                   >
@@ -366,8 +366,8 @@ const getUserRoles = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     You have no approved or pending bookings at this time.
                   </Typography>
-                  <Button 
-                    variant="contained" 
+                  <Button
+                    variant="contained"
                     startIcon={<ScheduleIcon />}
                     onClick={goToSearch}
                   >
@@ -379,40 +379,40 @@ const getUserRoles = () => {
                   <Table stickyHeader aria-label="current bookings table">
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Booking Details
                         </TableCell>
-                        <TableCell sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Title
                         </TableCell>
-                        <TableCell sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Schedule
                         </TableCell>
-                        <TableCell align="center" sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell align="center" sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Status
                         </TableCell>
-                        <TableCell align="center" sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell align="center" sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
@@ -425,7 +425,7 @@ const getUserRoles = () => {
                       {bookings.map((booking) => (
                         <TableRow
                           key={booking.booking_id}
-                          sx={{ 
+                          sx={{
                             '&:nth-of-type(odd)': { bgcolor: 'grey.25' },
                             '&:hover': { bgcolor: 'action.hover' },
                             transition: 'background-color 0.2s ease'
@@ -445,7 +445,7 @@ const getUserRoles = () => {
                             </Stack>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="body2" sx={{ 
+                            <Typography variant="body2" sx={{
                               fontWeight: 500,
                               color: 'primary.main',
                               overflow: 'hidden',
@@ -471,8 +471,8 @@ const getUserRoles = () => {
                           <TableCell align="center">
                             <Stack direction="row" spacing={1} justifyContent="center">
                               <Tooltip title="View Details">
-                                <IconButton 
-                                  size="small" 
+                                <IconButton
+                                  size="small"
                                   color="primary"
                                   onClick={() => handleViewBooking(booking)}
                                 >
@@ -481,8 +481,8 @@ const getUserRoles = () => {
                               </Tooltip>
                               {booking.status?.toLowerCase() === 'pending' && (
                                 <Tooltip title="Edit Booking">
-                                  <IconButton 
-                                    size="small" 
+                                  <IconButton
+                                    size="small"
                                     color="secondary"
                                     onClick={() => handleEditBooking(booking)}
                                   >
@@ -504,10 +504,10 @@ const getUserRoles = () => {
       </Box>
 
       {/* Booking Details Modal */}
-      <Dialog 
-        open={isModalOpen} 
+      <Dialog
+        open={isModalOpen}
         onClose={handleCloseModal}
-        maxWidth="md" 
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -527,7 +527,7 @@ const getUserRoles = () => {
                     {editError}
                   </Alert>
                 )}
-                
+
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                   <Box sx={{ gridColumn: '1 / -1' }}>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
@@ -550,21 +550,21 @@ const getUserRoles = () => {
                       </Typography>
                     )}
                   </Box>
-                  
+
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                       Room
                     </Typography>
                     <Typography variant="body1">{selectedBooking.room_id}</Typography>
                   </Box>
-                  
+
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                       Status
                     </Typography>
                     {getStatusChip(selectedBooking.status || 'unknown')}
                   </Box>
-                  
+
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                       Start Time
@@ -576,9 +576,9 @@ const getUserRoles = () => {
                           setEditedStartTime(newValue ? dayjs(newValue) : null);
                         }}
                         slotProps={{
-                          textField: { 
+                          textField: {
                             size: 'small',
-                            fullWidth: true 
+                            fullWidth: true
                           }
                         }}
                         minDateTime={dayjs()} // Prevent past dates
@@ -589,7 +589,7 @@ const getUserRoles = () => {
                       </Typography>
                     )}
                   </Box>
-                  
+
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                       End Time
@@ -601,9 +601,9 @@ const getUserRoles = () => {
                           setEditedEndTime(newValue ? dayjs(newValue) : null);
                         }}
                         slotProps={{
-                          textField: { 
+                          textField: {
                             size: 'small',
-                            fullWidth: true 
+                            fullWidth: true
                           }
                         }}
                         minDateTime={editedStartTime || dayjs()} // End time must be after start time
@@ -614,7 +614,7 @@ const getUserRoles = () => {
                       </Typography>
                     )}
                   </Box>
-                  
+
                   {!isEditMode && (
                     <>
                       <Box>
@@ -625,7 +625,7 @@ const getUserRoles = () => {
                           {DateTimeUtils.formatLocal(selectedBooking.created_at)}
                         </Typography>
                       </Box>
-                      
+
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                           User ID
@@ -642,15 +642,15 @@ const getUserRoles = () => {
         <DialogActions>
           {isEditMode ? (
             <>
-              <Button 
+              <Button
                 onClick={handleCancelEdit}
                 disabled={isUpdating}
                 sx={{ color: '#666' }}
               >
                 Cancel
               </Button>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 onClick={handleSaveEdit}
                 disabled={isUpdating || isChecking}
                 startIcon={isUpdating ? <CircularProgress size={16} /> : <SaveIcon />}
@@ -665,8 +665,8 @@ const getUserRoles = () => {
           ) : (
             <>
               {['pending', 'approved'].includes(selectedBooking?.status?.toLowerCase() || '') && (
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   color="secondary"
                   startIcon={<EditIcon />}
                   onClick={() => setIsEditMode(true)}

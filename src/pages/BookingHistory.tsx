@@ -61,7 +61,7 @@ const BookingHistory: React.FC = () => {
       const { success, bookings: userBookings, error: fetchError } = await getUserBookings();
       if (success) {
         // Mengurutkan data berdasarkan tanggal pembuatan terbaru
-        const sortedBookings = (userBookings || []).sort((a, b) => 
+        const sortedBookings = (userBookings || []).sort((a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         setBookings(sortedBookings);
@@ -89,11 +89,11 @@ const BookingHistory: React.FC = () => {
   const getStatusChip = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
-        return <Chip icon={<ApprovedIcon />} label="Approved" color="success" size="small" />;
+        return <Chip icon={<ApprovedIcon />} label="Ongoing" color="success" size="small" />;
       case 'pending':
-        return <Chip icon={<PendingIcon />} label="Pending" color="warning" size="small" />;
+        return <Chip icon={<PendingIcon />} label="Upcoming" color="warning" size="small" />;
       case 'cancelled':
-        return <Chip icon={<CancelledIcon />} label="Cancelled" color="error" size="small" />;
+        return <Chip icon={<CancelledIcon />} label="Expired" color="error" size="small" />;
       default:
         return <Chip icon={<HistoryIcon />} label={status} color="default" size="small" />;
     }
@@ -161,11 +161,11 @@ const BookingHistory: React.FC = () => {
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
             {/* Statistics Cards */}
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, 
-              gap: 3, 
-              mb: 3 
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+              gap: 3,
+              mb: 3
             }}>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
@@ -231,8 +231,8 @@ const BookingHistory: React.FC = () => {
                   <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
                   </Alert>
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     onClick={() => window.location.reload()}
                     sx={{ mt: 1 }}
                   >
@@ -248,8 +248,8 @@ const BookingHistory: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     You haven't made any room bookings yet.
                   </Typography>
-                  <Button 
-                    variant="contained" 
+                  <Button
+                    variant="contained"
                     startIcon={<ScheduleIcon />}
                     onClick={goToSearch}
                   >
@@ -261,40 +261,40 @@ const BookingHistory: React.FC = () => {
                   <Table stickyHeader aria-label="booking history table">
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Booking Details
                         </TableCell>
-                        <TableCell sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Title
                         </TableCell>
-                        <TableCell sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Schedule
                         </TableCell>
-                        <TableCell align="center" sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell align="center" sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
                         }}>
                           Status
                         </TableCell>
-                        <TableCell align="center" sx={{ 
-                          bgcolor: 'grey.50', 
+                        <TableCell align="center" sx={{
+                          bgcolor: 'grey.50',
                           fontWeight: 'bold',
                           borderBottom: 2,
                           borderColor: 'divider'
@@ -307,7 +307,7 @@ const BookingHistory: React.FC = () => {
                       {bookings.map((booking) => (
                         <TableRow
                           key={booking.booking_id}
-                          sx={{ 
+                          sx={{
                             '&:nth-of-type(odd)': { bgcolor: 'grey.25' },
                             '&:hover': { bgcolor: 'action.hover' },
                             transition: 'background-color 0.2s ease'
@@ -327,7 +327,7 @@ const BookingHistory: React.FC = () => {
                             </Stack>
                           </TableCell>
                           <TableCell>
-                            <Typography variant="body2" sx={{ 
+                            <Typography variant="body2" sx={{
                               fontWeight: 500,
                               color: 'primary.main',
                               overflow: 'hidden',
@@ -354,8 +354,8 @@ const BookingHistory: React.FC = () => {
                             {(booking.status?.toLowerCase() === 'pending' || booking.status?.toLowerCase() === 'approved') ? (
                               <Stack direction="row" spacing={1} justifyContent="center">
                                 <Tooltip title="View Details">
-                                  <IconButton 
-                                    size="small" 
+                                  <IconButton
+                                    size="small"
                                     color="primary"
                                     onClick={() => handleBookingAction(booking)}
                                   >
@@ -364,8 +364,8 @@ const BookingHistory: React.FC = () => {
                                 </Tooltip>
                                 {booking.status?.toLowerCase() === 'pending' && (
                                   <Tooltip title="Edit Booking">
-                                    <IconButton 
-                                      size="small" 
+                                    <IconButton
+                                      size="small"
                                       color="secondary"
                                       onClick={() => handleBookingAction(booking)}
                                     >
@@ -392,10 +392,10 @@ const BookingHistory: React.FC = () => {
       </Box>
 
       {/* Booking Details Modal */}
-      <Dialog 
-        open={isModalOpen} 
+      <Dialog
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        maxWidth="md" 
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

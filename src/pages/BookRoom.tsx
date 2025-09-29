@@ -1,3 +1,5 @@
+// NOTE: Approved (status from database) is labeled as Ongoing; Pending as Upcoming.
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
@@ -365,11 +367,11 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
                       Booking Status:
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-                      <Chip label="Approved" sx={{ backgroundColor: '#28a745', color: 'white' }} size="small" />
-                      <Chip label="Pending" sx={{ backgroundColor: '#ffc107', color: 'black' }} size="small" />
-                      <Chip label="Completed" sx={{ backgroundColor: '#17a2b8', color: 'white' }} size="small" />
+                      <Chip label="Ongoing" sx={{ backgroundColor: '#28a745', color: 'white' }} size="small" />
+                      <Chip label="Upcoming" sx={{ backgroundColor: '#ffc107', color: 'black' }} size="small" />
+                      {/* <Chip label="Completed" sx={{ backgroundColor: '#17a2b8', color: 'white' }} size="small" /> */}
                       <Chip label="Expired" sx={{ backgroundColor: '#fd7e14', color: 'white' }} size="small" />
-                      <Chip label="Rejected" sx={{ backgroundColor: '#dc3545', color: 'white' }} size="small" />
+                      {/* <Chip label="Rejected" sx={{ backgroundColor: '#dc3545', color: 'white' }} size="small" /> */}
                     </Box>
                   </Box>
                   {calendarLoading ? (
