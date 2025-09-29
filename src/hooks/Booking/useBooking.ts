@@ -40,28 +40,28 @@ export function useBooking() {
       // Validate booking times
       const startTime = new Date(bookingData.start_datetime);
       const endTime = new Date(bookingData.end_datetime);
-      
+
       // Check if start time is before end time
       if (startTime >= endTime) {
         return { success: false, error: 'Start time must be before end time' };
       }
-      
+
       // Check if booking is not in the past (using timezone-aware validation)
       if (DateTimeUtils.isPastDateTime(startTime)) {
         return { success: false, error: 'Cannot book rooms in the past. Please select a current or future time.' };
       }
-      
+
       // Also check if the booking date is not a past date
       if (DateTimeUtils.isPastDate(startTime)) {
         return { success: false, error: 'Cannot book rooms for past dates. Please select today or a future date.' };
       }
-      
-      // Check maximum duration (2 hours)
+
+      // Check maximum duration (8 hours)
       const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-      if (durationHours > 2) {
-        return { success: false, error: 'Booking duration cannot exceed 2 hours' };
+      if (durationHours > 8) {
+        return { success: false, error: 'Booking duration cannot exceed 8 hours' };
       }
-      
+
       // Ensure dates are stored in UTC
       const startDateTimeUTC = DateTimeUtils.toUTC(startTime);
       const endDateTimeUTC = DateTimeUtils.toUTC(endTime);
@@ -143,7 +143,7 @@ export function useBooking() {
   };
 
   // src/hooks/Booking/useBooking.ts
-// ...
+  // ...
   const getUserBookings = useCallback(async (): Promise<{ success: boolean; bookings?: Booking[]; error?: string }> => {
     if (!user) {
       return { success: false, error: 'User not authenticated' };
@@ -199,7 +199,7 @@ export function useBooking() {
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Update expired bookings before fetching
       await BookingStatusManager.updateExpiredBookings();
@@ -254,12 +254,12 @@ export function useBooking() {
       // Validate booking times
       const startTime = new Date(updatedData.start_datetime);
       const endTime = new Date(updatedData.end_datetime);
-      
+
       // Check if start time is before end time
       if (startTime >= endTime) {
         return { success: false, error: 'Start time must be before end time' };
       }
-      
+
       // Check if booking is not in the past (using timezone-aware validation)
       if (DateTimeUtils.isPastDateTime(startTime)) {
         return { success: false, error: 'Cannot schedule booking in the past' };

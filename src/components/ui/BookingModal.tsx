@@ -17,12 +17,12 @@ import {
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { 
-  Close, 
-  Schedule, 
-  CalendarToday, 
-  CheckCircle, 
-  Warning 
+import {
+  Close,
+  Schedule,
+  CalendarToday,
+  CheckCircle,
+  Warning
 } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
 import { DateTimeUtils } from '../../utils/dateUtils';
@@ -79,7 +79,7 @@ export function BookingModal({
     setStartTime(newTime);
     setIsAvailable(null);
     setAvailabilityError(null);
-    
+
     // Auto-adjust end time if it's before start time
     if (newTime && endTime && newTime.isAfter(endTime)) {
       setEndTime(newTime.add(1, 'hour'));
@@ -102,8 +102,8 @@ export function BookingModal({
     }
 
     const duration = endTime.diff(startTime, 'minute');
-    if (duration > 120) { // 2 hours max
-      setAvailabilityError('Maximum booking duration is 2 hours');
+    if (duration > 480) { // 8 hours max
+      setAvailabilityError('Maximum booking duration is 8 hours');
       setIsAvailable(false);
       return;
     }
@@ -139,7 +139,7 @@ export function BookingModal({
 
       const available = await onCheckAvailability(roomId, startDateTime, endDateTime);
       setIsAvailable(available);
-      
+
       if (!available) {
         setAvailabilityError('This time slot is already booked. Please choose a different time.');
       }
@@ -182,7 +182,7 @@ export function BookingModal({
         .toDate();
 
       const result = await onBookingConfirm(startDateTime, endDateTime, title.trim());
-      
+
       if (result.success) {
         onClose();
       } else {
@@ -204,7 +204,7 @@ export function BookingModal({
     const duration = endTime.diff(startTime, 'minute');
     const hours = Math.floor(duration / 60);
     const minutes = duration % 60;
-    
+
     if (hours > 0 && minutes > 0) {
       return `${hours}h ${minutes}m`;
     } else if (hours > 0) {
@@ -260,7 +260,7 @@ export function BookingModal({
               <Schedule color="primary" />
               Select Time
             </Typography>
-            
+
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
               <TimePicker
                 label="Start Time"
@@ -274,7 +274,7 @@ export function BookingModal({
                   }
                 }}
               />
-              
+
               <TimePicker
                 label="End Time"
                 value={endTime}
