@@ -29,32 +29,32 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   // Get room ID from URL parameters
   const { roomId } = useParams<{ roomId: string }>();
   const { goToSearch, goToAdminDashboard, goToRoomManagement } = useNavigation(); // Tambahkan navigasi lain
-  
+
   // State for the room data
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
   const [roomError, setRoomError] = useState<string | null>(null);
-  
+
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState('addBooking');
   const drawerWidth = 240;
-  
+
   // Existing state
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  
+
   const { createBooking, isLoading: bookingLoading } = useBooking();
   const { rooms, isLoadingRooms, fetchRooms } = useRoomManagement();
   const { images, isLoading: imagesLoading, getRoomImages } = useRoomImages();
-  
+
   // Memoize images to prevent unnecessary re-renders
   const memoizedImages = React.useMemo(() => images, [images]);
-  
+
   // Enable automatic status checking every 5 minutes
   useBookingStatusChecker(5);
-  
+
   // Conditional hooks based on room availability
   const roomIdNum = roomId ? parseInt(roomId) : 0;
   const { bookings, isLoading: calendarLoading, error: calendarError, refreshBookings, getBookingColor } = useRoomBookings(roomIdNum);
@@ -77,7 +77,7 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
       setActiveView(view);
     }
   };
-  
+
   // Optimized room loading logic
   useEffect(() => {
     const loadRoom = async () => {
@@ -88,7 +88,7 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
       }
 
       const roomIdNumber = parseInt(roomId);
-      
+
       // Check if room already exists in loaded rooms
       const existingRoom = rooms.find(r => r.room_id === roomIdNumber);
       if (existingRoom) {
@@ -179,16 +179,16 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   const handleBookingConfirm = async (startTime: Date, endTime: Date, title: string) => {
     setBookingError(null);
     setBookingSuccess(false);
-    
+
     try {
       const result = await createBooking({
         room_id: room.room_id,
         title: title,
         start_datetime: startTime.toISOString(),
         end_datetime: endTime.toISOString(),
-        status: 'Approved'
+        status: 'Pending'
       });
-      
+
       if (result.success) {
         setBookingSuccess(true);
         // Refresh calendar to show new booking
@@ -216,7 +216,7 @@ const BookRoom: React.FC<BookRoomProps> = ({ onBack }) => {
   };
 
   // Ganti seluruh bagian 'return' dengan ini:
-return (
+  return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
@@ -281,7 +281,7 @@ return (
                     />
                   </Box>
                   {/* ... Sisa konten panel kiri (tidak berubah) ... */}
-                   <Box sx={{ mb: 3 }}>
+                  <Box sx={{ mb: 3 }}>
                     <Typography variant="h5" component="h1" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
                       {room.room_name}
                     </Typography>
@@ -291,7 +291,7 @@ return (
                   </Box>
                   <Divider sx={{ mb: 3 }} />
                   {/* ... (lanjutan kode panel kiri) */}
-                   <Box sx={{ mb: 3 }}>
+                  <Box sx={{ mb: 3 }}>
                     <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Info /> Room Information
                     </Typography>
@@ -336,7 +336,7 @@ return (
                       </Box>
                     )}
                   </Box>
-                   {bookingSuccess && (
+                  {bookingSuccess && (
                     <Alert severity="success" sx={{ mb: 3 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CheckCircle />
@@ -382,18 +382,18 @@ return (
                       {calendarError}
                     </Alert>
                   ) : (
-                    <Box sx={{ 
-                      border: '1px solid #e0e0e0', 
-                      borderRadius: 2, 
+                    <Box sx={{
+                      border: '1px solid #e0e0e0',
+                      borderRadius: 2,
                       overflow: 'hidden',
                       backgroundColor: '#ffffff'
                     }}>
-                      <Calendar 
+                      <Calendar
                         events={bookings.map(booking => ({
                           ...booking,
                           backgroundColor: getBookingColor(booking.status),
                           borderColor: getBookingColor(booking.status)
-                        }))} 
+                        }))}
                         onDateClick={handleDateClick}
                       />
                     </Box>
@@ -403,7 +403,7 @@ return (
             </Box>
             {/* KONTEN UTAMA ANDA BERAKHIR DI SINI */}
 
-             <BookingModal
+            <BookingModal
               open={showBookingModal}
               onClose={handleModalClose}
               selectedDate={selectedDate}

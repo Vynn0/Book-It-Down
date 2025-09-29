@@ -10,8 +10,74 @@ export interface BookingStatusUpdate {
 
 export class BookingStatusManager {
   /**
+   * Update Pending bookings to Approved when their start time has arrived
+   * Pending bookings that have started should be marked as 'Approved' (Ongoing)
+   */
+  static async updatePendingToApproved(): Promise<{
+    success: boolean;
+    updatedBookings?: BookingStatusUpdate[];
+    error?: string;
+  }> {
+    try {
+      const currentTime = DateTimeUtils.now();
+      console.log('Checking for pending bookings to approve at:', currentTime.toISOString());
+
+      // Fetch pending bookings that have started but not ended
+      const { data: pendingBookings, error: fetchError } = await supabase
+        .from('booking')
+        .select('booking_id, status, start_datetime, end_datetime')
+        .eq('status', 'Pending')
+        .lte('start_datetime', currentTime.toISOString())
+        .gt('end_datetime', currentTime.toISOString());
+
+      if (fetchError) {
+        console.error('Error fetching pending bookings to approve:', fetchError);
+        return { success: false, error: 'Failed to fetch pending bookings' };
+      }
+
+      if (!pendingBookings || pendingBookings.length === 0) {
+        console.log('No pending bookings to approve found');
+        return { success: true, updatedBookings: [] };
+      }
+
+      console.log(`Found ${pendingBookings.length} pending bookings to approve`);
+
+      const updatedBookings: BookingStatusUpdate[] = [];
+
+      // Update each pending booking to approved
+      for (const booking of pendingBookings) {
+        const { error: updateError } = await supabase
+          .from('booking')
+          .update({
+            status: 'Approved'
+          })
+          .eq('booking_id', booking.booking_id);
+
+        if (updateError) {
+          console.error(`Error updating booking ${booking.booking_id} to approved:`, updateError);
+        } else {
+          updatedBookings.push({
+            booking_id: booking.booking_id,
+            old_status: 'Pending',
+            new_status: 'Approved',
+            end_datetime: booking.end_datetime
+          });
+        }
+      }
+
+      console.log(`Successfully updated ${updatedBookings.length} pending bookings to approved`);
+      return { success: true, updatedBookings };
+
+    } catch (error) {
+      console.error('Unexpected error updating pending bookings to approved:', error);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  }
+
+  /**
    * Check and update expired bookings
-   * Bookings that have passed their end time should be marked as 'Completed' or 'Expired'
+   * Bookings that have passed their end time should be marked as 'Expired'
+   * This includes both Approved bookings and Cancelled bookings
    */
   static async updateExpiredBookings(): Promise<{
     success: boolean;
@@ -22,11 +88,11 @@ export class BookingStatusManager {
       const currentTime = DateTimeUtils.now();
       console.log('Checking for expired bookings at:', currentTime.toISOString());
 
-      // Fetch all active bookings that have passed their end time
+      // Fetch all active bookings (Approved, Pending, Cancelled) that have passed their end time
       const { data: expiredBookings, error: fetchError } = await supabase
         .from('booking')
         .select('booking_id, status, end_datetime, start_datetime')
-        .in('status', ['Pending', 'Approved'])
+        .in('status', ['Pending', 'Approved', 'Cancelled'])
         .lt('end_datetime', currentTime.toISOString());
 
       if (fetchError) {
@@ -45,11 +111,11 @@ export class BookingStatusManager {
 
       // Update each expired booking
       for (const booking of expiredBookings) {
-        const newStatus = this.determineExpiredStatus(booking.status);
-        
+        const newStatus = this.determineExpiredStatus();
+
         const { error: updateError } = await supabase
           .from('booking')
-          .update({ 
+          .update({
             status: newStatus,
             // updated_at: new Date().toISOString()
           })
@@ -78,16 +144,11 @@ export class BookingStatusManager {
 
   /**
    * Determine the new status for an expired booking
+   * All bookings that have passed their end time become 'Expired'
    */
-  private static determineExpiredStatus(currentStatus: string): string {
-    switch (currentStatus) {
-      case 'Approved':
-        return 'Completed'; // Approved bookings that have ended are marked as completed
-      case 'Pending':
-        return 'Expired'; // Pending bookings that have ended are marked as expired
-      default:
-        return currentStatus; // Keep other statuses as is
-    }
+  private static determineExpiredStatus(): string {
+    // All expired bookings become 'Expired' regardless of their previous status
+    return 'Expired';
   }
 
   /**
@@ -101,7 +162,7 @@ export class BookingStatusManager {
   }> {
     try {
       const currentTime = DateTimeUtils.now();
-      
+
       // Fetch approved bookings that have started but not ended
       const { data: startedBookings, error: fetchError } = await supabase
         .from('booking')
@@ -176,13 +237,15 @@ export class BookingStatusManager {
   }
 
   /**
-   * Comprehensive status check - updates all time-based statuses
+   * Comprehensive status check - updates all time-based statuses in correct order
+   * 1. First convert Pending bookings that have started to Approved
+   * 2. Then convert bookings that have ended to Expired
    */
   static async performStatusCheck(): Promise<{
     success: boolean;
     summary?: {
+      pendingToApprovedUpdates: number;
       expiredUpdates: number;
-      startedUpdates: number;
       totalChecked: number;
     };
     error?: string;
@@ -190,22 +253,22 @@ export class BookingStatusManager {
     try {
       console.log('Starting comprehensive booking status check...');
 
-      // Update expired bookings
+      // Step 1: Update pending bookings that have started to approved
+      const pendingResult = await this.updatePendingToApproved();
+      if (!pendingResult.success) {
+        return { success: false, error: pendingResult.error };
+      }
+
+      // Step 2: Update expired bookings (both approved and cancelled)
       const expiredResult = await this.updateExpiredBookings();
       if (!expiredResult.success) {
         return { success: false, error: expiredResult.error };
       }
 
-      // Update started bookings (placeholder for now)
-      const startedResult = await this.updateStartedBookings();
-      if (!startedResult.success) {
-        return { success: false, error: startedResult.error };
-      }
-
       const summary = {
+        pendingToApprovedUpdates: pendingResult.updatedBookings?.length || 0,
         expiredUpdates: expiredResult.updatedBookings?.length || 0,
-        startedUpdates: startedResult.updatedBookings?.length || 0,
-        totalChecked: (expiredResult.updatedBookings?.length || 0) + (startedResult.updatedBookings?.length || 0)
+        totalChecked: (pendingResult.updatedBookings?.length || 0) + (expiredResult.updatedBookings?.length || 0)
       };
 
       console.log('Status check summary:', summary);

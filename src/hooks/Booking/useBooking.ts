@@ -106,7 +106,7 @@ export function useBooking() {
           title: bookingData.title,
           start_datetime: startDateTimeUTC.toISOString(),
           end_datetime: endDateTimeUTC.toISOString(),
-          status: bookingData.status || 'Approved', // Default to Approved for quick bookings
+          status: bookingData.status || 'Pending', // Default to Approved for quick bookings
           created_at: new Date().toISOString()
         })
         .select()
@@ -138,7 +138,7 @@ export function useBooking() {
       title: title,
       start_datetime: now.toISOString(),
       end_datetime: endTime.toISOString(),
-      status: 'Approved' // Quick bookings are auto-approved
+      status: 'Pending' // Quick bookings are auto-approved
     });
   };
 
@@ -153,8 +153,8 @@ export function useBooking() {
     setError(null);
 
     try {
-      // Update expired bookings before fetching
-      await BookingStatusManager.updateExpiredBookings();
+      // Update booking statuses based on current time (Pending→Approved, Expired bookings)
+      await BookingStatusManager.performStatusCheck();
 
       // Get current user's ID
       const { data: userData, error: userError } = await supabase
@@ -201,8 +201,8 @@ export function useBooking() {
     setError(null);
 
     try {
-      // Update expired bookings before fetching
-      await BookingStatusManager.updateExpiredBookings();
+      // Update booking statuses based on current time (Pending→Approved, Expired bookings)
+      await BookingStatusManager.performStatusCheck();
 
       // Get current user's ID
       const { data: userData, error: userError } = await supabase

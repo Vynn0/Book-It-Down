@@ -26,8 +26,8 @@ export function useAllBookings() {
     try {
       console.log('Fetching all bookings for admin dashboard');
 
-      // First, update any expired bookings before fetching
-      await BookingStatusManager.updateExpiredBookings();
+      // First, update booking statuses based on current time (Pending→Approved, Expired bookings)
+      await BookingStatusManager.performStatusCheck();
 
       // Fetch all bookings with user and room information
       const { data: bookingsData, error: bookingsError } = await supabase
@@ -86,7 +86,7 @@ export function useAllBookings() {
 
   // Get count of active bookings (pending + approved)
   const getActiveBookingsCount = useCallback((): number => {
-    return bookings.filter(booking => 
+    return bookings.filter(booking =>
       booking.status === 'Pending' || booking.status === 'Approved'
     ).length;
   }, [bookings]);
