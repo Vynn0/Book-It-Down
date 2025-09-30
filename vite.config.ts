@@ -23,40 +23,40 @@ export default defineConfig({
           if (id.includes('react') || id.includes('react-dom')) {
             return 'react-vendor';
           }
-          
+
           // MUI components
           if (id.includes('@mui/material')) {
             return 'mui-material';
           }
-          
+
           if (id.includes('@mui/icons-material')) {
             return 'mui-icons';
           }
-          
+
           if (id.includes('@mui/x-date-pickers')) {
             return 'mui-pickers';
           }
-          
+
           // Calendar libraries
           if (id.includes('@fullcalendar')) {
             return 'calendar';
           }
-          
+
           // Date libraries
           if (id.includes('date-fns') || id.includes('dayjs')) {
             return 'date-libs';
           }
-          
+
           // Backend
           if (id.includes('@supabase')) {
             return 'supabase';
           }
-          
+
           // Large utility libraries
           if (id.includes('bcrypt') || id.includes('lodash')) {
             return 'utils';
           }
-          
+
           // Node modules (other vendor libraries)
           if (id.includes('node_modules')) {
             return 'vendor';

@@ -12,16 +12,16 @@ const RoomManagement = lazy(() => import('../pages/RoomManagement'));
 
 // Loading component
 const PageLoader = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-    <CircularProgress />
-  </Box>
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+    </Box>
 );
 
 // Usage in your router
 const LazyRoute = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<PageLoader />}>
-    {children}
-  </Suspense>
+    <Suspense fallback={<PageLoader />}>
+        {children}
+    </Suspense>
 );
 
 export { AdminDashboard, BookRoom, BookingHistory, RoomManagement, LazyRoute };
