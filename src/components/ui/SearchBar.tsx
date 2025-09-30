@@ -3,11 +3,12 @@ import {
   Box,
   Button,
   TextField,
+  Typography,
 } from '@mui/material';
-import { Search} from '@mui/icons-material';
+import { Search } from '@mui/icons-material';
 import { DatePicker, TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { setMinutes, setHours, isAfter} from 'date-fns';
+import { setMinutes, setHours, isAfter } from 'date-fns';
 
 // Backendnya...
 interface SearchBarProps {
@@ -47,9 +48,15 @@ function SearchBar({ onSearch }: SearchBarProps) {
     ? setMinutes(setHours(selectedJamMulai, selectedJamMulai.getHours()), selectedJamMulai.getMinutes() + 5)
     : null;
 
-    // Di bawah in Front Endnya...
+  // Di bawah in Front Endnya...
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Search for rooms that are actually available during your desired date and time.
+          Only rooms without conflicting bookings will be shown.
+        </Typography>
+      </Box>
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -89,7 +96,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
           disabled={!selectedJamMulai}
           slotProps={{ textField: { fullWidth: true } }}
         />
-          <TextField
+        <TextField
           label="Kapasitas"
           type="number"
           value={selectedKapasitas}
@@ -97,7 +104,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
           disabled={!selectedJamSelesai}
           fullWidth
           InputProps={{
-            inputProps: { min: 1 } 
+            inputProps: { min: 1 }
           }}
         />
         <Button
