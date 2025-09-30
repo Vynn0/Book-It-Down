@@ -5,30 +5,7 @@ import { visualizer } from 'rollup-plugin-visualizer'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: [
-          [
-            'babel-plugin-import',
-            {
-              libraryName: '@mui/material',
-              libraryDirectory: '',
-              camel2DashComponentName: false,
-            },
-            'core',
-          ],
-          [
-            'babel-plugin-import',
-            {
-              libraryName: '@mui/icons-material',
-              libraryDirectory: '',
-              camel2DashComponentName: false,
-            },
-            'icons',
-          ],
-        ],
-      },
-    }),
+    react(),
     visualizer({
       filename: 'dist/stats.html',
       open: false,
