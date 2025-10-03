@@ -44,14 +44,15 @@ const AllUsersBookings: React.FC = () => {
   
   const getStatusChip = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'approved':
-        return <Chip label="Approved" color="success" size="small" />;
       case 'pending':
-        return <Chip label="Pending" color="warning" size="small" />;
+        return <Chip label="Upcoming" color="warning" size="small" />;
+      case 'approved':
+        return <Chip label="Ongoing" color="success" size="small" />;
       case 'cancelled':
-        return <Chip label="Cancelled" color="error" size="small" />;
+      case 'rejected':
+      case 'completed':
       case 'expired':
-          return <Chip label="Expired" color="default" size="small" variant="outlined" />;
+        return <Chip label="Expired" color="error" size="small" />;
       default:
         return <Chip label={status || 'Unknown'} color="default" size="small" />;
     }
