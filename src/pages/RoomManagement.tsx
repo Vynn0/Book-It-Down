@@ -57,6 +57,7 @@ function RoomManagement({ onNavigateToSearch, onNavigateToAdmin }: RoomManagemen
     resetForm,
     addRoom,
     updateRoom,
+    deleteRoom,
     validateForm,
     refreshRooms
   } = useRoomManagement();
@@ -78,6 +79,25 @@ function RoomManagement({ onNavigateToSearch, onNavigateToAdmin }: RoomManagemen
       setIsModalOpen(false);
     } else {
       showNotification(result.message, "error");
+    }
+  };
+
+  const handleDeleteRoom = async (roomId: number) => {
+    const isConfirmed = window.confirm(
+        'Are you sure you want to delete this room? This action cannot be undone.'
+    );
+
+    if (!isConfirmed) {
+        return;
+    }
+
+    const result = await deleteRoom(roomId);
+    if (result.success) {
+        showNotification(result.message, 'success');
+        handleCloseEditModal(); // Close the modal on success
+    } else {
+        showNotification(result.message, 'error');
+        // Keep the modal open to show the error
     }
   };
 
@@ -242,6 +262,7 @@ function RoomManagement({ onNavigateToSearch, onNavigateToAdmin }: RoomManagemen
                 }
                 return result;
               }}
+              onDelete={handleDeleteRoom}
             />
           )}
 

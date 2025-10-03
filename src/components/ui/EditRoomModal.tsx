@@ -26,10 +26,11 @@ interface EditRoomModalProps {
     location: string;
     capacity: number;
     description: string;
-    images?: string[]; // Keep for backward compatibility, but we'll use Supabase instead
+    images?: string[]; 
   };
   onSave?: (roomId: number, formData: { room_name: string; location: string; capacity: number; description: string }) => Promise<{ success: boolean; message: string }>;
-  onImageUpdate?: () => void; // Callback to refresh parent component when images change
+  onImageUpdate?: () => void;
+  onDelete?: (roomId: number) => void;
 }
 
 export default function EditRoomModal({
@@ -38,6 +39,7 @@ export default function EditRoomModal({
   roomData,
   onSave,
   onImageUpdate,
+  onDelete,
 }: EditRoomModalProps) {
   // Use Supabase images instead of local state
   const { 
@@ -65,7 +67,7 @@ export default function EditRoomModal({
     setFormData(roomData);
     setCurrentIndex(0);
     setUploadError(null);
-  }, [roomData.room_id, isOpen]); // Removed getRoomImages to prevent infinite loop
+  }, [isOpen, roomData]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -137,6 +139,12 @@ export default function EditRoomModal({
     if (formData.capacity < 1) return 'Capacity must be at least 1';
     if (formData.capacity > 1000) return 'Capacity cannot exceed 1000';
     return null;
+  };
+  
+  const handleDelete = () => {
+      if (onDelete && roomData.room_id) {
+          onDelete(roomData.room_id);
+      }
   };
 
   const handleUpdate = async () => {
@@ -442,11 +450,17 @@ export default function EditRoomModal({
 
       {/* Footer */}
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button color="error" variant="contained" sx={{ mr: 1 }}>
+        <Button
+          color="error"
+          variant="contained"
+          sx={{ mr: 1 }}
+          onClick={handleDelete}
+          disabled={isLoading || isImagesLoading}
+        >
           HAPUS RUANGAN
         </Button>
         <Box sx={{ flexGrow: 1 }} />
-        <Button onClick={handleUpdate} color="success" variant="contained" disabled={isLoading}>
+        <Button onClick={handleUpdate} color="success" variant="contained" disabled={isLoading || isImagesLoading}>
           {isLoading ? "UPDATING..." : "PERBARUI"}
         </Button>
       </DialogActions>
