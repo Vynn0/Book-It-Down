@@ -34,7 +34,10 @@ import {
   Pending as PendingIcon,
   Cancel as CancelledIcon,
   History as HistoryIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  AccessTime as OngoingIcon,      // <-- Tambahan ikon
+  Event as UpcomingIcon,        // <-- Tambahan ikon
+  HistoryToggleOff as ExpiredIcon // <-- Tambahan ikon
 } from '@mui/icons-material';
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
@@ -60,7 +63,6 @@ const BookingHistory: React.FC = () => {
     const fetchBookings = async () => {
       const { success, bookings: userBookings, error: fetchError } = await getUserBookings();
       if (success) {
-        // Mengurutkan data berdasarkan tanggal pembuatan terbaru
         const sortedBookings = (userBookings || []).sort((a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
@@ -70,7 +72,7 @@ const BookingHistory: React.FC = () => {
       }
     };
 
-    if (user) { // Hanya fetch jika user sudah terautentikasi
+    if (user) {
       fetchBookings();
     }
   }, [user, getUserBookings]);
@@ -85,7 +87,6 @@ const BookingHistory: React.FC = () => {
     else if (view === 'addBooking') goToSearch();
   };
 
-  // Get status-specific styling
   const getStatusChip = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
@@ -93,34 +94,38 @@ const BookingHistory: React.FC = () => {
       case 'pending':
         return <Chip icon={<PendingIcon />} label="Upcoming" color="warning" size="small" />;
       case 'cancelled':
+      case 'expired': // Menangani status 'expired' dari backend
+      case 'rejected':
+      case 'completed':
         return <Chip icon={<CancelledIcon />} label="Expired" color="error" size="small" />;
       default:
         return <Chip icon={<HistoryIcon />} label={status} color="default" size="small" />;
     }
   };
 
-  // Handle viewing booking details
   const handleViewBooking = (booking: Booking) => {
     setSelectedBooking(booking);
     setIsModalOpen(true);
   };
 
-  // Handle action button for pending/approved bookings
   const handleBookingAction = (booking: Booking) => {
     handleViewBooking(booking);
   };
 
-  // Get statistics
+  // ### PERUBAHAN LOGIKA STATISTIK DIMULAI DI SINI ###
   const getBookingStats = () => {
     const stats = {
       total: bookings.length,
-      approved: bookings.filter(b => b.status?.toLowerCase() === 'approved').length,
-      pending: bookings.filter(b => b.status?.toLowerCase() === 'pending').length,
-      cancelled: bookings.filter(b => b.status?.toLowerCase() === 'cancelled').length,
+      ongoing: bookings.filter(b => b.status?.toLowerCase() === 'approved').length,
+      upcoming: bookings.filter(b => b.status?.toLowerCase() === 'pending').length,
+      expired: bookings.filter(b => 
+        !['approved', 'pending'].includes(b.status?.toLowerCase() || '')
+      ).length,
     };
     return stats;
   };
   const stats = getBookingStats();
+  // ### AKHIR PERUBAHAN LOGIKA STATISTIK ###
 
   const getUserRoles = () => {
     if (!user?.roles || user.roles.length === 0) return 'No role assigned';
@@ -160,7 +165,7 @@ const BookingHistory: React.FC = () => {
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
-            {/* Statistics Cards */}
+            {/* ### PERUBAHAN KARTU STATISTIK DIMULAI DI SINI ### */}
             <Box sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
@@ -180,36 +185,37 @@ const BookingHistory: React.FC = () => {
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography color="text.secondary" gutterBottom>
-                    Approved
+                    <OngoingIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} /> Ongoing
                   </Typography>
                   <Typography variant="h4" component="div" color="success.main">
-                    {stats.approved}
+                    {stats.ongoing}
                   </Typography>
                 </CardContent>
               </Card>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography color="text.secondary" gutterBottom>
-                    Pending
+                    <UpcomingIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} /> Upcoming
                   </Typography>
                   <Typography variant="h4" component="div" color="warning.main">
-                    {stats.pending}
+                    {stats.upcoming}
                   </Typography>
                 </CardContent>
               </Card>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography color="text.secondary" gutterBottom>
-                    Cancelled
+                    <ExpiredIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} /> Expired
                   </Typography>
                   <Typography variant="h4" component="div" color="error.main">
-                    {stats.cancelled}
+                    {stats.expired}
                   </Typography>
                 </CardContent>
               </Card>
             </Box>
-
-            {/* Main Content */}
+            {/* ### AKHIR PERUBAHAN KARTU STATISTIK ### */}
+            
+            {/* Sisa dari file tidak ada perubahan */}
             <Paper elevation={3} sx={{ overflow: 'hidden' }}>
               <Box sx={{ p: 3, pb: 0 }}>
                 <Typography variant="h5" component="h1" color="secondary" gutterBottom>
@@ -391,7 +397,6 @@ const BookingHistory: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Booking Details Modal */}
       <Dialog
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -14,6 +14,7 @@ import {
   MeetingRoom,
   History,
   EventAvailable,
+  Groups,
 } from '@mui/icons-material'
 import { useLocation } from 'react-router-dom'
 import { useRoleBasedRouting, useNavigation } from '../../hooks'
@@ -35,6 +36,7 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
     goToSearch,
     goToBookingHistory,
     goToCurrentBooking, // pastikan ada di hook useNavigation
+    goToAllUsersBookings,
   } = useNavigation()
   const location = useLocation()
 
@@ -63,6 +65,9 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
         case 'bookingHistory':
           goToBookingHistory()
           break
+        case 'allUsersBookings': // <-- 3. TAMBAHKAN CASE BARU
+          goToAllUsersBookings();
+          break;
         default:
           console.warn('Unhandled view:', view, 'using onMenuClick fallback')
           onMenuClick(view)
@@ -81,6 +86,7 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
     if (path.includes('/rooms/management')) return 'roomManagement'
     if (path.includes('/history')) return 'bookingHistory' // ✅ Added this case
     if (path.includes('/current')) return 'currentBooking' // ✅ Fixed path check
+    if (path.includes('/admin/all-bookings')) return 'allUsersBookings'; // <-- 4. TAMBAHKAN PENGECEKAN PATH
     if (path.includes('/searchpage')) return activeView || 'addBooking'
     if (path.includes('/rooms/') && path.includes('/book')) return 'addBooking'
     return activeView
@@ -95,6 +101,7 @@ export function Sidebar({ activeView, onMenuClick, open, onClose }: SidebarProps
       { text: 'Add Booking', icon: <EventAvailable />, view: 'addBooking', roles: ['admin', 'room-manager', 'employee'] },
       { text: 'Current Booking', icon: <History />, view: 'currentBooking', roles: ['admin', 'room-manager', 'employee'] }, // ✅ baru
       { text: 'Booking History', icon: <History />, view: 'bookingHistory', roles: ['admin', 'room-manager', 'employee'] },
+      { text: 'All User Bookings', icon: <Groups />, view: 'allUsersBookings', roles: ['admin'] },
     ]
 
     return allMenuItems.filter(item => {

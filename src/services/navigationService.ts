@@ -26,6 +26,7 @@ export type NavigationTarget =
   | 'profile' 
   | 'book-room'
   | 'booking-history'
+  | 'all-users-bookings'  
   | 'back';
 
 export interface NavigationOptions {
@@ -135,6 +136,15 @@ class NavigationService {
         case 'booking-history':
           SessionManager.updateCurrentPage('history');
           this.navigate('/history');
+          break;
+        
+        case 'all-users-bookings':
+          if (roles.includes('admin')) {
+            SessionManager.updateCurrentPage('all-bookings');
+            this.navigate('/admin/all-bookings');
+          } else {
+            this.navigateToRoleBasedDashboard(roles);
+          }
           break;
 
         case 'back':
