@@ -224,7 +224,7 @@ function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: Admi
                 <Typography variant="h5" component="h1" color="secondary" gutterBottom>
                   User Management Dashboard
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body1">
                   Manage users, roles, and permissions from this central dashboard.
                 </Typography>
               </Box>
@@ -239,7 +239,7 @@ function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: Admi
                     <Typography variant="h3" component="div">
                       {isLoadingUsers ? '-' : users.length}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2">
                       Registered in the system
                     </Typography>
                   </CardContent>
@@ -253,7 +253,7 @@ function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: Admi
                     <Typography variant="h3" component="div">
                       {isLoadingBookings ? '-' : getActiveBookingsCount()}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2">
                       Total pending/approved bookings
                     </Typography>
                   </CardContent>
@@ -267,7 +267,7 @@ function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: Admi
                     <Typography variant="h3" component="div">
                       {isLoadingBookings ? '-' : getTodayBookingsCount()}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2">
                       Active bookings today
                     </Typography>
                   </CardContent>
@@ -303,7 +303,7 @@ function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: Admi
             </DialogTitle>
 
             <DialogContent dividers>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 3 }}>
                 Create a new user account with encrypted password. This is a developer tool for quick user addition.
               </Typography>
 
@@ -316,7 +316,7 @@ function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: Admi
               />
 
               <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption">
                   <strong>Security Note:</strong> Passwords are automatically hashed using bcrypt with 12 salt rounds before storage.
                   The created_at timestamp is automatically set to the current time.
                 </Typography>

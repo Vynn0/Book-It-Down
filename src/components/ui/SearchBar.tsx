@@ -52,7 +52,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ mb: 2 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" sx={{ mb: 2 }}>
           Search for rooms that are actually available during your desired date and time.
           Only rooms without conflicting bookings will be shown.
         </Typography>

@@ -91,7 +91,7 @@ const AllUsersBookings: React.FC = () => {
               <Typography variant="h5" component="h1" color="secondary" gutterBottom>
                 All Users Booking History
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ mb: 2 }}>
                 View all booking activities from every user in the system.
               </Typography>
               

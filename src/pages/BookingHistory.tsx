@@ -174,7 +174,7 @@ const BookingHistory: React.FC = () => {
             }}>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary" gutterBottom>
+                  <Typography gutterBottom>
                     Total Bookings
                   </Typography>
                   <Typography variant="h4" component="div" color="primary">
@@ -184,7 +184,7 @@ const BookingHistory: React.FC = () => {
               </Card>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary" gutterBottom>
+                  <Typography gutterBottom>
                     <OngoingIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} /> Ongoing
                   </Typography>
                   <Typography variant="h4" component="div" color="success.main">
@@ -194,7 +194,7 @@ const BookingHistory: React.FC = () => {
               </Card>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary" gutterBottom>
+                  <Typography gutterBottom>
                     <UpcomingIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} /> Upcoming
                   </Typography>
                   <Typography variant="h4" component="div" color="warning.main">
@@ -204,7 +204,7 @@ const BookingHistory: React.FC = () => {
               </Card>
               <Card elevation={2}>
                 <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary" gutterBottom>
+                  <Typography gutterBottom>
                     <ExpiredIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} /> Expired
                   </Typography>
                   <Typography variant="h4" component="div" color="error.main">
@@ -221,7 +221,7 @@ const BookingHistory: React.FC = () => {
                 <Typography variant="h5" component="h1" color="secondary" gutterBottom>
                   Booking History
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ mb: 2 }}>
                   View and manage all your room booking requests
                 </Typography>
                 <Divider />
@@ -248,10 +248,10 @@ const BookingHistory: React.FC = () => {
               ) : bookings.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 8 }}>
                   <HistoryIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                  <Typography variant="h6" gutterBottom>
                     No Booking History
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  <Typography variant="body2" sx={{ mb: 3 }}>
                     You haven't made any room bookings yet.
                   </Typography>
                   <Button
@@ -324,10 +324,10 @@ const BookingHistory: React.FC = () => {
                               <Typography variant="subtitle2" fontWeight="bold">
                                 #{booking.booking_id}
                               </Typography>
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography variant="body2">
                                 Room: {booking.room_id}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary">
+                              <Typography variant="caption">
                                 Created: {DateTimeUtils.formatLocal(booking.created_at)}
                               </Typography>
                             </Stack>
@@ -381,7 +381,7 @@ const BookingHistory: React.FC = () => {
                                 )}
                               </Stack>
                             ) : (
-                              <Typography variant="caption" color="text.secondary">
+                              <Typography variant="caption">
                                 No actions
                               </Typography>
                             )}
@@ -416,33 +416,33 @@ const BookingHistory: React.FC = () => {
             <Stack spacing={3}>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <Box sx={{ gridColumn: '1 / -1' }}>
-                  <Typography variant="subtitle2" color="text.secondary">Title</Typography>
+                  <Typography variant="subtitle2">Title</Typography>
                   <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 500 }}>
                     {selectedBooking.title || 'No title'}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Room</Typography>
+                  <Typography variant="subtitle2">Room</Typography>
                   <Typography variant="body1">{selectedBooking.room_id}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Status</Typography>
+                  <Typography variant="subtitle2">Status</Typography>
                   {getStatusChip(selectedBooking.status || 'unknown')}
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Start Time</Typography>
+                  <Typography variant="subtitle2">Start Time</Typography>
                   <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.start_datetime)}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">End Time</Typography>
+                  <Typography variant="subtitle2">End Time</Typography>
                   <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.end_datetime)}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Created</Typography>
+                  <Typography variant="subtitle2">Created</Typography>
                   <Typography variant="body1">{DateTimeUtils.formatLocal(selectedBooking.created_at)}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">User ID</Typography>
+                  <Typography variant="subtitle2">User ID</Typography>
                   <Typography variant="body1">{selectedBooking.user_id}</Typography>
                 </Box>
               </Box>

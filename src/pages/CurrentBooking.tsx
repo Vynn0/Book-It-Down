@@ -89,7 +89,7 @@ const CurrentBooking: React.FC = () => {
     if (user) {
       fetchBookings();
     }
-  }, [user]); // Removed getCurrentBookings from dependencies
+  }, [user, getCurrentBookings]);
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -236,17 +236,8 @@ const CurrentBooking: React.FC = () => {
       setIsUpdating(false);
     }
   };
-
-  // Get statistics
-  const getBookingStats = () => {
-    const stats = {
-      total: bookings.length,
-      approved: bookings.filter(b => b.status?.toLowerCase() === 'approved').length,
-      pending: bookings.filter(b => b.status?.toLowerCase() === 'pending').length,
-    };
-    return stats;
-  };
-  const stats = getBookingStats();
+  
+  const totalBookings = bookings.length;
 
   const getUserRoles = () => {
     if (!user?.roles || user.roles.length === 0) return 'No role assigned';
@@ -288,217 +279,196 @@ const CurrentBooking: React.FC = () => {
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
-            {/* Statistics Cards */}
-            <Box sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-              gap: 3,
-              mb: 3
-            }}>
-              <Card elevation={2}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary" gutterBottom>
-                    Total Current
-                  </Typography>
-                  <Typography variant="h4" component="div" color="primary">
-                    {stats.total}
-                  </Typography>
-                </CardContent>
-              </Card>
-              <Card elevation={2}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary" gutterBottom>
-                    Approved
-                  </Typography>
-                  <Typography variant="h4" component="div" color="success.main">
-                    {stats.approved}
-                  </Typography>
-                </CardContent>
-              </Card>
-              <Card elevation={2}>
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography color="text.secondary" gutterBottom>
-                    Pending
-                  </Typography>
-                  <Typography variant="h4" component="div" color="warning.main">
-                    {stats.pending}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Box>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
 
-            {/* Main Content */}
-            <Paper elevation={3} sx={{ overflow: 'hidden' }}>
-              <Box sx={{ p: 3, pb: 0 }}>
-                <Typography variant="h5" component="h1" color="secondary" gutterBottom>
-                  Current & Upcoming Bookings
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Manage your approved and pending room bookings
-                </Typography>
-                <Divider />
-              </Box>
+              {/* Main Content - Table */}
+              <Paper elevation={3} sx={{ flexGrow: 1, overflow: 'hidden' }}>
+                <Box sx={{ p: 3, pb: 0 }}>
+                  <Typography variant="h5" component="h1" color="secondary" gutterBottom>
+                    Current & Upcoming Bookings
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    Manage your current room bookings
+                  </Typography>
+                  <Divider />
+                </Box>
 
-              {isBookingLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
-                  <CircularProgress size={40} />
-                  <Typography sx={{ ml: 2 }}>Loading current bookings...</Typography>
-                </Box>
-              ) : error ? (
-                <Box sx={{ p: 3 }}>
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {error}
-                  </Alert>
-                  <Button
-                    variant="outlined"
-                    onClick={() => window.location.reload()}
-                    sx={{ mt: 1 }}
-                  >
-                    Try Again
-                  </Button>
-                </Box>
-              ) : bookings.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 8 }}>
-                  <EventIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    No Current Bookings
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    You have no approved or pending bookings at this time.
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    startIcon={<ScheduleIcon />}
-                    onClick={goToSearch}
-                  >
-                    Book a Room
-                  </Button>
-                </Box>
-              ) : (
-                <TableContainer sx={{ maxHeight: '60vh' }}>
-                  <Table stickyHeader aria-label="current bookings table">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{
-                          bgcolor: 'grey.50',
-                          fontWeight: 'bold',
-                          borderBottom: 2,
-                          borderColor: 'divider'
-                        }}>
-                          Booking Details
-                        </TableCell>
-                        <TableCell sx={{
-                          bgcolor: 'grey.50',
-                          fontWeight: 'bold',
-                          borderBottom: 2,
-                          borderColor: 'divider'
-                        }}>
-                          Title
-                        </TableCell>
-                        <TableCell sx={{
-                          bgcolor: 'grey.50',
-                          fontWeight: 'bold',
-                          borderBottom: 2,
-                          borderColor: 'divider'
-                        }}>
-                          Schedule
-                        </TableCell>
-                        <TableCell align="center" sx={{
-                          bgcolor: 'grey.50',
-                          fontWeight: 'bold',
-                          borderBottom: 2,
-                          borderColor: 'divider'
-                        }}>
-                          Status
-                        </TableCell>
-                        <TableCell align="center" sx={{
-                          bgcolor: 'grey.50',
-                          fontWeight: 'bold',
-                          borderBottom: 2,
-                          borderColor: 'divider'
-                        }}>
-                          Actions
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {bookings.map((booking) => (
-                        <TableRow
-                          key={booking.booking_id}
-                          sx={{
-                            '&:nth-of-type(odd)': { bgcolor: 'grey.25' },
-                            '&:hover': { bgcolor: 'action.hover' },
-                            transition: 'background-color 0.2s ease'
-                          }}
-                        >
-                          <TableCell>
-                            <Stack spacing={1}>
-                              <Typography variant="subtitle2" fontWeight="bold">
-                                #{booking.booking_id}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Room: {booking.room_id}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                Created: {DateTimeUtils.formatLocal(booking.created_at)}
-                              </Typography>
-                            </Stack>
+                {isBookingLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+                    <CircularProgress size={40} />
+                    <Typography sx={{ ml: 2 }}>Loading current bookings...</Typography>
+                  </Box>
+                ) : error ? (
+                  <Box sx={{ p: 3 }}>
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {error}
+                    </Alert>
+                    <Button
+                      variant="outlined"
+                      onClick={() => window.location.reload()}
+                      sx={{ mt: 1 }}
+                    >
+                      Try Again
+                    </Button>
+                  </Box>
+                ) : bookings.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <EventIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      No Current Bookings
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      You have no approved or pending bookings at this time.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      startIcon={<ScheduleIcon />}
+                      onClick={goToSearch}
+                    >
+                      Book a Room
+                    </Button>
+                  </Box>
+                ) : (
+                  <TableContainer sx={{ maxHeight: '60vh' }}>
+                    <Table stickyHeader aria-label="current bookings table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{
+                            bgcolor: 'grey.50',
+                            fontWeight: 'bold',
+                            borderBottom: 2,
+                            borderColor: 'divider'
+                          }}>
+                            Booking Details
                           </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" sx={{
-                              fontWeight: 500,
-                              color: 'primary.main',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              maxWidth: '200px'
-                            }}>
-                              {booking.title || 'No title'}
-                            </Typography>
+                          <TableCell sx={{
+                            bgcolor: 'grey.50',
+                            fontWeight: 'bold',
+                            borderBottom: 2,
+                            borderColor: 'divider'
+                          }}>
+                            Title
                           </TableCell>
-                          <TableCell>
-                            <Stack spacing={1}>
-                              <Typography variant="body2">
-                                <strong>Start:</strong> {DateTimeUtils.formatLocal(booking.start_datetime)}
-                              </Typography>
-                              <Typography variant="body2">
-                                <strong>End:</strong> {DateTimeUtils.formatLocal(booking.end_datetime)}
-                              </Typography>
-                            </Stack>
+                          <TableCell sx={{
+                            bgcolor: 'grey.50',
+                            fontWeight: 'bold',
+                            borderBottom: 2,
+                            borderColor: 'divider'
+                          }}>
+                            Schedule
                           </TableCell>
-                          <TableCell align="center">
-                            {getStatusChip(booking.status || 'unknown')}
+                          <TableCell align="center" sx={{
+                            bgcolor: 'grey.50',
+                            fontWeight: 'bold',
+                            borderBottom: 2,
+                            borderColor: 'divider'
+                          }}>
+                            Status
                           </TableCell>
-                          <TableCell align="center">
-                            <Stack direction="row" spacing={1} justifyContent="center">
-                              <Tooltip title="View Details">
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  onClick={() => handleViewBooking(booking)}
-                                >
-                                  <ViewIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              {booking.status?.toLowerCase() === 'pending' && (
-                                <Tooltip title="Edit Booking">
-                                  <IconButton
-                                    size="small"
-                                    color="secondary"
-                                    onClick={() => handleEditBooking(booking)}
-                                  >
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </Stack>
+                          <TableCell align="center" sx={{
+                            bgcolor: 'grey.50',
+                            fontWeight: 'bold',
+                            borderBottom: 2,
+                            borderColor: 'divider'
+                          }}>
+                            Actions
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </Paper>
+                      </TableHead>
+                      <TableBody>
+                        {bookings.map((booking) => (
+                          <TableRow
+                            key={booking.booking_id}
+                            sx={{
+                              '&:nth-of-type(odd)': { bgcolor: 'grey.25' },
+                              '&:hover': { bgcolor: 'action.hover' },
+                              transition: 'background-color 0.2s ease'
+                            }}
+                          >
+                            <TableCell>
+                              <Stack spacing={1}>
+                                <Typography variant="subtitle2" fontWeight="bold">
+                                  #{booking.booking_id}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Room: {booking.room_id}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  Created: {DateTimeUtils.formatLocal(booking.created_at)}
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" sx={{
+                                fontWeight: 500,
+                                color: 'primary.main',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: '200px'
+                              }}>
+                                {booking.title || 'No title'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Stack spacing={1}>
+                                <Typography variant="body2">
+                                  <strong>Start:</strong> {DateTimeUtils.formatLocal(booking.start_datetime)}
+                                </Typography>
+                                <Typography variant="body2">
+                                  <strong>End:</strong> {DateTimeUtils.formatLocal(booking.end_datetime)}
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell align="center">
+                              {getStatusChip(booking.status || 'unknown')}
+                            </TableCell>
+                            <TableCell align="center">
+                              <Stack direction="row" spacing={1} justifyContent="center">
+                                <Tooltip title="View Details">
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => handleViewBooking(booking)}
+                                  >
+                                    <ViewIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                {booking.status?.toLowerCase() === 'pending' && (
+                                  <Tooltip title="Edit Booking">
+                                    <IconButton
+                                      size="small"
+                                      color="secondary"
+                                      onClick={() => handleEditBooking(booking)}
+                                    >
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Paper>
+
+              {/* Statistics Card - Portrait */}
+              <Box sx={{ flexShrink: 0, width: { xs: '100%', md: 240 } }}>
+                  <Card sx={{ border: '1px solid rgba(0,0,0,0.2)', boxShadow: '0 5px 5px 0 rgba(0,0,0,0.2)' }}>
+                      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
+                      <Typography color="text.secondary" gutterBottom>
+                          Total Current Bookings
+                      </Typography>
+                      <Typography variant="h3" component="div" color="primary" sx={{ mt: 1 }}>
+                          {totalBookings}
+                      </Typography>
+                      </CardContent>
+                  </Card>
+              </Box>
+
+            </Box>
           </Container>
         </Box>
       </Box>
