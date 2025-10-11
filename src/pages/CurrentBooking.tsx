@@ -132,17 +132,6 @@ const CurrentBooking: React.FC = () => {
     setEditError(null);
   };
 
-  // Handle canceling edit mode
-  const handleCancelEdit = () => {
-    setIsEditMode(false);
-    setEditError(null);
-    if (selectedBooking) {
-      setEditedTitle(selectedBooking.title || '');
-      setEditedStartTime(dayjs(selectedBooking.start_datetime));
-      setEditedEndTime(dayjs(selectedBooking.end_datetime));
-    }
-  };
-
   // Handle closing modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -171,6 +160,13 @@ const CurrentBooking: React.FC = () => {
     if (editedStartTime.isAfter(editedEndTime)) {
       setEditError('Start time must be before end time');
       return;
+    }
+    
+    // Validasi durasi booking tidak lebih dari 8 jam
+    const durationInHours = editedEndTime.diff(editedStartTime, 'hour');
+    if (durationInHours > 8) {
+        setEditError('Booking duration cannot exceed 8 hours');
+        return;
     }
 
     const startDate = editedStartTime.toDate();
@@ -287,7 +283,7 @@ const CurrentBooking: React.FC = () => {
                   <Typography variant="h5" component="h1" color="secondary" gutterBottom>
                     Current & Upcoming Bookings
                   </Typography>
-                  <Typography variant="body2" sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     Manage your current room bookings
                   </Typography>
                   <Divider />
@@ -613,13 +609,6 @@ const CurrentBooking: React.FC = () => {
           {isEditMode ? (
             <>
               <Button
-                onClick={handleCancelEdit}
-                disabled={isUpdating}
-                sx={{ color: '#666' }}
-              >
-                Cancel
-              </Button>
-              <Button
                 variant="contained"
                 onClick={handleSaveEdit}
                 disabled={isUpdating || isChecking}
@@ -631,19 +620,14 @@ const CurrentBooking: React.FC = () => {
               >
                 {isUpdating ? 'Saving...' : 'Save Changes'}
               </Button>
+              <Button
+                onClick={handleCloseModal}
+              >
+                Cancel
+              </Button>
             </>
           ) : (
             <>
-              {['pending', 'approved'].includes(selectedBooking?.status?.toLowerCase() || '') && (
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<EditIcon />}
-                  onClick={() => setIsEditMode(true)}
-                >
-                  Edit Booking
-                </Button>
-              )}
               <Button onClick={handleCloseModal}>
                 Close
               </Button>
