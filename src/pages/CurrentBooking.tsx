@@ -35,7 +35,8 @@ import {
   Pending as PendingIcon,
   Close as CloseIcon,
   EventAvailable as EventIcon,
-  Save as SaveIcon
+  Save as SaveIcon,
+  Cancel as CancelIcon
 } from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -54,7 +55,7 @@ const drawerWidth = 240;
 
 const CurrentBooking: React.FC = () => {
   const { user } = useAuth();
-  const { getCurrentBookings, updateBooking, isLoading: isBookingLoading } = useBooking();
+  const { getCurrentBookings, updateBooking, cancelBooking, isLoading: isBookingLoading } = useBooking();
   const { isChecking } = useBookingConflictCheck();
   const { goToSearch, goToAdminDashboard, goToRoomManagement } = useNavigation();
 
@@ -71,6 +72,7 @@ const CurrentBooking: React.FC = () => {
   const [editedEndTime, setEditedEndTime] = useState<dayjs.Dayjs | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -230,6 +232,53 @@ const CurrentBooking: React.FC = () => {
       setEditError('An unexpected error occurred');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Handle cancelling the booking
+  const handleCancelBooking = async () => {
+    if (!selectedBooking) {
+      return;
+    }
+
+    // Validate precondition: Only Pending bookings can be cancelled
+    if (selectedBooking.status !== 'Pending') {
+      setEditError('Only pending bookings can be cancelled');
+      return;
+    }
+
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel this booking? This action cannot be undone.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsCancelling(true);
+    setEditError(null);
+
+    try {
+      const result = await cancelBooking(selectedBooking.booking_id);
+
+      if (result.success && result.booking) {
+        // Update local state - remove from current bookings since it's now expired
+        setBookings(prev => prev.filter(booking => booking.booking_id !== selectedBooking.booking_id));
+        
+        // Close modal and show success message
+        setIsModalOpen(false);
+        setSelectedBooking(null);
+        setIsEditMode(false);
+        alert('Booking cancelled successfully!');
+      } else {
+        setEditError(result.error || 'Failed to cancel booking');
+      }
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      setEditError('An unexpected error occurred while cancelling the booking');
+    } finally {
+      setIsCancelling(false);
     }
   };
   
@@ -628,6 +677,18 @@ const CurrentBooking: React.FC = () => {
             </>
           ) : (
             <>
+              {selectedBooking?.status === 'Pending' && (
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleCancelBooking}
+                  disabled={isCancelling}
+                  startIcon={isCancelling ? <CircularProgress size={16} /> : <CancelIcon />}
+                  sx={{ mr: 'auto' }}
+                >
+                  {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
+                </Button>
+              )}
               <Button onClick={handleCloseModal}>
                 Close
               </Button>

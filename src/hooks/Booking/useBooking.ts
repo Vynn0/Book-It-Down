@@ -314,12 +314,75 @@ export function useBooking() {
     }
   };
 
+  const cancelBooking = async (bookingId: number): Promise<{ success: boolean; booking?: Booking; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Get current user's ID
+      const { data: userData, error: userError } = await supabase
+        .from('user')
+        .select('user_id')
+        .eq('email', user.email)
+        .single();
+
+      if (userError || !userData) {
+        console.error('Error fetching user data:', userError);
+        return { success: false, error: 'Failed to get user information' };
+      }
+
+      // Fetch the booking to verify it exists and belongs to the user
+      const { data: bookingData, error: fetchError } = await supabase
+        .from('booking')
+        .select('*')
+        .eq('booking_id', bookingId)
+        .eq('user_id', userData.user_id)
+        .single();
+
+      if (fetchError || !bookingData) {
+        console.error('Error fetching booking:', fetchError);
+        return { success: false, error: 'Booking not found or you do not have permission to cancel it' };
+      }
+
+      // Validate precondition: booking status must be 'Pending'
+      if (bookingData.status !== 'Pending') {
+        return { success: false, error: 'Only pending bookings can be cancelled' };
+      }
+
+      // Update the booking status to 'Expired'
+      const { data, error: updateError } = await supabase
+        .from('booking')
+        .update({ status: 'Expired' })
+        .eq('booking_id', bookingId)
+        .eq('user_id', userData.user_id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error cancelling booking:', updateError);
+        return { success: false, error: 'Failed to cancel booking' };
+      }
+
+      return { success: true, booking: data };
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      return { success: false, error: 'An unexpected error occurred' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     createBooking,
     createQuickBooking,
     getCurrentBookings,
     getUserBookings,
     updateBooking,
+    cancelBooking,
     isLoading,
     error
   };
