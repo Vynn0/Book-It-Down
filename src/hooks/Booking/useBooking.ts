@@ -86,6 +86,7 @@ export function useBooking() {
         .eq('room_id', bookingData.room_id)
         .neq('status', 'Cancelled')
         .neq('status', 'Rejected')
+        .neq('status', 'Expired') // Exclude expired bookings from conflict check
         .or(`and(start_datetime.lte.${startDateTimeUTC.toISOString()},end_datetime.gt.${startDateTimeUTC.toISOString()}),and(start_datetime.lt.${endDateTimeUTC.toISOString()},end_datetime.gte.${endDateTimeUTC.toISOString()}),and(start_datetime.gte.${startDateTimeUTC.toISOString()},end_datetime.lte.${endDateTimeUTC.toISOString()})`);
 
       if (conflictError) {

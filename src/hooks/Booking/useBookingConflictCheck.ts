@@ -38,7 +38,7 @@ export function useBookingConflictCheck() {
           status
         `)
         .eq('room_id', roomId)
-        .in('status', ['Pending', 'Approved']); // Only consider active bookings
+        .in('status', ['Pending', 'Approved']); // Only consider active bookings (excludes Cancelled, Rejected, Expired)
 
       if (error) {
         console.error('Error checking booking conflicts:', error);
@@ -85,7 +85,7 @@ export function useBookingConflictCheck() {
           )
         `)
         .eq('room_id', roomId)
-        .in('status', ['Pending', 'Approved']);
+        .in('status', ['Pending', 'Approved']); // Only consider active bookings (excludes Cancelled, Rejected, Expired)
 
       if (error) {
         console.error('Error fetching conflicting bookings:', error);

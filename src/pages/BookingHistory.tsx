@@ -191,12 +191,13 @@ const BookingHistory: React.FC = () => {
     setEditError(null);
 
     try {
+      // Check for conflicts (excluding current booking and expired/cancelled bookings)
       const { data: conflictingBookings, error: conflictError } = await supabase
         .from('booking')
         .select('booking_id')
         .eq('room_id', selectedBooking.room_id)
-        .neq('booking_id', selectedBooking.booking_id)
-        .in('status', ['Pending', 'Approved'])
+        .neq('booking_id', selectedBooking.booking_id) // Exclude current booking
+        .in('status', ['Pending', 'Approved']) // Only check active bookings (excludes Cancelled, Rejected, Expired)
         .or(`and(start_datetime.lt.${endDate.toISOString()},end_datetime.gt.${startDate.toISOString()})`);
 
       if (conflictError) {

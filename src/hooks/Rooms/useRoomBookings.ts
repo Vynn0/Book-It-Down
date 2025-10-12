@@ -46,6 +46,7 @@ export function useRoomBookings(roomId: number) {
         .eq('room_id', roomId)
         .neq('status', 'Cancelled')
         .neq('status', 'Rejected')
+        .neq('status', 'Expired') // Exclude expired bookings from calendar display
         .order('start_datetime', { ascending: true });
 
       if (bookingsError) {
