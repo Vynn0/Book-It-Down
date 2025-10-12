@@ -265,6 +265,12 @@ export function useBooking() {
         return { success: false, error: 'Cannot schedule booking in the past' };
       }
 
+      // Check maximum duration (8 hours)
+      const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      if (durationHours > 8) {
+        return { success: false, error: 'Booking duration cannot exceed 8 hours' };
+      }
+
       // Get current user's ID
       const { data: userData, error: userError } = await supabase
         .from('user')

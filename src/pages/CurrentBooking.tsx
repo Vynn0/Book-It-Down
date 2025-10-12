@@ -162,8 +162,8 @@ const CurrentBooking: React.FC = () => {
       return;
     }
     
-    // Validasi durasi booking tidak lebih dari 8 jam
-    const durationInHours = editedEndTime.diff(editedStartTime, 'hour');
+    // Validasi durasi booking tidak lebih dari 8 jam (menggunakan milidetik untuk akurasi)
+    const durationInHours = editedEndTime.diff(editedStartTime, 'millisecond') / (1000 * 60 * 60);
     if (durationInHours > 8) {
         setEditError('Booking duration cannot exceed 8 hours');
         return;
