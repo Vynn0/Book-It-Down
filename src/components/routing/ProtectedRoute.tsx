@@ -69,11 +69,13 @@ export function EmployeeRoute({ children }: { children: React.ReactNode }) {
 export function GuestRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   
-  // Wait for authentication to load
+  // Show loading only during initial auth check (checking stored credentials)
+  // isLoginInProgress is handled within the login form itself
   if (isLoading) {
     return <div>Loading...</div>;
   }
   
+  // If user is already authenticated, redirect to search page
   if (isAuthenticated) {
     return <Navigate to="/searchpage" replace />;
   }

@@ -20,6 +20,7 @@ export interface AuthState {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
+  isLoginInProgress: boolean // Separate flag for login operations
 }
 
 export interface UseAuthReturn extends AuthState {
@@ -44,7 +45,8 @@ export const useAuthLogic = () => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isLoading: true,
-    isAuthenticated: false
+    isAuthenticated: false,
+    isLoginInProgress: false
   })
 
   // Check if user is already logged in (from localStorage) and validate session
@@ -62,7 +64,8 @@ export const useAuthLogic = () => {
             setAuthState({
               user,
               isLoading: false,
-              isAuthenticated: true
+              isAuthenticated: true,
+              isLoginInProgress: false
             })
           } else {
             // Session expired or invalid, clear user data
@@ -72,14 +75,16 @@ export const useAuthLogic = () => {
             setAuthState({
               user: null,
               isLoading: false,
-              isAuthenticated: false
+              isAuthenticated: false,
+              isLoginInProgress: false
             })
           }
         } else {
           setAuthState({
             user: null,
             isLoading: false,
-            isAuthenticated: false
+            isAuthenticated: false,
+            isLoginInProgress: false
           })
         }
       } catch (error) {
@@ -90,7 +95,8 @@ export const useAuthLogic = () => {
         setAuthState({
           user: null,
           isLoading: false,
-          isAuthenticated: false
+          isAuthenticated: false,
+          isLoginInProgress: false
         })
       }
     }
@@ -99,7 +105,8 @@ export const useAuthLogic = () => {
   }, [])
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message: string; user: User | null }> => {
-    setAuthState(prev => ({ ...prev, isLoading: true }))
+    // Use separate flag for login operations to avoid unmounting the login form
+    setAuthState(prev => ({ ...prev, isLoginInProgress: true }))
 
     try {
       // Fetch user from database
@@ -114,7 +121,7 @@ export const useAuthLogic = () => {
       }
 
       if (!users || users.length === 0) {
-        setAuthState(prev => ({ ...prev, isLoading: false }))
+        setAuthState(prev => ({ ...prev, isLoginInProgress: false }))
         return {
           success: false,
           message: 'Invalid email or password',
@@ -128,7 +135,7 @@ export const useAuthLogic = () => {
       const isPasswordValid = await bcrypt.compare(password, user.password)
 
       if (!isPasswordValid) {
-        setAuthState(prev => ({ ...prev, isLoading: false }))
+        setAuthState(prev => ({ ...prev, isLoginInProgress: false }))
         return {
           success: false,
           message: 'Invalid email or password',
@@ -147,7 +154,7 @@ export const useAuthLogic = () => {
 
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError)
-        setAuthState(prev => ({ ...prev, isLoading: false }))
+        setAuthState(prev => ({ ...prev, isLoginInProgress: false }))
         return {
           success: false,
           message: 'Error fetching user permissions',
@@ -177,7 +184,8 @@ export const useAuthLogic = () => {
       setAuthState({
         user: authenticatedUser,
         isLoading: false,
-        isAuthenticated: true
+        isAuthenticated: true,
+        isLoginInProgress: false
       })
 
       return {
@@ -188,7 +196,7 @@ export const useAuthLogic = () => {
 
     } catch (error: any) {
       console.error('Login error:', error)
-      setAuthState(prev => ({ ...prev, isLoading: false }))
+      setAuthState(prev => ({ ...prev, isLoginInProgress: false }))
       return {
         success: false,
         message: error.message || 'Login failed. Please try again.',
@@ -204,7 +212,8 @@ export const useAuthLogic = () => {
     setAuthState({
       user: null,
       isLoading: false,
-      isAuthenticated: false
+      isAuthenticated: false,
+      isLoginInProgress: false
     })
   }, [])
 

@@ -29,7 +29,7 @@ function App() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  const { login, isLoading } = useAuth()
+  const { login, isLoginInProgress } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
   const { handlePostLogin } = useNavigation()
 
@@ -166,8 +166,8 @@ function App() {
                       type="submit"
                       variant="contained"
                       size="large"
-                      disabled={isLoading}
-                      startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+                      disabled={isLoginInProgress}
+                      startIcon={isLoginInProgress ? <CircularProgress size={20} color="inherit" /> : null}
                       sx={{
                         py: 1.5,
                         borderRadius: 2,
@@ -179,7 +179,7 @@ function App() {
                         mb: 2
                       }}
                     >
-                      {isLoading ? 'Logging in...' : 'Login'}
+                      {isLoginInProgress ? 'Logging in...' : 'Login'}
                     </Button>
                   </Box>
                 </Box>
