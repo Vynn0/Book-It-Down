@@ -26,6 +26,8 @@ export interface UseRoomManagementReturn {
     updateRoomForm: (field: keyof RoomForm, value: string | number) => void
     resetForm: () => void
     addRoom: (roomData: RoomForm) => Promise<{ success: boolean; message: string }>
+    updateRoom: (roomId: number, roomData: RoomForm) => Promise<{ success: boolean; message: string }>
+    deleteRoom: (roomId: number) => Promise<{ success: boolean; message: string }>
     validateForm: (roomData: RoomForm) => string | null
     fetchRooms: () => Promise<void>
     refreshRooms: () => Promise<void>
@@ -140,6 +142,117 @@ export const useRoomManagement = (): UseRoomManagementReturn => {
         }
     }
 
+    const updateRoom = async (roomId: number, roomData: RoomForm): Promise<{ success: boolean; message: string }> => {
+        setIsLoading(true)
+
+        try {
+            // Update room in Supabase
+            const { error } = await supabase
+                .from('room')
+                .update({
+                    room_name: roomData.room_name.trim(),
+                    location: roomData.location.trim(),
+                    capacity: roomData.capacity,
+                    description: roomData.description.trim(),
+                })
+                .eq('room_id', roomId)
+
+            if (error) {
+                throw error
+            }
+
+            // Refresh rooms list after successful update
+            await fetchRooms()
+
+            return {
+                success: true,
+                message: `Room "${roomData.room_name}" updated successfully!`
+            }
+
+        } catch (error: any) {
+            console.error('Error updating room:', error)
+            return {
+                success: false,
+                message: error.message || 'Failed to update room. Please try again.'
+            }
+        } finally {
+            setIsLoading(false)
+        }
+    }
+    
+    const deleteRoom = async (roomId: number): Promise<{ success: boolean; message: string }> => {
+        setIsLoading(true);
+
+        try {
+            // Step 1: Check if the room has any associated bookings
+            const { count, error: bookingCheckError } = await supabase
+                .from('booking')
+                .select('booking_id', { count: 'exact', head: true })
+                .eq('room_id', roomId);
+
+            if (bookingCheckError) {
+                throw new Error(`Failed to check bookings: ${bookingCheckError.message}`);
+            }
+
+            if (count !== null && count > 0) {
+                return {
+                    success: false,
+                    message: 'Cannot delete room. It has existing bookings associated with it.'
+                };
+            }
+
+            // Step 2: Fetch all images to delete from storage
+            const { data: images, error: imageFetchError } = await supabase
+                .from('room_images')
+                .select('image_name')
+                .eq('room_id', roomId);
+
+            if (imageFetchError) {
+                console.warn(`Could not fetch images for room ${roomId}, storage cleanup might be incomplete: ${imageFetchError.message}`);
+            }
+
+            // Step 3: Delete images from Supabase Storage
+            if (images && images.length > 0) {
+                const filePaths = images.map(image => `${roomId}/${image.image_name}`);
+                const { error: storageError } = await supabase.storage
+                    .from('room-images')
+                    .remove(filePaths);
+
+                if (storageError) {
+                    console.warn(`Failed to delete images from storage, but proceeding with database deletion: ${storageError.message}`);
+                }
+            }
+
+            // Step 4: Delete the room record (assuming ON DELETE CASCADE is set for room_images)
+            const { error: deleteRoomError } = await supabase
+                .from('room')
+                .delete()
+                .eq('room_id', roomId);
+
+            if (deleteRoomError) {
+                throw deleteRoomError;
+            }
+
+            // Step 5: Refresh the room list in the UI
+            await fetchRooms();
+
+            return {
+                success: true,
+                message: 'Room has been deleted successfully.'
+            };
+
+        } catch (error: any) {
+            console.error('Error deleting room:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to delete room. Please try again.'
+            };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
     return {
         rooms,
         roomForm,
@@ -148,6 +261,8 @@ export const useRoomManagement = (): UseRoomManagementReturn => {
         updateRoomForm,
         resetForm,
         addRoom,
+        updateRoom,
+        deleteRoom,
         validateForm,
         fetchRooms,
         refreshRooms

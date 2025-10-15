@@ -25,6 +25,8 @@ export type NavigationTarget =
   | 'room-management' 
   | 'profile' 
   | 'book-room'
+  | 'booking-history'
+  | 'all-users-bookings'  
   | 'back';
 
 export interface NavigationOptions {
@@ -131,6 +133,20 @@ class NavigationService {
           }
           break;
 
+        case 'booking-history':
+          SessionManager.updateCurrentPage('history');
+          this.navigate('/history');
+          break;
+        
+        case 'all-users-bookings':
+          if (roles.includes('admin')) {
+            SessionManager.updateCurrentPage('all-bookings');
+            this.navigate('/admin/all-bookings');
+          } else {
+            this.navigateToRoleBasedDashboard(roles);
+          }
+          break;
+
         case 'back':
           this.navigate(-1);
           break;
@@ -150,12 +166,14 @@ class NavigationService {
   /**
    * Navigate to the appropriate dashboard based on user roles
    */
-  private navigateToRoleBasedDashboard(roles: UserRole[]) {
+   private navigateToRoleBasedDashboard(roles: UserRole[]) {
+    // Prioritaskan peran Admin. Jika pengguna memiliki peran admin,
+    // langsung arahkan ke dasbor admin tanpa memeriksa peran lain.
     if (roles.includes('admin')) {
       SessionManager.updateCurrentPage('admin');
       this.navigate!('/admin/dashboard');
     } else if (roles.includes('room-manager')) {
-      SessionManager.updateCurrentPage('roomManagement');
+      SessionManager.updateCurrentPage('roomManagement'); // Arahkan room manager ke room management
       this.navigate!('/rooms/management');
     } else {
       SessionManager.updateCurrentPage('search');

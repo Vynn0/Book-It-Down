@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { SessionManager } from './sessionManager';
 import type { SessionData } from './sessionManager';
 import { useAuth } from '../hooks/useAuth';
@@ -29,6 +29,9 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   const [session, setSession] = useState<SessionData | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const { user, logout } = useAuth();
+  
+  // Ref to prevent session creation loops
+  const isCreatingSession = useRef(false);
 
   // Initialize session on component mount (handles page refresh)
   useEffect(() => {
@@ -62,27 +65,34 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
 
   // Initialize session when user logs in (but not on refresh)
   useEffect(() => {
-    if (user && !session) {
+    if (user && !session && !isCreatingSession.current) {
       // Only create new session if user exists but no session is active
       // This happens on fresh login, not on page refresh
       const existingSession = SessionManager.getSession();
       if (!existingSession || !SessionManager.isSessionValid()) {
         console.log('Creating new session for user login');
+        isCreatingSession.current = true;
         const newSession = SessionManager.createSession(user.userID, user.email, 'search');
         setSession(newSession);
         setTimeRemaining(SessionManager.getTimeRemaining());
+        isCreatingSession.current = false;
       }
     } else if (!user && session) {
       // User logged out, clear session
       console.log('User logged out, clearing session');
       setSession(null);
       setTimeRemaining(0);
+      isCreatingSession.current = false;
     }
-  }, [user, session]);
+  }, [user]); // ❌ REMOVED session dependency to prevent infinite loop
 
   // Activity tracking - throttled to prevent excessive updates
   useEffect(() => {
-    if (!user || !session) return;
+    if (!user) return; // Exit early if no user
+    
+    // Double-check session exists without depending on session state
+    const currentSession = SessionManager.getSession();
+    if (!currentSession) return;
 
     let lastActivityTime = 0;
     const ACTIVITY_THROTTLE = 2 * 60 * 1000; // Only update activity every 2 minutes
@@ -107,11 +117,14 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
         document.removeEventListener(event, handleActivity);
       });
     };
-  }, [user, session, refreshSession]);
+  }, [user, refreshSession]); // ❌ REMOVED session dependency
 
   // Session validation timer
   useEffect(() => {
-    if (!user || !session) return;
+    if (!user) return; // Exit early if no user
+    
+    // Double-check session exists without depending on session state
+    if (!SessionManager.getSession()) return;
 
     const checkSession = () => {
       const currentSession = SessionManager.getSession();
@@ -130,7 +143,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     const interval = setInterval(checkSession, SessionManager.getActivityCheckInterval());
 
     return () => clearInterval(interval);
-  }, [user, session, clearSession]);
+  }, [user, clearSession]); // ❌ REMOVED session dependency to prevent loop
 
   // Update time remaining every second for UI display
   useEffect(() => {
@@ -149,13 +162,13 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     return () => clearInterval(interval);
   }, [session, clearSession]); // Removed timeRemaining dependency to prevent restarts
 
-  const contextValue: SessionContextType = {
+  const contextValue: SessionContextType = useMemo(() => ({
     session,
     isSessionValid: SessionManager.isSessionValid(),
     timeRemaining,
     refreshSession,
     clearSession
-  };
+  }), [session, timeRemaining, refreshSession, clearSession]);
 
   return (
     <SessionContext.Provider value={contextValue}>

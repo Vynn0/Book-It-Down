@@ -88,6 +88,18 @@ export function useNavigation() {
     navigateTo('room-management');
   };
 
+  const goToBookingHistory = () => {
+    navigateTo('booking-history');
+  };
+
+  const goToAllUsersBookings = () => {
+    navigateTo('all-users-bookings');
+  };
+
+  const goToCurrentBooking = () => {
+    navigate('/current')
+  }
+
   /**
    * Handle post-login navigation based on user roles
    */
@@ -130,6 +142,9 @@ export function useNavigation() {
     goToSearch,
     goToAdminDashboard,
     goToRoomManagement,
+    goToBookingHistory,
+    goToAllUsersBookings,
+    goToCurrentBooking,
     goToLogin,
     
     // Special handlers

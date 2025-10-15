@@ -18,13 +18,12 @@ import { appTheme } from '../services'
 import { PersonAdd, Add } from '@mui/icons-material'
 import { Navbar, NotificationComponent, UserTable, EditUserModal, Sidebar } from '../components/ui'
 import { UserFormComponent } from '../components/auth'
-import { useUserManagement, useNotification, useNavigation, useUsers } from '../hooks'
+import { useUserManagement, useNotification, useNavigation, useUsers, useAllBookings } from '../hooks'
 import { supabase } from '../utils/supabase'
 import type { DatabaseUser } from '../types/user'
 import { useState } from 'react'
 
 interface AdminDashboardProps {
-  onBack?: () => void;
   onProfileClick?: () => void;
   onNavigateToSearch?: () => void;
   onNavigateToRoomManagement?: () => void;
@@ -32,16 +31,21 @@ interface AdminDashboardProps {
 
 const drawerWidth = 240; // Definisikan lebar drawer
 
-function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
-  const { 
-    goToLogin, 
-    goToProfile, 
-    goToSearch, 
-    goToRoomManagement 
+function AdminDashboard({ onNavigateToSearch, onNavigateToRoomManagement }: AdminDashboardProps) {
+  const {
+    goToSearch,
+    goToRoomManagement
   } = useNavigation();
-  
+
   const { users, isLoading: isLoadingUsers, error: usersError, refetchUsers } = useUsers();
   
+  // Get all bookings data for admin dashboard stats
+  const { 
+    isLoading: isLoadingBookings, 
+    getTodayBookingsCount, 
+    getActiveBookingsCount 
+  } = useAllBookings();
+
   const [activeView, setActiveView] = useState('userManagement');
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -54,22 +58,6 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
   };
 
   // Centralized navigation functions with fallbacks
-  const handleBackNavigation = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      goToLogin();
-    }
-  };
-
-  const handleProfileNavigation = () => {
-    if (onProfileClick) {
-      onProfileClick();
-    } else {
-      goToProfile();
-    }
-  };
-
   const handleSearchNavigation = () => {
     if (onNavigateToSearch) {
       onNavigateToSearch();
@@ -200,16 +188,16 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
-        <Sidebar 
-            activeView={activeView} 
-            onMenuClick={handleMenuClick} 
-            open={isSidebarOpen} 
-            onClose={() => setSidebarOpen(false)} 
+        <Sidebar
+          activeView={activeView}
+          onMenuClick={handleMenuClick}
+          open={isSidebarOpen}
+          onClose={() => setSidebarOpen(false)}
         />
-        <Box 
-          component="main" 
-          sx={{ 
-            flexGrow: 1, 
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
             // Perubahan styling untuk efek push
             transition: (theme) => theme.transitions.create('margin', {
               easing: theme.transitions.easing.sharp,
@@ -224,26 +212,23 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
               marginLeft: 0,
             }),
           }}
-        >         
+        >
           <Navbar
             title="Admin Dashboard"
-            onBack={handleBackNavigation}
-            userRole="administrator"
-            onProfileClick={handleProfileNavigation}
             onMenuClick={handleSidebarToggle} // Tetap gunakan handler ini
           />
 
           <Container maxWidth="lg" sx={{ mt: 2 }}>
             <Box sx={{ pt: 3, pl: 3, pr: 3, gap: 2 }}>
-              <Box sx={{ mb: 3}}>
+              <Box sx={{ mb: 3 }}>
                 <Typography variant="h5" component="h1" color="secondary" gutterBottom>
                   User Management Dashboard
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body1">
                   Manage users, roles, and permissions from this central dashboard.
                 </Typography>
               </Box>
-                <Divider sx={{ mb: 3, borderTop: '1px solid' }} />
+              <Divider sx={{ mb: 3, borderTop: '1px solid' }} />
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
                 <Card sx={{ border: '1px solid rgba(0,0,0,0.2)', boxShadow: '0 5px 5px 0 rgba(0,0,0,0.2)' }}>
@@ -254,7 +239,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                     <Typography variant="h3" component="div">
                       {isLoadingUsers ? '-' : users.length}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2">
                       Registered in the system
                     </Typography>
                   </CardContent>
@@ -266,10 +251,10 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                       Active Sessions
                     </Typography>
                     <Typography variant="h3" component="div">
-                      12
+                      {isLoadingBookings ? '-' : getActiveBookingsCount()}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Currently logged in
+                    <Typography variant="body2">
+                      Total pending/approved bookings
                     </Typography>
                   </CardContent>
                 </Card>
@@ -280,21 +265,21 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
                       Room Bookings
                     </Typography>
                     <Typography variant="h3" component="div">
-                      8
+                      {isLoadingBookings ? '-' : getTodayBookingsCount()}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2">
                       Active bookings today
                     </Typography>
                   </CardContent>
                 </Card>
               </Box>
 
-            <UserTable
-              users={users}
-              isLoading={isLoadingUsers}
-              error={usersError}
-              onAddUser={handleOpenModal}
-              onEditUser={handleOpenEditModal}
+              <UserTable
+                users={users}
+                isLoading={isLoadingUsers}
+                error={usersError}
+                onAddUser={handleOpenModal}
+                onEditUser={handleOpenEditModal}
               />
             </Box>
           </Container>
@@ -318,7 +303,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
             </DialogTitle>
 
             <DialogContent dividers>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 3 }}>
                 Create a new user account with encrypted password. This is a developer tool for quick user addition.
               </Typography>
 
@@ -331,7 +316,7 @@ function AdminDashboard({ onBack, onProfileClick, onNavigateToSearch, onNavigate
               />
 
               <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption">
                   <strong>Security Note:</strong> Passwords are automatically hashed using bcrypt with 12 salt rounds before storage.
                   The created_at timestamp is automatically set to the current time.
                 </Typography>

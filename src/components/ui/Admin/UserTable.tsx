@@ -48,7 +48,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, isLoading, error, onAddUse
             <Typography variant="h5" component="h2" color="secondary">
               Users Management
             </Typography>
-            <Typography variant="body2" color="text.secondary" pt={1}>
+            <Typography variant="body2" pt={1}>
               Manage all users in the system
             </Typography>
           </Box>

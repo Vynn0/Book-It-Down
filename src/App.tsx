@@ -11,8 +11,12 @@ import LandingPage from './pages/LandingPage';
 import SearchPage from './pages/SearchPage';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
-import RoomManagement from './pages/RoomManagement'; // Import the RoomManagement component
+import RoomManagement from './pages/RoomManagement'; 
 import BookRoom from './pages/BookRoom';
+import BookingHistory from './pages/BookingHistory'; 
+import CurrentBooking from './pages/CurrentBooking';
+import AllUsersBookings from './pages/AllUsersBookings';
+
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -65,6 +69,22 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+    {
+      path: "/history",
+      element: (
+        <ProtectedRoute>
+          <BookingHistory />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: "/current",
+      element: (
+        <ProtectedRoute>
+          <CurrentBooking />
+        </ProtectedRoute>
+      )
+    },
   {
     path: "/rooms",
     children: [
@@ -85,6 +105,14 @@ const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: "/admin/all-bookings",
+    element: (
+      <AdminRoute>
+        <AllUsersBookings />
+      </AdminRoute>
+    ),
   },
 ]);
 

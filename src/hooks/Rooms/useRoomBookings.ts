@@ -26,14 +26,15 @@ export function useRoomBookings(roomId: number) {
     try {
       console.log('Fetching bookings for room:', roomId);
 
-      // First, update any expired bookings before fetching
-      await BookingStatusManager.updateExpiredBookings();
+      // First, update booking statuses based on current time (Pending→Approved, Expired bookings)
+      await BookingStatusManager.performStatusCheck();
 
       // Fetch bookings with user information (including past bookings for viewing)
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('booking')
         .select(`
           booking_id,
+          title,
           start_datetime,
           end_datetime,
           status,
@@ -45,6 +46,7 @@ export function useRoomBookings(roomId: number) {
         .eq('room_id', roomId)
         .neq('status', 'Cancelled')
         .neq('status', 'Rejected')
+        .neq('status', 'Expired') // Exclude expired bookings from calendar display
         .order('start_datetime', { ascending: true });
 
       if (bookingsError) {
@@ -57,10 +59,10 @@ export function useRoomBookings(roomId: number) {
       const calendarEvents: CalendarBooking[] = (bookingsData || []).map((booking: any) => {
         const startLocal = DateTimeUtils.fromUTC(booking.start_datetime);
         const endLocal = DateTimeUtils.fromUTC(booking.end_datetime);
-        
+
         return {
           booking_id: booking.booking_id,
-          title: getBookingTitle(booking.status),
+          title: booking.title || getBookingTitle(booking.status),
           start: startLocal.toISOString(),
           end: endLocal.toISOString(),
           status: booking.status as 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed' | 'Expired',

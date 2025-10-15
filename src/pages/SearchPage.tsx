@@ -11,10 +11,9 @@ import {
 import { ThemeProvider } from '@mui/material/styles';
 import { appTheme } from '../services';
 import { Navbar, SearchBar, RoomCard, Sidebar } from '../components/ui';
-import { useRoleBasedRouting, useRoomManagement, useBookingStatusChecker, useNavigation } from '../hooks';
+import { useRoleBasedRouting, useRoomManagement, useBookingStatusChecker, useNavigation, useRoomAvailabilitySearch } from '../hooks';
 
 interface SearchPageProps {
-  onBack?: () => void;
   onProfileClick?: () => void;
   onNavigateToAdmin?: () => void;
   onNavigateToRoomManagement?: () => void;
@@ -23,48 +22,32 @@ interface SearchPageProps {
 
 const drawerWidth = 240; // Definisikan lebar drawer
 
-function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
-  const { 
-    goToLogin, 
-    goToProfile, 
-    goToAdminDashboard, 
+function SearchPage({ onNavigateToAdmin, onNavigateToRoomManagement, initialActiveView }: SearchPageProps) {
+  const {
+    goToAdminDashboard,
     goToRoomManagement,
-    goToBookRoom 
+    goToBookRoom
   } = useNavigation();
-  
+
   const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  
+  const [searchError, setSearchError] = useState<string | null>(null);
+
   const { rooms, isLoadingRooms } = useRoomManagement();
-  const { getRoleBasedView, isRoomManager, isEmployee, isAdmin, user } = useRoleBasedRouting();
-  
+  const { getRoleBasedView, user } = useRoleBasedRouting();
+  const { searchAvailableRooms, isSearching } = useRoomAvailabilitySearch();
+
   // Enable automatic booking status checking every 10 minutes
   useBookingStatusChecker(10);
-  
+
   const [isSidebarOpen, setSidebarOpen] = useState(true); // State untuk sidebar
-  
+
   // Handler untuk membuka/menutup sidebar
   const handleSidebarToggle = () => {
     setSidebarOpen(!isSidebarOpen);
   };
 
   // Centralized navigation with prop fallbacks
-  const handleBackToLogin = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      goToLogin();
-    }
-  };
-
-  const handleNavigateToProfile = () => {
-    if (onProfileClick) {
-      onProfileClick();
-    } else {
-      goToProfile();
-    }
-  };
-
   const handleNavigateToAdmin = () => {
     if (onNavigateToAdmin) {
       onNavigateToAdmin();
@@ -84,9 +67,7 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
   // Perubahan: Gunakan prop initialActiveView
   const [activeView, setActiveView] = useState(() => {
     if (initialActiveView) return initialActiveView; // Utamakan prop
-    if (isRoomManager()) return 'roomManagement';
-    if (isEmployee()) return 'addBooking';
-    if (isAdmin()) return 'addBooking'; // Admin should also default to addBooking when on search page
+    // All roles default to 'addBooking' when on search page for consistency
     return 'addBooking'; // Default to addBooking for any user on search page
   });
 
@@ -107,18 +88,34 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     }
   };
 
-  const handleSearch = (query: {
+  const handleSearch = async (query: {
     tanggal: Date | null;
     kapasitas: number;
     jamMulai: Date | null;
     jamSelesai: Date | null;
   }) => {
-    const filtered = rooms.filter(room => room.capacity >= query.kapasitas);
-    setFilteredRooms(filtered);
+    setSearchError(null);
     setHasSearched(true);
-  };
 
-  const handleRoomSelect = (room: any) => {
+    try {
+      console.log('Searching for available rooms with query:', query);
+
+      // Basic validation
+      if (!query.tanggal || !query.jamMulai || !query.jamSelesai || !query.kapasitas) {
+        throw new Error('Please fill in all search fields');
+      }
+
+      // Use the new availability search that checks actual bookings
+      const availableRooms = await searchAvailableRooms(query);
+      setFilteredRooms(availableRooms);
+
+      console.log(`Found ${availableRooms.length} available rooms`);
+    } catch (error) {
+      console.error('Error searching for available rooms:', error);
+      setSearchError(error instanceof Error ? error.message : 'Failed to search for available rooms');
+      setFilteredRooms([]);
+    }
+  }; const handleRoomSelect = (room: any) => {
     // Navigate to the room booking page using centralized navigation
     goToBookRoom(room.room_id.toString());
   };
@@ -146,25 +143,25 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
     }
   };
 
-  const getUserRoleForNavbar = (): 'employee' | 'administrator' => {
-    if (isAdmin()) return 'administrator';
-    return 'employee';
+  const getUserRoles = () => {
+    if (!user?.roles || user.roles.length === 0) return 'No role assigned';
+    return user.roles.map(role => role.role_name).join(', ');
   };
 
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ display: 'flex' }}>
-        <Sidebar 
-          activeView={activeView} 
-          onMenuClick={handleMenuClick} 
-          open={isSidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
+        <Sidebar
+          activeView={activeView}
+          onMenuClick={handleMenuClick}
+          open={isSidebarOpen}
+          onClose={() => setSidebarOpen(false)}
         />
-         <Box
+        <Box
           component="main"
-          sx={{ 
-            flexGrow: 1, 
+          sx={{
+            flexGrow: 1,
             bgcolor: 'background.default',
             // Perubahan styling untuk efek push (sama seperti di halaman lain)
             transition: (theme) => theme.transitions.create('margin', {
@@ -182,62 +179,67 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
           }}
         >
           <Navbar
-            title={`Search Menu (${user?.name || 'User'})`}
-            onBack={handleBackToLogin}
-            userRole={getUserRoleForNavbar()}
-            onProfileClick={handleNavigateToProfile}
+            title={`Search Menu (${getUserRoles()})`}
             onMenuClick={handleSidebarToggle}
           />
           <Container maxWidth="lg" sx={{ mt: 2, pb: 4 }}>
             {renderRoleBasedView()}
-              <CardContent sx={{ p:3 }}>
-                <Typography variant="h5" component="h1" color="secondary" mb={2}>
-                  Search Rooms
-                </Typography>
-                <SearchBar onSearch={handleSearch} />
-              </CardContent>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h5" component="h1" color="secondary" mb={2}>
+                Search Rooms
+              </Typography>
+              <SearchBar onSearch={handleSearch} />
+            </CardContent>
 
             {hasSearched ? (
-              filteredRooms.length > 0 ? (
+              isSearching ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                  <Typography sx={{ ml: 2 }}>Searching for available rooms...</Typography>
+                </Box>
+              ) : searchError ? (
+                <Card>
+                  <CardContent>
+                    <Typography variant="body1" color="error" align="center">
+                      {searchError}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ) : filteredRooms.length > 0 ? (
                 <Box>
                   <Typography variant="h5" component="h2" color="secondary" mb={2}>
-                    Search Results ({filteredRooms.length} rooms found)
+                    Available Rooms ({filteredRooms.length} rooms found)
                   </Typography>
-                  {isLoadingRooms ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <CircularProgress />
-                    </Box>
-                  ) : (
-                    <Box sx={{
-                      display: 'grid',
-                      gridTemplateColumns: {
-                        xs: '1fr',
-                        sm: '1fr 1fr',
-                        md: '1fr 1fr 1fr'
-                      },
-                      gap: 3
-                    }}>
-                      {filteredRooms.map((room) => (
-                        <RoomCard 
-                          key={room.room_id} 
-                          room={room} 
-                          onSelect={handleRoomSelect}
-                        />
-                      ))}
-                    </Box>
-                  )}
+                  <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: '1fr 1fr',
+                      md: '1fr 1fr 1fr'
+                    },
+                    gap: 3
+                  }}>
+                    {filteredRooms.map((room) => (
+                      <RoomCard
+                        key={room.room_id}
+                        room={room}
+                        onSelect={handleRoomSelect}
+                      />
+                    ))}
+                  </Box>
                 </Box>
               ) : (
                 <Card>
                   <CardContent>
                     <Typography variant="body1" color="text.secondary" align="center">
-                      No rooms found matching your criteria
+                      No rooms available for the selected date, time, and capacity requirements.
+                      Try adjusting your search criteria.
                     </Typography>
                   </CardContent>
                 </Card>
               )
             ) : (
-              <Box sx={{ p:3 }}>
+              <Box sx={{ p: 3 }}>
                 <Typography variant="h5" component="h2" color="secondary" mb={2}>
                   All Rooms ({rooms.length} total)
                 </Typography>
@@ -264,9 +266,9 @@ function SearchPage({ onBack, onProfileClick, onNavigateToAdmin, onNavigateToRoo
                     gap: 3
                   }}>
                     {rooms.map((room) => (
-                      <RoomCard 
-                        key={room.room_id} 
-                        room={room} 
+                      <RoomCard
+                        key={room.room_id}
+                        room={room}
                         onSelect={handleRoomSelect}
                       />
                     ))}

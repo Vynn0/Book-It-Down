@@ -1,48 +1,77 @@
-import React, { useState } from 'react';
-import SideProfile from '../components/ui/SideProfile';
-import { useAuth, useNavigation } from '../hooks';
+import React, { useState, useEffect } from 'react'; // <-- Tambahkan useEffect
+import {
+  Box,
+  Container,
+  Typography,
+  CssBaseline,
+  Paper,
+  Avatar,
+  TextField,
+  Stack,
+  Divider,
+  Button
+} from '@mui/material';
+import { Logout } from '@mui/icons-material';
+import { ThemeProvider } from '@mui/material/styles';
+import { appTheme } from '../services';
+import { Navbar, Sidebar } from '../components/ui';
+import { useAuth, useNavigation, useBooking } from '../hooks'; // <-- Tambahkan useBooking
 
-interface ProfileProps {
-  onBack?: () => void;
-}
+const drawerWidth = 240;
 
-const Profile: React.FC<ProfileProps> = ({ onBack }) => {
+const Profile: React.FC = () => {
   const { user, logout } = useAuth();
-  const { goToLogin, goToSearch } = useNavigation();
-  const [currentView, setCurrentView] = useState<'profile' | 'riwayat'>('profile');
+  const { getUserBookings } = useBooking(); // <-- Panggil hook useBooking
+  const { goToLogin, goToSearch, goToAdminDashboard, goToRoomManagement } = useNavigation();
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
 
-  const handleProfileClick = () => {
-    console.log('Profile clicked');
-    setCurrentView('profile');
+  // --- TAMBAHKAN STATE BARU UNTUK MENYIMPAN JUMLAH BOOKING ---
+  const [bookingCount, setBookingCount] = useState<number>(0);
+  const [isLoadingCount, setIsLoadingCount] = useState(true);
+  // -----------------------------------------------------------
+
+  // --- TAMBAHKAN useEffect UNTUK MENGAMBIL DATA BOOKING ---
+  useEffect(() => {
+    if (user) {
+      const fetchBookingCount = async () => {
+        setIsLoadingCount(true);
+        const { success, bookings } = await getUserBookings();
+        if (success && bookings) {
+          setBookingCount(bookings.length);
+        }
+        setIsLoadingCount(false);
+      };
+
+      fetchBookingCount();
+    }
+  }, [user, getUserBookings]);
+  // ----------------------------------------------------
+
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!isSidebarOpen);
   };
-
-  const handleRiwayatClick = () => {
-    console.log('Riwayat clicked');
-    setCurrentView('riwayat');
-  };
-
-  const handleLogoutClick = () => {
-    console.log('Logout clicked');
+  
+  const handleLogout = () => {
     logout();
-    // Use centralized navigation with fallback
-    if (onBack) {
-      onBack();
-    } else {
-      goToLogin();
+    goToLogin();
+  };
+
+  const handleMenuClick = (view: string) => {
+    switch (view) {
+      case 'userManagement':
+        goToAdminDashboard();
+        break;
+      case 'roomManagement':
+        goToRoomManagement();
+        break;
+      case 'addBooking':
+        goToSearch();
+        break;
+      default:
+        break;
     }
   };
 
-  const handleBackClick = () => {
-    console.log('Back button clicked');
-    // Use centralized navigation with fallback
-    if (onBack) {
-      onBack();
-    } else {
-      goToSearch();
-    }
-  };
-
-  // Get user initials for avatar
   const getUserInitials = () => {
     if (!user?.name) return 'U';
     const names = user.name.split(' ');
@@ -50,242 +79,109 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
     return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   };
 
-  // Get user roles as a string
   const getUserRoles = () => {
     if (!user?.roles || user.roles.length === 0) return 'No role assigned';
     return user.roles.map(role => role.role_name).join(', ');
   };
 
-  const renderMainContent = () => {
-    if (currentView === 'profile') {
-      return (
-        <div
-          style={{
-            flexGrow: 1,
-            padding: '40px',
-            backgroundColor: 'white',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            overflowY: 'auto',
-          }}
-        >
-          {/* User Avatar */}
-          <div
-            style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              backgroundColor: '#3f51b5',
-              color: 'white',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontSize: '36px',
-              fontWeight: 'bold',
-              marginBottom: '30px',
-            }}
-          >
-            {getUserInitials()}
-          </div>
-
-          {/* User Information Form */}
-          <div style={{ width: '100%', maxWidth: '500px' }}>
-            <label style={{ 
-              fontSize: '16px', 
-              fontWeight: 'bold', 
-              color: '#555', 
-              marginBottom: '8px', 
-              display: 'block' 
-            }}>
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={user?.name || 'N/A'}
-              readOnly
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginBottom: '20px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: '#f0f0f0',
-                fontSize: '16px',
-                boxSizing: 'border-box',
-                color: '#333'
-              }}
-            />
-
-            <label style={{ 
-              fontSize: '16px', 
-              fontWeight: 'bold', 
-              color: '#555', 
-              marginBottom: '8px', 
-              display: 'block' 
-            }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={user?.email || 'N/A'}
-              readOnly
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginBottom: '20px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: '#f0f0f0',
-                fontSize: '16px',
-                boxSizing: 'border-box',
-                color: '#333'
-              }}
-            />
-
-            <label style={{ 
-              fontSize: '16px', 
-              fontWeight: 'bold', 
-              color: '#555', 
-              marginBottom: '8px', 
-              display: 'block' 
-            }}>
-              Role(s)
-            </label>
-            <input
-              type="text"
-              value={getUserRoles()}
-              readOnly
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginBottom: '20px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: '#f0f0f0',
-                fontSize: '16px',
-                boxSizing: 'border-box',
-                color: '#333'
-              }}
-            />
-
-            <label style={{ 
-              fontSize: '16px', 
-              fontWeight: 'bold', 
-              color: '#555', 
-              marginBottom: '8px', 
-              display: 'block' 
-            }}>
-              User ID
-            </label>
-            <input
-              type="text"
-              value={user?.userID || 'N/A'}
-              readOnly
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginBottom: '20px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: '#f0f0f0',
-                fontSize: '16px',
-                boxSizing: 'border-box',
-                color: '#333'
-              }}
-            />
-
-            <label style={{ 
-              fontSize: '16px', 
-              fontWeight: 'bold', 
-              color: '#555', 
-              marginBottom: '8px', 
-              display: 'block' 
-            }}>
-              Account Created
-            </label>
-            <input
-              type="text"
-              value={user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              }) : 'N/A'}
-              readOnly
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginBottom: '20px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: '#f0f0f0',
-                fontSize: '16px',
-                boxSizing: 'border-box',
-                color: '#333'
-              }}
-            />
-          </div>
-        </div>
-      );
-    } else if (currentView === 'riwayat') {
-      return (
-        <div
-          style={{
-            flexGrow: 1,
-            padding: '40px',
-            backgroundColor: 'white',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflowY: 'auto',
-          }}
-        >
-          <h1 style={{ color: '#333', marginBottom: '20px' }}>Riwayat</h1>
-          <p style={{ color: '#666', textAlign: 'center', maxWidth: '500px' }}>
-            History/Riwayat functionality will be implemented here.
-          </p>
-        </div>
-      );
-    }
-  };
-
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      {/* Top Navigation Bar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '60px',
-          backgroundColor: '#3f51b5',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 20px',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          zIndex: 1000,
-        }}
-      >
-        <div style={{ fontSize: '24px', color: 'white', cursor: 'pointer' }} onClick={handleBackClick}>
-          &#x25C0;
-        </div>
-      </div>
-
-      {/* Main Content with Sidebar */}
-      <div style={{ display: 'flex', flexGrow: 1, marginTop: '60px' }}>
-        <SideProfile
-          onProfileClick={handleProfileClick}
-          onRiwayatClick={handleRiwayatClick}
-          onLogoutClick={handleLogoutClick}
+    <ThemeProvider theme={appTheme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex' }}>
+        <Sidebar
+          activeView="profile"
+          onMenuClick={handleMenuClick}
+          open={isSidebarOpen}
+          onClose={() => setSidebarOpen(false)}
         />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            transition: (theme) =>
+              theme.transitions.create('margin', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+              }),
+            marginLeft: `-${drawerWidth}px`,
+            ...(isSidebarOpen && {
+              transition: (theme) =>
+                theme.transitions.create('margin', {
+                  easing: theme.transitions.easing.easeOut,
+                  duration: theme.transitions.duration.enteringScreen,
+                }),
+              marginLeft: 0,
+            }),
+          }}
+        >
+          <Navbar
+            title={`My Profile (${user?.name || 'User'})`}
+            onMenuClick={handleSidebarToggle}
+          />
+          <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+            <Paper sx={{ p: { xs: 2, md: 4 }, borderRadius: 3, boxShadow: 3 }}>
+              <Stack spacing={4} alignItems="center">
+                <Avatar sx={{ width: 120, height: 120, fontSize: '3rem', bgcolor: 'primary.main' }}>
+                  {getUserInitials()}
+                </Avatar>
+                
+                <Box textAlign="center">
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        {user?.name || 'N/A'}
+                    </Typography>
+                     <Typography variant="h6" color="text.secondary">
+                        {getUserRoles()}
+                    </Typography>
+                </Box>
+                
+                <Divider sx={{ width: '100%' }} />
 
-        {renderMainContent()}
-      </div>
-    </div>
+                <Stack spacing={3} sx={{ width: '100%' }}>
+                  <TextField
+                    label="Full Name"
+                    value={user?.name || 'N/A'}
+                    variant="filled"
+                    InputProps={{ readOnly: true }}
+                  />
+                  <TextField
+                    label="Email Address"
+                    value={user?.email || 'N/A'}
+                    variant="filled"
+                    InputProps={{ readOnly: true }}
+                  />
+                  {/* === BAGIAN INI ADALAH TOTAL BOOKINGS === */}
+                  <TextField
+                    label="Total Bookings Made"
+                    value={isLoadingCount ? 'Loading...' : bookingCount}
+                    variant="filled"
+                    InputProps={{ readOnly: true }}
+                  />
+                  {/* ========================================================== */}
+                  <TextField
+                    label="Account Created"
+                    value={user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric', month: 'long', day: 'numeric'
+                    }) : 'N/A'}
+                    variant="filled"
+                    InputProps={{ readOnly: true }}
+                  />
+                </Stack>
+
+                <Button 
+                    variant="contained" 
+                    color="error" 
+                    startIcon={<Logout />}
+                    onClick={handleLogout}
+                    sx={{ mt: 2, px: 4, py: 1.5, borderRadius: 2 }}
+                >
+                    Logout
+                </Button>
+              </Stack>
+            </Paper>
+          </Container>
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 };
 

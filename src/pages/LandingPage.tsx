@@ -9,9 +9,10 @@ import {
   Container,
   CssBaseline,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
+  IconButton
 } from '@mui/material'
-import { Email, Lock } from '@mui/icons-material'
+import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material'
 import { ThemeProvider } from '@mui/material/styles'
 import { NotificationComponent } from '../components/ui'
 import {
@@ -26,8 +27,9 @@ import backgroundImage from '../assets/landing-page.jpg'
 function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
-  const { login, isLoading } = useAuth()
+  const { login, isLoginInProgress } = useAuth()
   const { notification, showNotification, hideNotification } = useNotification()
   const { handlePostLogin } = useNavigation()
 
@@ -134,7 +136,7 @@ function App() {
                   />
                   <TextField
                     fullWidth
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     label="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -146,6 +148,16 @@ function App() {
                           <Lock color="action" />
                         </InputAdornment>
                       ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
                     }}
                     sx={{ mb: 3 }}
                   />
@@ -154,8 +166,8 @@ function App() {
                       type="submit"
                       variant="contained"
                       size="large"
-                      disabled={isLoading}
-                      startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+                      disabled={isLoginInProgress}
+                      startIcon={isLoginInProgress ? <CircularProgress size={20} color="inherit" /> : null}
                       sx={{
                         py: 1.5,
                         borderRadius: 2,
@@ -167,7 +179,7 @@ function App() {
                         mb: 2
                       }}
                     >
-                      {isLoading ? 'Logging in...' : 'Login'}
+                      {isLoginInProgress ? 'Logging in...' : 'Login'}
                     </Button>
                   </Box>
                 </Box>
